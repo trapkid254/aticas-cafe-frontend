@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart - Aticas Cafe</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .cart-container { max-width: 800px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 16px rgba(0,0,0,0.08); padding: 32px 24px; }
+        .cart-title { text-align: center; font-size: 2.2rem; margin-bottom: 24px; font-weight: 700; color: #222; }
+        .cart-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+        .cart-table th, .cart-table td { padding: 12px 8px; text-align: center; }
+        .cart-table th { background: #f7f7f7; font-weight: 600; }
+        .cart-table td img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; }
+        .cart-table td .qty-input { width: 48px; padding: 4px; border-radius: 4px; border: 1px solid #ccc; text-align: center; }
+        .cart-table td .remove-btn { background: none; border: none; color: #e74c3c; font-size: 1.2rem; cursor: pointer; }
+        .cart-summary { text-align: right; margin-bottom: 24px; font-size: 1.1rem; }
+        .cart-summary strong { font-size: 1.3rem; color: #222; }
+        .payment-methods { display: flex; gap: 16px; justify-content: flex-end; }
+        .payment-methods .btn { padding: 10px 24px; border-radius: 6px; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        .payment-methods .btn:first-child { background: #25d366; color: #fff; }
+        .payment-methods .btn:last-child { background: #222; color: #fff; }
+        .cart-empty-box { text-align: center; padding: 48px 0; }
+        .cart-empty-box p { font-size: 1.2rem; color: #888; margin-bottom: 16px; }
+        .cart-empty-box .btn { background: #25d366; color: #fff; padding: 10px 24px; border-radius: 6px; border: none; font-size: 1rem; font-weight: 600; text-decoration: none; }
+        .mpesa-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            padding: 30px;
+            z-index: 9999;
+            border-radius: 8px;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.1);
+        }
+        .mpesa-content { text-align: center; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; }
+        .input-group input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .button-group { display: flex; justify-content: center; gap: 10px; }
+        .cancel-btn, .pay-btn { padding: 10px 20px; border: none; border-radius: 4px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        .cancel-btn { background: #ccc; color: #333; }
+        .pay-btn { background: #25d366; color: #fff; }
+    </style>
+</head>
+<body>
+    <nav class="navbar"></nav>
+    <div class="cart-container">
+        <h1 class="cart-title">Your Cart</h1>
+        <div id="cart-empty" class="cart-empty-box" style="display:none;">
+            <p>Your cart is empty.</p>
+            <a href="menu.html" class="btn">View Menu</a>
+        </div>
+        <div id="cart-section" style="display:none;">
+            <table class="cart-table">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Meal</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Subtotal</th>
+                        <th>Remove</th>
+                    </tr>
+                </thead>
+                <tbody id="cart-list"></tbody>
+            </table>
+            <div class="cart-summary">
+                <span>Total: <strong id="cart-total">Ksh 0.00</strong></span>
+            </div>
+            <div class="payment-methods">
+                <button id="pay-mpesa" class="btn"><i class="fas fa-mobile-alt"></i> Pay with Mpesa</button>
+                <button id="pay-cash" class="btn"><i class="fas fa-money-bill-wave"></i> Pay with Cash</button>
+            </div>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="social-icons">
+            <a href="#"><i class="fab fa-facebook"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-linkedin"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+        </div>
+        <p class="credits">Proudly built by <span>Delvin Opwoko A.</span></p>
+        <P><a href="tel">+254714003218</a></P>
+    </footer>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/navbar.js"></script>
+    <script src="js/mpesa.js"></script>
+    <script>
+    async function fetchCart() {
+        const user = getCurrentUser();
+        if (!user) return [];
+        const res = await fetch(`/api/cart?userId=${user.id}`);
+        return await res.json();
+    }
+    async function updateCartItem(itemId, quantity) {
+        const user = getCurrentUser();
+        if (!user) return;
+        await fetch('/api/cart/item', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id, itemId, quantity })
+        });
+    }
+    async function removeCartItem(itemId) {
+        const user = getCurrentUser();
+        if (!user) return;
+        await fetch('/api/cart/item', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id, itemId })
+        });
+    }
+    function getCartTotal(cart) {
+        return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    }
+    function generateOrderId() {
+        return 'ORDER-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+    }
+    async function createOrder(order) {
+        await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(order)
+        });
+    }
+    async function clearCart() {
+        const user = getCurrentUser();
+        if (!user) return;
+        await fetch(`/api/cart?userId=${user.id}`, { method: 'DELETE' });
+    }
+    async function renderCart() {
+        const cart = await fetchCart();
+        const cartEmptyDiv = document.getElementById('cart-empty');
+        const cartSection = document.getElementById('cart-section');
+        const cartList = document.getElementById('cart-list');
+        const cartTotal = document.getElementById('cart-total');
+        if (!cart || cart.length === 0) {
+            cartSection.style.display = 'none';
+            cartEmptyDiv.style.display = 'block';
+        } else {
+            cartSection.style.display = 'block';
+            cartEmptyDiv.style.display = 'none';
+            cartList.innerHTML = '';
+            let total = 0;
+            cart.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><img src="${item.image || 'images/meal1.jpg'}" alt="${item.name}"></td>
+                    <td>${item.name}</td>
+                    <td>Ksh ${item.price.toFixed(2)}</td>
+                    <td><input type="number" min="1" value="${item.quantity}" class="qty-input" data-id="${item.id}"></td>
+                    <td>Ksh ${(item.price * item.quantity).toFixed(2)}</td>
+                    <td><button class="remove-btn" data-id="${item.id}"><i class="fas fa-trash"></i></button></td>
+                `;
+                cartList.appendChild(tr);
+                total += item.price * item.quantity;
+            });
+            cartTotal.textContent = `Ksh ${total.toFixed(2)}`;
+            // Quantity change
+            cartList.querySelectorAll('.qty-input').forEach(input => {
+                input.addEventListener('change', async function() {
+                    const itemId = this.getAttribute('data-id');
+                    const qty = parseInt(this.value);
+                    if (qty > 0) {
+                        await updateCartItem(itemId, qty);
+                        renderCart();
+                        if (typeof updateCartCount === 'function') updateCartCount();
+                    }
+                });
+            });
+            // Remove item
+            cartList.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    const itemId = this.getAttribute('data-id');
+                    await removeCartItem(itemId);
+                    renderCart();
+                    if (typeof updateCartCount === 'function') updateCartCount();
+                });
+            });
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        renderCart();
+        document.getElementById('pay-mpesa').onclick = async function() {
+            console.log('Pay with Mpesa button clicked');
+            const cart = await fetchCart();
+            if (!cart || cart.length === 0) {
+                console.log('Cart is empty');
+                return;
+            }
+            const total = getCartTotal(cart);
+            const orderId = generateOrderId();
+            // Generate a unique ID for the phone input
+            const phoneInputId = 'mpesa-phone-' + Math.random().toString(36).substr(2, 6);
+            // Styled Mpesa popup
+            const popup = document.createElement('div');
+            popup.className = 'mpesa-popup';
+            popup.innerHTML = `
+                <div class="mpesa-content">
+                    <h3>Pay with M-Pesa</h3>
+                    <div class="input-group">
+                        <label for="${phoneInputId}">Enter M-Pesa Phone Number:</label>
+                        <input type="tel" id="${phoneInputId}" name="mpesa-phone" placeholder="e.g., 0712345678" required>
+                    </div>
+                    <div class="button-group">
+                        <button class="cancel-btn">Cancel</button>
+                        <button class="pay-btn">Pay Ksh ${total.toFixed(2)}</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(popup);
+            popup.querySelector('.cancel-btn').onclick = () => popup.remove();
+            popup.querySelector('.pay-btn').onclick = async () => {
+                console.log('Pay button in popup clicked');
+                const phone = popup.querySelector(`#${phoneInputId}`).value.trim();
+                if (!phone) { alert('Please enter your M-Pesa phone number.'); return; }
+                popup.remove();
+                console.log('Calling window.handleMpesaPayment', phone, total, orderId, typeof window.handleMpesaPayment);
+                if (typeof window.handleMpesaPayment === 'function') {
+                    await window.handleMpesaPayment(phone, total, orderId);
+                    await clearCart();
+                } else {
+                    alert('Mpesa payment function is not available.');
+                }
+            };
+        };
+        document.getElementById('pay-cash').onclick = async function() {
+            const cart = await fetchCart();
+            if (!cart || cart.length === 0) return;
+            const total = getCartTotal(cart);
+            const user = getCurrentUser();
+            const orderId = generateOrderId();
+            const order = {
+                orderId: orderId,
+                userId: user.id,
+                items: cart,
+                total: total,
+                status: 'pending',
+                paymentStatus: 'Pending',
+                paymentMethod: 'cash',
+                customerName: user.name,
+                customerPhone: user.phone,
+                timestamp: new Date().toISOString()
+            };
+            await createOrder(order);
+            await clearCart();
+            window.location.href = `order-confirmation.html?orderId=${orderId}&status=pending`;
+        };
+    });
+    </script>
+</body>
+</html> 

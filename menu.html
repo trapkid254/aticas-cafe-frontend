@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>www.aticascafe/menu.com</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar (same as index.html) -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <img src="images/aticas.png" alt="Cafeteria Logo" class="logo">
+            <span class="cafeteria-name">ATICAS CAFE'</span>
+        </div>
+        <div class="marquee">
+            <span>Welcome to <b>Aticas cafe'</b> - Your Hospitality Partner - Fresh and Tasty Meals All the Time - Open Mon - Sat from 6am - 12am</span>
+        </div>
+        <div class="navbar-right">
+            <a href="cart.html" class="cart-icon">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="cart-count">0</span>
+    </a>
+            <div class="hamburger-menu">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu (same as index.html) -->
+    <div class="mobile-menu">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="menu.html">Menu</a></li>
+            <li><a href="orders.html">My Orders</a></li>
+            <li><a href="contact.html">Contact</a></li>
+        </ul>
+    </div>
+
+    <!-- Menu Section -->
+    <section class="menu-section">
+        <h1>Our Menu</h1>
+        <div class="menu-filters">
+            <button class="filter-btn active" data-category="all">All</button>
+            <button class="filter-btn" data-category="breakfast">Breakfast</button>
+            <button class="filter-btn" data-category="lunch">Lunch</button>
+            <button class="filter-btn" data-category="dinner">Dinner</button>
+            <button class="filter-btn" data-category="drinks">Drinks & Beverages</button>
+        </div>
+        <div class="menu-items" id="menu-items">
+            <!-- Menu items will be loaded from JavaScript -->
+        </div>
+    </section>
+
+    <!-- Footer (same as index.html) -->
+    <footer class="footer">
+        <div class="social-icons">
+            <a href="#"><i class="fab fa-facebook"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-linkedin"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+        </div>
+        <p class="credits">Proudly built by <span>Delvin Opwoko A.</span></p>
+        <P><a href="tel">+254714003218</a></P>
+    </footer>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/navbar.js"></script>
+    <script src="js/marquee.js"></script>
+</body>
+</html>
