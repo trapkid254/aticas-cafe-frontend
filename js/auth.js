@@ -18,6 +18,7 @@ function removeToken() {
 
 // --- User State Management ---
 function setCurrentUser(user) {
+    console.log('Setting current user:', user);
     currentUser = user;
     sessionStorage.setItem('currentUser', JSON.stringify(user));
 }
@@ -76,6 +77,7 @@ async function handleLogin(event) {
 
     try {
         const response = await apiPost('/api/login', { phone, password });
+        console.log('Login response received:', response);
         saveToken(response.token);
         setCurrentUser(response.user);
         showPopup('Login successful!', 'success');
@@ -99,6 +101,7 @@ function handleLogout() {
 // --- UI and Initialization ---
 function updateAuthUI() {
     const user = getCurrentUser();
+    console.log('Updating UI for user:', user);
     const loginBtnContainer = document.getElementById('loginBtnContainer');
 
     if (loginBtnContainer) {
@@ -136,9 +139,11 @@ function updateAuthUI() {
 }
 
 async function initAuth() {
+    console.log('Initializing auth...');
     const token = getToken();
     if (token) {
         const user = getCurrentUser();
+        console.log('User from session storage:', user);
         if (user) {
             setCurrentUser(user);
         } else {
