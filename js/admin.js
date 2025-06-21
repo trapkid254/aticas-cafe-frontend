@@ -457,7 +457,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentPage = window.location.pathname.split('/').pop();
 
     if (currentPage === 'admin.html') {
-        loadDashboardStats();
         loadOrders();
         loadMealsOfTheDay();
     } else if (currentPage === 'menu-management.html') {
