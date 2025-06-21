@@ -518,6 +518,19 @@ document.addEventListener('DOMContentLoaded', () => {
         loadMealsOfTheDay();
     }
 
+    // by the initial state set in the HTML. We can trigger a click to be sure.
+    document.querySelector('.admin-nav li[data-tab="dashboard"]').click();
+
+    // Add event listeners for the 'Add' buttons
+    const addItemBtn = document.querySelector('.add-item-btn');
+    if (addItemBtn) {
+        addItemBtn.addEventListener('click', () => showAddMenuItemModal());
+    }
+
+    const addMealBtn = document.querySelector('.add-meal-btn');
+    if (addMealBtn) {
+        addMealBtn.addEventListener('click', () => showAddMealModal());
+    }
 });
 
 function checkAuth() {
