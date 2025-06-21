@@ -1,134 +1,140 @@
 // === GLOBAL SCOPE FUNCTIONS ===
-function loadMenuItems() {
-    console.log('Loading menu items');
-    const menuItems = JSON.parse(localStorage.getItem('menuItems')) || [];
-    const menuTable = document.getElementById('menu-table');
-    
-    if (!menuTable) {
-        console.log('Menu table not found - not on menu management page');
-        return;
-    }
+async function loadMenuItems() {
+    console.log('Loading menu items from API');
+    try {
+        const menuItems = await apiGet('/api/menuItems');
+        const menuTable = document.getElementById('menu-table');
+        
+        if (!menuTable) {
+            console.log('Menu table not found - not on menu management page');
+            return;
+        }
 
-    menuTable.innerHTML = `
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Image</th>
-                <th>Name</th>
-                <th>Price</th>
-                <th>Category</th>
-                <th>Available</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            ${menuItems.map(item => {
-                // Ensure all required properties have default values
-                const id = item?.id || 'N/A';
-                const name = item?.name || 'Unknown Item';
-                const price = item?.price || 0;
-                const category = item?.category || 'Uncategorized';
-                const available = item?.available ?? true;
-                const image = item?.image || null;
-
-                return `
+        menuTable.innerHTML = `
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Category</th>
+                    <th>Available</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${menuItems.map(item => `
                     <tr>
-                        <td>${id}</td>
-                        <td>${image ? `<img src="${image}" alt="${name}" style="width: 50px; height: 50px; object-fit: cover;">` : 'No Image'}</td>
-                        <td>${name}</td>
-                        <td>Ksh ${price.toFixed(2)}</td>
-                        <td>${category}</td>
-                        <td>${available ? 'Yes' : 'No'}</td>
+                        <td>${item.id || 'N/A'}</td>
+                        <td>${item.image ? `<img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; object-fit: cover;">` : 'No Image'}</td>
+                        <td>${item.name || 'Unknown Item'}</td>
+                        <td>Ksh ${item.price ? item.price.toFixed(2) : '0.00'}</td>
+                        <td>${item.category || 'Uncategorized'}</td>
+                        <td>${item.available ? 'Yes' : 'No'}</td>
                         <td>
-                            <button class="btn edit-item" data-id="${id}"><i class="fas fa-edit"></i></button>
-                            <button class="btn delete-item" data-id="${id}"><i class="fas fa-trash"></i></button>
+                            <button class="btn edit-item" data-id="${item.id}"><i class="fas fa-edit"></i></button>
+                            <button class="btn delete-item" data-id="${item.id}"><i class="fas fa-trash"></i></button>
                         </td>
                     </tr>
-                `;
-            }).join('')}
-        </tbody>
-    `;
+                `).join('')}
+            </tbody>
+        `;
 
-    // Add event listeners for edit and delete buttons
-    document.querySelectorAll('.edit-item').forEach(button => {
-        button.addEventListener('click', function() {
-            const itemId = this.getAttribute('data-id');
-            editMenuItem(itemId);
+        // Add event listeners for edit and delete buttons
+        document.querySelectorAll('.edit-item').forEach(button => {
+            button.addEventListener('click', function() {
+                const itemId = this.getAttribute('data-id');
+                editMenuItem(itemId);
+            });
         });
-    });
 
-    document.querySelectorAll('.delete-item').forEach(button => {
-        button.addEventListener('click', function() {
-            const itemId = this.getAttribute('data-id');
-            deleteMenuItem(itemId);
+        document.querySelectorAll('.delete-item').forEach(button => {
+            button.addEventListener('click', function() {
+                const itemId = this.getAttribute('data-id');
+                deleteMenuItem(itemId);
+            });
         });
-    });
+    } catch (error) {
+        console.error("Failed to load menu items:", error);
+        const menuTable = document.getElementById('menu-table');
+        if(menuTable) menuTable.innerHTML = "<tr><td colspan='7'>Error loading menu items.</td></tr>";
+    }
 }
 
-function loadOrders() {
-    const orders = JSON.parse(localStorage.getItem('orders')) || [];
-    const ordersTable = document.getElementById('orders-table');
-    const recentOrdersTable = document.getElementById('recent-orders-table');
-    if (ordersTable) {
-        ordersTable.innerHTML = '';
-        orders.forEach(order => {
-            const orderData = {
-                id: order.id || 'N/A',
-                customerName: order.customerName || 'Guest',
-                date: order.date || order.timestamp || new Date().toISOString(),
-                items: order.items || [],
-                total: order.total || 0,
-                status: order.status || 'pending',
-                paymentStatus: order.paymentStatus || 'Pending'
-            };
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${orderData.id}</td>
-                <td>${orderData.customerName}</td>
-                <td>${new Date(orderData.date).toLocaleString()}</td>
-                <td>${orderData.items.map(item => `${item.name || 'Unknown'} (${item.quantity || 0})`).join(', ')}</td>
-                <td>KES ${orderData.total.toFixed(2)}</td>
-                <td><span class="status ${orderData.status}">${orderData.status}</span></td>
-                <td><span class="payment-status ${orderData.paymentStatus}">${orderData.paymentStatus}</span></td>
-                <td>
-                    ${orderData.paymentStatus === 'Paid' ? 
-                        '<span class="paid-badge">Paid</span>' : 
-                        `<button class="btn update-status" data-id="${orderData.id}">Update Status</button>
-                         ${orderData.status === 'completed' ? 
-                            `<button class="btn mark-paid" data-id="${orderData.id}">Mark as Paid</button>` : 
-                            ''}`
-                    }
-                </td>
-            `;
-            ordersTable.appendChild(row);
-        });
+async function loadOrders() {
+    try {
+        const orders = await apiGet('/api/orders');
+        const ordersTable = document.getElementById('orders-table');
+        const recentOrdersTable = document.getElementById('recent-orders-table');
+        
+        if (ordersTable) {
+            const tableBody = ordersTable.querySelector('tbody') || ordersTable;
+            tableBody.innerHTML = ''; // Clear existing rows
+            orders.forEach(order => {
+                const orderData = {
+                    id: order.id || 'N/A',
+                    customerName: order.customerName || 'Guest',
+                    date: order.date || order.timestamp || new Date().toISOString(),
+                    items: order.items || [],
+                    total: order.total || 0,
+                    status: order.status || 'pending',
+                    paymentStatus: order.paymentStatus || 'Pending'
+                };
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${orderData.id}</td>
+                    <td>${orderData.customerName}</td>
+                    <td>${new Date(orderData.date).toLocaleString()}</td>
+                    <td>${orderData.items.map(item => `${item.name || 'Unknown'} (${item.quantity || 0})`).join(', ')}</td>
+                    <td>KES ${orderData.total.toFixed(2)}</td>
+                    <td><span class="status ${orderData.status}">${orderData.status}</span></td>
+                    <td><span class="payment-status ${orderData.paymentStatus}">${orderData.paymentStatus}</span></td>
+                    <td>
+                        ${orderData.paymentStatus === 'Paid' ? 
+                            '<span class="paid-badge">Paid</span>' : 
+                            `<button class="btn update-status" data-id="${orderData.id}">Update Status</button>
+                             ${orderData.status === 'completed' ? 
+                                `<button class="btn mark-paid" data-id="${orderData.id}">Mark as Paid</button>` : 
+                                ''}`
+                        }
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        if (recentOrdersTable) {
+            const tableBody = recentOrdersTable.querySelector('tbody') || recentOrdersTable;
+            tableBody.innerHTML = ''; // Clear existing rows
+            const recentOrders = orders.slice(-5).reverse();
+            recentOrders.forEach(order => {
+                const orderData = {
+                    id: order.id || 'N/A',
+                    customerName: order.customerName || 'Guest',
+                    items: order.items || [],
+                    total: order.total || 0,
+                    status: order.status || 'pending'
+                };
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${orderData.id}</td>
+                    <td>${orderData.customerName}</td>
+                    <td>${orderData.items.map(item => `${item.name || 'Unknown'} (${item.quantity || 0})`).join(', ')}</td>
+                    <td>KES ${orderData.total.toFixed(2)}</td>
+                    <td><span class="status ${orderData.status}">${orderData.status}</span></td>
+                    <td>
+                        <button class="btn view-details" data-id="${orderData.id}">View Details</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        updateDashboardStats(orders);
+    } catch (error) {
+        console.error("Failed to load orders:", error);
+        const ordersTable = document.getElementById('orders-table');
+        if(ordersTable) ordersTable.innerHTML = "<tr><td colspan='8'>Error loading orders.</td></tr>";
     }
-    if (recentOrdersTable) {
-        recentOrdersTable.innerHTML = '';
-        const recentOrders = orders.slice(-5).reverse();
-        recentOrders.forEach(order => {
-            const orderData = {
-                id: order.id || 'N/A',
-                customerName: order.customerName || 'Guest',
-                items: order.items || [],
-                total: order.total || 0,
-                status: order.status || 'pending'
-            };
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${orderData.id}</td>
-                <td>${orderData.customerName}</td>
-                <td>${orderData.items.map(item => `${item.name || 'Unknown'} (${item.quantity || 0})`).join(', ')}</td>
-                <td>KES ${orderData.total.toFixed(2)}</td>
-                <td><span class="status ${orderData.status}">${orderData.status}</span></td>
-                <td>
-                    <button class="btn view-details" data-id="${orderData.id}">View Details</button>
-                </td>
-            `;
-            recentOrdersTable.appendChild(row);
-        });
-    }
-    updateDashboardStats(orders);
 }
 
 function loadEmployees() {
@@ -227,8 +233,15 @@ function updateDashboardStats(orders) {
     document.getElementById('today-orders').textContent = todayOrders.length;
     document.getElementById('today-revenue').textContent = 'KES ' + 
         todayOrders.reduce((sum, order) => sum + (order.total || 0), 0).toFixed(2);
-    document.getElementById('menu-items-count').textContent = 
-        JSON.parse(localStorage.getItem('menuItems') || '[]').length;
+    
+    // Fetch menu items count from API instead of localStorage
+    apiGet('/api/menuItems').then(menuItems => {
+        document.getElementById('menu-items-count').textContent = menuItems.length;
+    }).catch(err => {
+        console.error("Could not fetch menu items count", err);
+        document.getElementById('menu-items-count').textContent = 'N/A';
+    });
+
     document.getElementById('pending-orders').textContent = 
         orders.filter(order => (order.status || 'pending') === 'pending').length;
 }
@@ -241,14 +254,6 @@ function loadDashboardStats() {
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Admin dashboard initializing...');
-    // Initialize menu items in localStorage if not exists
-    if (!localStorage.getItem('menuItems')) {
-        localStorage.setItem('menuItems', JSON.stringify([]));
-    }
-    if (!localStorage.getItem('mealsOfDay')) {
-        localStorage.setItem('mealsOfDay', JSON.stringify([]));
-    }
-
     // Initialize the page
     loadMenuItems();
     loadOrders();
@@ -296,6 +301,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load meals if we're on the menu tab
     if (document.querySelector('.admin-nav li[data-tab="menu"].active')) {
         loadMealsOfTheDay();
+    }
+
+    // Add Menu Item Form
+    const addMenuItemForm = document.getElementById('add-menu-item-form');
+    if (addMenuItemForm) {
+        addMenuItemForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const menuItem = {
+                id: document.getElementById('menu-item-id').value,
+                name: document.getElementById('menu-item-name').value,
+                price: parseFloat(document.getElementById('menu-item-price').value),
+                category: document.getElementById('menu-item-category').value,
+                description: document.getElementById('menu-item-description').value,
+                image: document.getElementById('menu-item-image-preview').src,
+                available: document.getElementById('menu-item-available').checked
+            };
+            saveMenuItem(menuItem);
+        });
     }
 });
 
@@ -468,16 +491,24 @@ function showAddMenuItemModal() {
         };
     }
 
-    function saveMenuItem(item) {
-        console.log('Saving menu item:', item);
-        const menuItems = JSON.parse(localStorage.getItem('menuItems')) || [];
-        menuItems.push(item);
-        localStorage.setItem('menuItems', JSON.stringify(menuItems));
-        
-        modal.remove();
-        loadMenuItems();
-        
-        showPopup('Menu item added successfully!', 'success');
+    async function saveMenuItem(item) {
+        try {
+            // If item has an ID, it's an update (PUT), otherwise it's a new item (POST)
+            if (item.id) {
+                await apiPut(`/api/menuItems/${item.id}`, item);
+                showPopup('Menu item updated successfully!', 'success');
+            } else {
+                // Remove id field so database can generate it
+                delete item.id; 
+                await apiPost('/api/menuItems', item);
+                showPopup('Menu item added successfully!', 'success');
+            }
+            closeModal('add-menu-item-modal');
+            loadMenuItems(); // Reload the list from the server
+        } catch (error) {
+            console.error('Error saving menu item:', error);
+            showError('Failed to save menu item. Please check the console for details.');
+        }
     }
 }
 
@@ -1098,14 +1129,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-function deleteMenuItem(id) {
-    console.log('Deleting menu item:', id);
+// DELETE FUNCTIONS
+async function deleteMenuItem(id) {
     if (confirm('Are you sure you want to delete this menu item?')) {
-        const menuItems = JSON.parse(localStorage.getItem('menuItems')) || [];
-        const updatedItems = menuItems.filter(item => item.id !== id);
-        localStorage.setItem('menuItems', JSON.stringify(updatedItems));
-        loadMenuItems();
-        showPopup('Menu item deleted successfully!', 'success');
+        try {
+            await apiDelete(`/api/menuItems/${id}`);
+            showPopup('Menu item deleted successfully!', 'success');
+            loadMenuItems(); // Reload the list from the server
+        } catch (error) {
+            console.error('Error deleting menu item:', error);
+            showError('Failed to delete menu item.');
+        }
     }
 }
 
@@ -1128,5 +1162,13 @@ async function apiPut(endpoint, data) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     });
+    return res.json();
+}
+async function apiDelete(endpoint) {
+    const res = await fetch(API_BASE_URL + endpoint, { method: 'DELETE' });
+    if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ message: res.statusText }));
+        throw new Error(errorData.message);
+    }
     return res.json();
 }

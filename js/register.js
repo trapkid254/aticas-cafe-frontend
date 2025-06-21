@@ -115,27 +115,9 @@ document.querySelectorAll('.toggle-password').forEach(button => {
     });
 });
 
-// Helper functions for API
-async function apiGet(endpoint) {
-    const res = await fetch(API_BASE + endpoint);
-    return res.json();
-}
-async function apiPost(endpoint, data) {
-    const res = await fetch(API_BASE + endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-    return res.json();
-}
-async function apiPut(endpoint, data) {
-    const res = await fetch(API_BASE + endpoint, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-    return res.json();
-}
+// NOTE: The helper functions below are now removed.
+// This script will rely on the global API helper functions
+// defined in 'auth.js', which must be loaded first.
 
 // Form submission
 form.addEventListener('submit', async function(e) {
@@ -153,45 +135,23 @@ form.addEventListener('submit', async function(e) {
     const isPasswordValid = validatePassword(password);
     const isConfirmPasswordValid = validateConfirmPassword(password, confirmPassword);
 
-    // Update requirement colors
-    nameRequirement.style.color = isNameValid ? '#4CAF50' : '#666';
-    phoneRequirement.style.color = isPhoneValid ? '#4CAF50' : '#666';
-    confirmPasswordRequirement.style.color = isConfirmPasswordValid ? '#4CAF50' : '#666';
-
-    // Check if all validations pass
     if (isNameValid && isPhoneValid && isPasswordValid && isConfirmPasswordValid) {
         try {
-            // Check if phone number already exists
-            const users = await apiGet('/api/users');
-            if (users.some(user => user.phone === phone)) {
-                showPopup('Phone number already registered', 'error');
-                return;
-            }
-
-            // Create new user
-            const newUser = {
-                name,
-                phone,
-                password,
-                dateCreated: new Date().toISOString(),
-                orders: [] // Initialize empty orders array
-            };
-
-            // Add user to array
-            await apiPost('/api/users', newUser);
-
-            // Show success message
-            showPopup('Account created successfully! Redirecting to login page...', 'success');
+            // Call the new, secure registration endpoint
+            const response = await apiPost('/api/register', { name, phone, password });
+            
+            showPopup(response.message || 'Account created successfully! Redirecting to login...', 'success');
 
             // Redirect to login page after a short delay
             setTimeout(() => {
                 window.location.href = 'login.html';
             }, 2000);
+
         } catch (error) {
             console.error('Error creating account:', error);
-            showPopup('Error creating account. Please try again.', 'error');
+            showPopup(error.message || 'Error creating account. Please try again.', 'error');
         }
     } else {
-        showPopup('Please fill all fields correctly', 'error');
+        showPopup('Please fill all fields correctly.', 'error');
     }
 }); 

@@ -3,8 +3,18 @@
     <div class="logo">
         <a href="index.html">FoodHub</a>
     </div>
-    <div class="menu-toggle">
-        <i class="fas fa-bars"></i>
+    <div class="navbar-right">
+        <a href="cart.html" class="cart-icon">
+            <i class="fas fa-shopping-cart"></i>
+            <span class="cart-count" id="cart-count">0</span>
+        </a>
+        <!-- This container will be populated by auth.js -->
+        <div id="loginBtnContainer" class="auth-element">
+            <a href="login.html" class="login-btn">Login</a>
+        </div>
+        <div class="hamburger-menu">
+            <i class="fas fa-bars"></i>
+        </div>
     </div>
     <ul class="nav-menu">
         <li><a href="index.html">Home</a></li>
@@ -12,7 +22,4 @@
         <li><a href="about.html">About</a></li>
         <li><a href="contact.html">Contact</a></li>
     </ul>
-    <div class="auth-buttons">
-        <!-- Auth buttons will be dynamically inserted here -->
-    </div>
 </nav> 

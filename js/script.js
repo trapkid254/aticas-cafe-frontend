@@ -18,31 +18,41 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Menu page functionality
     if (document.querySelector('.menu-items')) {
-        // Load menu items from localStorage (managed by admin)
-        let menuData = JSON.parse(localStorage.getItem('menuItems')) || [];
-        console.log('Menu page - Loaded menu items:', menuData);
+        // Load menu items from the backend API
+        async function loadAndDisplayMenu() {
+            try {
+                const menuData = await (await fetch(`${API_BASE_URL}/api/menuItems`)).json();
+                console.log('Menu page - Loaded menu items from API:', menuData);
+                
+                // Filter buttons
+                const filterButtons = document.querySelectorAll('.filter-btn');
+                filterButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        filterButtons.forEach(btn => btn.classList.remove('active'));
+                        this.classList.add('active');
+                        const category = this.getAttribute('data-category');
+                        const filteredItems = category === 'all' 
+                            ? menuData.filter(item => item.available) 
+                            : menuData.filter(item => item.category === category && item.available);
+                        console.log('Filtered items for category', category, ':', filteredItems);
+                        displayMenuItems(filteredItems, menuData); // Pass original menuData to find items later
+                    });
+                });
+                
+                // Display all available items initially
+                const availableItems = menuData.filter(item => item.available);
+                console.log('Initial available items:', availableItems);
+                displayMenuItems(availableItems, menuData); // Pass original menuData
+            } catch (error) {
+                console.error('Failed to load menu items from API:', error);
+                const menuContainer = document.getElementById('menu-items');
+                if(menuContainer) {
+                    menuContainer.innerHTML = '<p class="no-items">Could not load menu. Please try again later.</p>';
+                }
+            }
+        }
         
-        // Filter buttons
-        const filterButtons = document.querySelectorAll('.filter-btn');
-        filterButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                filterButtons.forEach(btn => btn.classList.remove('active'));
-                this.classList.add('active');
-                const category = this.getAttribute('data-category');
-                const filteredItems = category === 'all' 
-                    ? menuData.filter(item => item.available) 
-                    : menuData.filter(item => item.category === category && item.available);
-                console.log('Filtered items for category', category, ':', filteredItems);
-                displayMenuItems(filteredItems);
-            });
-        });
-        
-        // Display all available items initially
-        const availableItems = menuData.filter(item => item.available);
-        console.log('Initial available items:', availableItems);
-        displayMenuItems(availableItems);
-        
-        function displayMenuItems(items) {
+        function displayMenuItems(itemsToDisplay, allItems) {
             const menuContainer = document.getElementById('menu-items');
             if (!menuContainer) {
                 console.log('Menu container not found');
@@ -51,28 +61,22 @@ document.addEventListener('DOMContentLoaded', function() {
             
             menuContainer.innerHTML = '';
             
-            if (!items || items.length === 0) {
-                menuContainer.innerHTML = '<p class="no-items">No menu items available.</p>';
+            if (!itemsToDisplay || itemsToDisplay.length === 0) {
+                menuContainer.innerHTML = '<p class="no-items">No menu items available in this category.</p>';
                 return;
             }
             
-            items.forEach(item => {
-                // Ensure all required properties have default values
-                const id = item?.id || 'N/A';
-                const name = item?.name || 'Unknown Item';
-                const price = item?.price || 0;
-                const description = item?.description || '';
-                const image = item?.image || 'images/meal1.jpg';
-                
+            itemsToDisplay.forEach(item => {
+                // ... (rest of the display logic remains the same) ...
                 const menuItem = document.createElement('div');
                 menuItem.className = 'menu-item';
                 menuItem.innerHTML = `
-                    <img src="${image}" alt="${name}">
+                    <img src="${item.image || 'images/meal1.jpg'}" alt="${item.name || 'Unknown Item'}">
                     <div class="menu-item-content">
-                        <h3>${name}</h3>
-                        <p>${description}</p>
-                        <span class="price">Ksh ${price.toFixed(2)}</span>
-                        <button class="add-to-cart" data-id="${id}">Add to Cart</button>
+                        <h3>${item.name || 'Unknown Item'}</h3>
+                        <p>${item.description || ''}</p>
+                        <span class="price">Ksh ${item.price ? item.price.toFixed(2) : '0.00'}</span>
+                        <button class="add-to-cart" data-id="${item.id}">Add to Cart</button>
                     </div>
                 `;
                 menuContainer.appendChild(menuItem);
@@ -82,14 +86,20 @@ document.addEventListener('DOMContentLoaded', function() {
             menuContainer.querySelectorAll('.add-to-cart').forEach(button => {
                 button.addEventListener('click', function() {
                     const itemId = this.getAttribute('data-id');
-                    const item = items.find(i => i.id === itemId);
+                    const item = allItems.find(i => i.id === itemId); // Find from all items, not just filtered
                     if (item && typeof addToCart === 'function') {
                         addToCart(item);
                         showNotification('Added to cart!', 'success');
+                    } else {
+                        console.error('Could not find item to add to cart with id:', itemId);
+                        showNotification('Error: Could not add item to cart', 'error');
                     }
                 });
             });
         }
+
+        // Initial call to load the menu
+        loadAndDisplayMenu();
     }
     
     // Notification system

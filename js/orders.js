@@ -128,24 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
     displayOrders();
 });
 
-// Helper functions for API
-async function apiGet(endpoint) {
-    const res = await fetch(endpoint);
-    return res.json();
-}
-async function apiPost(endpoint, data) {
-    const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-    return res.json();
-}
-async function apiPut(endpoint, data) {
-    const res = await fetch(endpoint, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-    return res.json();
-} 
+// NOTE: The helper functions below are now removed.
+// This script will rely on the global API helper functions
+// defined in 'auth.js', which must be loaded first.

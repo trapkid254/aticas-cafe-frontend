@@ -91,15 +91,17 @@ async function updateCartCount() {
     const user = getCurrentUser && getCurrentUser();
     const cartCount = document.getElementById('cart-count');
     if (!user || !cartCount) {
-        cartCount.textContent = 0;
+        if (cartCount) cartCount.textContent = 0;
         return;
     }
     try {
-        const res = await fetch(`/api/cart?userId=${user.id}`);
-        const cart = await res.json();
-        cartCount.textContent = cart.length;
+        const res = await fetch(`${API_BASE_URL}/api/cart?userId=${user.id}`);
+        const cartItems = await res.json();
+        // The cart count should be the sum of quantities, not just the number of items
+        const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+        cartCount.textContent = totalItems;
     } catch (e) {
-        cartCount.textContent = 0;
+        if (cartCount) cartCount.textContent = 0;
     }
 }
 

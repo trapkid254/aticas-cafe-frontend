@@ -1,314 +1,148 @@
-// Initialize localStorage if not exists
-function initializeLocalStorage() {
-    if (!localStorage.getItem('users')) {
-        localStorage.setItem('users', JSON.stringify([]));
-    }
-    if (!localStorage.getItem('currentUser')) {
-        localStorage.setItem('currentUser', null);
-    }
+// This script is the central hub for authentication.
+// It manages the auth token and user state for the entire application.
+
+let currentUser = null;
+
+// --- Token Management ---
+function saveToken(token) {
+    localStorage.setItem('authToken', token);
 }
 
-// Check if user is logged in
-function isLoggedIn() {
-    return localStorage.getItem('currentUser') !== null && localStorage.getItem('currentUser') !== 'null';
+function getToken() {
+    return localStorage.getItem('authToken');
 }
 
-// Get current user
+function removeToken() {
+    localStorage.removeItem('authToken');
+}
+
+// --- User State Management ---
+function setCurrentUser(user) {
+    currentUser = user;
+    sessionStorage.setItem('currentUser', JSON.stringify(user));
+}
+
 function getCurrentUser() {
-    const user = localStorage.getItem('currentUser');
-    return user && user !== 'null' ? JSON.parse(user) : null;
+    if (currentUser) {
+        return currentUser;
+    }
+    try {
+        const user = sessionStorage.getItem('currentUser');
+        return user ? JSON.parse(user) : null;
+    } catch (e) {
+        return null;
+    }
 }
 
-// Helper functions for API
-async function apiGet(endpoint) {
-    const res = await fetch(API_BASE + endpoint);
-    return res.json();
-}
+// --- API Helpers with Authorization Header ---
 async function apiPost(endpoint, data) {
-    const res = await fetch(API_BASE + endpoint, {
+    const token = getToken();
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+    const res = await fetch(API_BASE_URL + endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: headers,
         body: JSON.stringify(data)
     });
-    return res.json();
-}
-async function apiPut(endpoint, data) {
-    const res = await fetch(API_BASE + endpoint, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-    return res.json();
+
+    const responseData = await res.json();
+    if (!res.ok) {
+        throw new Error(responseData.message || 'An unknown error occurred');
+    }
+    return responseData;
 }
 
-// Save user to server
-async function saveUser(user) {
+async function apiGet(endpoint) {
+    const token = getToken();
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+    const res = await fetch(API_BASE_URL + endpoint, { headers });
+    const responseData = await res.json();
+    if (!res.ok) {
+        throw new Error(responseData.message || 'An unknown error occurred');
+    }
+    return responseData;
+}
+
+// --- Core Auth Functions ---
+async function handleLogin(event) {
+    event.preventDefault();
+    const phone = document.getElementById('phone').value;
+    const password = document.getElementById('password').value;
+
     try {
-        await apiPost('/api/users', user);
-        return true;
+        const response = await apiPost('/api/login', { phone, password });
+        saveToken(response.token);
+        setCurrentUser(response.user);
+        showPopup('Login successful!', 'success');
+        const redirectUrl = sessionStorage.getItem('redirectUrl') || 'index.html';
+        sessionStorage.removeItem('redirectUrl');
+        window.location.href = redirectUrl;
     } catch (error) {
-        console.error('Error saving user:', error);
-        return false;
+        removeToken();
+        showPopup(error.message || 'Invalid credentials.', 'error');
     }
 }
 
-// Update current user on server (overwrite all currentUser data)
-async function updateCurrentUser(user) {
-    try {
-        await apiPut('/api/currentUser', [user]);
-        return true;
-    } catch (error) {
-        console.error('Error updating current user:', error);
-        return false;
-    }
-}
-
-// Get the login form
-const loginForm = document.getElementById('loginForm');
-
-// Get the redirect URL from sessionStorage if it exists
-const redirectUrl = sessionStorage.getItem('redirectUrl') || 'index.html';
-
-// Show popup notification
-function showPopup(message, type = 'info') {
-    // Create notification container if it doesn't exist
-    let container = document.getElementById('notification-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'notification-container';
-        document.body.appendChild(container);
-    }
-
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = `
-        <div class="notification-content">
-            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
-            <span>${message}</span>
-        </div>
-        <div class="notification-progress"></div>
-    `;
-
-    // Add to container
-    container.appendChild(notification);
-
-    // Trigger animation
-    setTimeout(() => notification.classList.add('show'), 100);
-
-    // Remove after 3 seconds
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
-
-// Handle login button click
-function handleLogin(event) {
-    if (event) event.preventDefault();
-    window.location.href = 'login.html';
-}
-
-// Handle logout
 function handleLogout() {
-    try {
-        localStorage.removeItem('currentUser');
-        showPopup('Logged out successfully', 'success');
-        updateLoginButton();
-        setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 1000);
-    } catch (error) {
-        console.error('Error during logout:', error);
-        showPopup('Error during logout', 'error');
-    }
+    removeToken();
+    currentUser = null;
+    sessionStorage.removeItem('currentUser');
+    updateAuthUI();
+    showPopup('Logged out successfully.', 'success');
+    window.location.href = 'index.html';
 }
 
-// Update login button based on auth state
-function updateLoginButton() {
-    const loginBtn = document.getElementById('loginBtn');
-    if (!loginBtn) return;
-
-    const isLoggedIn = localStorage.getItem('currentUser') !== null && localStorage.getItem('currentUser') !== 'null';
-    const currentUser = isLoggedIn ? JSON.parse(localStorage.getItem('currentUser')) : null;
-    
-    if (isLoggedIn && currentUser) {
-        loginBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i><span>Logout</span>';
-        loginBtn.onclick = handleLogout;
-    } else {
-        loginBtn.innerHTML = '<i class="fas fa-user"></i><span>Login</span>';
-        loginBtn.onclick = handleLogin;
-    }
-}
-
-// Initialize auth functionality
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize localStorage
-    initializeLocalStorage();
-    
-    // Update login button state
-    updateLoginButton();
-    
-    // Add event listeners if elements exist
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const phone = document.getElementById('phone').value;
-            const password = document.getElementById('password').value;
-            try {
-                // Get users from backend
-                const users = await apiGet('/api/users');
-                // Find user with matching phone number
-                const user = users.find(u => u.phone === phone);
-                if (user && user.password === password) {
-                    // Store current user (optional: update server-side session)
-                    const currentUser = {
-                        id: user.id,
-                        name: user.name,
-                        phone: user.phone,
-                        role: user.role
-                    };
-                    // Set current user in localStorage for UI state
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                    // Optionally update current user on server
-                    // await apiPut('/api/currentUser', [currentUser]);
-                    showPopup('Login successful!', 'success');
-                    updateLoginButton();
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 1000);
-                } else {
-                    showPopup('Invalid phone number or password', 'error');
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                showPopup('Error during login', 'error');
-            }
-        });
-    }
-    
-    const registerForm = document.getElementById('register-form');
-    if (registerForm) {
-        registerForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const name = document.getElementById('name').value;
-            const phone = document.getElementById('phone').value;
-            const password = document.getElementById('password').value;
-            
-            try {
-                // Get existing users
-                const users = JSON.parse(localStorage.getItem('users')) || [];
-                
-                // Check if phone already exists
-                if (users.some(user => user.phone === phone)) {
-                    showPopup('Phone number already registered', 'error');
-                    return;
-                }
-                
-                // Create new user
-                const newUser = {
-                    id: Date.now().toString(),
-                    name,
-                    phone,
-                    password,
-                    role: 'user',
-                    dateCreated: new Date().toISOString()
-                };
-                
-                // Save user
-                if (saveUser(newUser)) {
-                    // Auto login
-                    const currentUser = {
-                        id: newUser.id,
-                        name: newUser.name,
-                        phone: newUser.phone,
-                        role: newUser.role
-                    };
-                    
-                    if (updateCurrentUser(currentUser)) {
-                        showPopup('Registration successful!', 'success');
-                        
-                        // Update UI and redirect
-                        updateLoginButton();
-                        setTimeout(() => {
-                            window.location.href = 'index.html';
-                        }, 1000);
-                    } else {
-                        showPopup('Error saving login state', 'error');
-                    }
-                } else {
-                    showPopup('Error saving user data', 'error');
-                }
-            } catch (error) {
-                console.error('Registration error:', error);
-                showPopup('Error during registration', 'error');
-            }
-        });
-    }
-});
-
-// Password visibility toggle
-document.querySelectorAll('.toggle-password').forEach(button => {
-    button.addEventListener('click', function() {
-        const input = this.previousElementSibling;
-        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-        input.setAttribute('type', type);
-        
-        // Toggle eye icon
-        this.querySelector('i').classList.toggle('fa-eye');
-        this.querySelector('i').classList.toggle('fa-eye-slash');
-    });
-});
-
-// Check authentication on orders page
-if (window.location.pathname.includes('orders.html')) {
-    if (!isLoggedIn()) {
-        // Store current URL to redirect back after login
-        localStorage.setItem('redirectUrl', 'orders.html');
-        // Redirect to login page
-        window.location.href = 'login.html';
-    }
-}
-
-// Auth state management
-let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
-
-// Update UI based on auth state
+// --- UI and Initialization ---
 function updateAuthUI() {
-    const authLink = document.querySelector('.auth-link');
-    const userMenu = document.querySelector('.user-menu');
-    
-    if (authLink) {
-        if (currentUser) {
-            authLink.textContent = currentUser.name;
-            authLink.href = '#';
-            if (userMenu) {
-                userMenu.style.display = 'block';
-            }
+    const user = getCurrentUser();
+    const loginBtnContainer = document.getElementById('loginBtnContainer');
+
+    if (loginBtnContainer) {
+        if (user) {
+            loginBtnContainer.innerHTML = `
+                <span class="user-greeting">Hi, ${user.name}</span>
+                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+            `;
         } else {
-            authLink.textContent = 'Login';
-            authLink.href = 'login.html';
-            if (userMenu) {
-                userMenu.style.display = 'none';
-            }
+            loginBtnContainer.innerHTML = `<a href="login.html" class="login-btn">Login</a>`;
         }
     }
-}
-
-// Show notification
-function showNotification(message, type = 'info') {
-    console.log('Showing notification:', message);
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
-    const container = document.getElementById('notification-container');
-    if (container) {
-        container.appendChild(notification);
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
+    
+    if (typeof updateCartCount === 'function') {
+        updateCartCount();
     }
 }
 
-window.getCurrentUser = getCurrentUser;
+async function initAuth() {
+    const token = getToken();
+    if (token) {
+        const user = getCurrentUser();
+        if (user) {
+            setCurrentUser(user);
+        } else {
+            // If there's a token but no user in session, it's safer to log out.
+            handleLogout();
+        }
+    }
+    updateAuthUI();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initAuth();
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
+});
+
+// A generic popup function, assuming one is not defined elsewhere
+function showPopup(message, type = 'info') {
+    console.log(`[${type.toUpperCase()}] POPUP: ${message}`);
+    // Replace this with your actual notification system if you have one.
+    alert(message);
+}
