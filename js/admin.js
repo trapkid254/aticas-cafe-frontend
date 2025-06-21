@@ -434,6 +434,61 @@ async function deleteMealOfDay(id) {
     }
 }
 
+function initializeTabNavigation() {
+    const tabs = document.querySelectorAll('.admin-nav li[data-tab]');
+    const contents = document.querySelectorAll('.admin-content');
+    const title = document.getElementById('admin-page-title');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const targetId = tab.getAttribute('data-tab');
+            const targetContent = document.getElementById(`${targetId}-tab`);
+
+            // Update active tab
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            // Update active content
+            contents.forEach(c => c.classList.remove('active'));
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+
+            // Update page title
+            if (title) {
+                title.textContent = tab.textContent;
+            }
+
+            // Load content for the new tab
+            switch (targetId) {
+                case 'dashboard':
+                    loadOrders();
+                    loadMealsOfTheDay();
+                    break;
+                case 'menu':
+                    loadMenuItems();
+                    loadMealsOfTheDay();
+                    break;
+                case 'orders':
+                    loadOrders();
+                    break;
+                case 'employees':
+                    // Assuming you have a loadEmployees function
+                    if (typeof loadEmployees === 'function') loadEmployees();
+                    break;
+                case 'payments':
+                     if (typeof loadPayments === 'function') loadPayments();
+                    break;
+                case 'reports':
+                    if (typeof initializeReports === 'function') initializeReports();
+                    break;
+                case 'admins':
+                    if (typeof loadAdmins === 'function') loadAdmins();
+                    break;
+            }
+        });
+    });
+}
 
 // MAIN INITIALIZATION
 document.addEventListener('DOMContentLoaded', () => {
@@ -454,42 +509,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    initializeTabNavigation();
+
     const currentPage = window.location.pathname.split('/').pop();
 
     if (currentPage === 'admin.html') {
         loadOrders();
         loadMealsOfTheDay();
-    } else if (currentPage === 'menu-management.html') {
-        loadMenuItems();
-        const addItemBtn = document.getElementById('add-item-btn');
-        if (addItemBtn) {
-            addItemBtn.addEventListener('click', () => showAddMenuItemModal());
-        }
-    } else if (currentPage === 'order-management.html') {
-        loadOrders();
-    } else if (currentPage === 'employee-management.html') {
-        loadEmployees();
-    } else if (currentPage === 'admin-management.html') {
-        loadAdmins();
-    } else if (currentPage === 'reports.html') {
-        initializeReports();
-    } else if (currentPage === 'payments.html') {
-        loadPayments();
     }
-    
-    // Generic modal close functionality
-    document.querySelectorAll('.modal .close').forEach(button => {
-        button.addEventListener('click', () => {
-            button.closest('.modal').style.display = 'none';
-        });
-    });
-
-    // Handle clicks outside of modals
-    window.addEventListener('click', (event) => {
-        if (event.target.classList.contains('modal')) {
-            event.target.style.display = 'none';
-        }
-    });
 
 });
 
