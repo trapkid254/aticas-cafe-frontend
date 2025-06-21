@@ -17,10 +17,12 @@ function injectNavbar() {
                 <i class="fas fa-shopping-cart"></i>
                 <span class="cart-count" id="cart-count">0</span>
             </a>
-            <a href="#" class="login-btn" id="loginBtn" style="margin-right: 15px; text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 5px; transition: background-color 0.3s;">
-                <i class="fas fa-user"></i>
-                <span>Login</span>
-            </a>
+            <div id="loginBtnContainer">
+                <a href="login.html" class="login-btn" id="loginBtn" style="margin-right: 15px; text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 5px; transition: background-color 0.3s;">
+                    <i class="fas fa-user"></i>
+                    <span>Login</span>
+                </a>
+            </div>
             <div class="hamburger-menu">
                 <i class="fas fa-bars"></i>
             </div>

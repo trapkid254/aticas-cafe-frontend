@@ -93,7 +93,6 @@ function handleLogout() {
     currentUser = null;
     sessionStorage.removeItem('currentUser');
     updateAuthUI();
-    showPopup('Logged out successfully.', 'success');
     window.location.href = 'index.html';
 }
 
@@ -105,11 +104,29 @@ function updateAuthUI() {
     if (loginBtnContainer) {
         if (user) {
             loginBtnContainer.innerHTML = `
-                <span class="user-greeting">Hi, ${user.name}</span>
-                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+                <a href="#" class="login-btn" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                    <i class="fas fa-user-check"></i>
+                    <span id="user-greeting">Hi, ${user.name}</span>
+                </a>
+                <a href="#" id="logoutBtn" class="login-btn" style="margin-left: 10px; text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
             `;
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    handleLogout();
+                });
+            }
         } else {
-            loginBtnContainer.innerHTML = `<a href="login.html" class="login-btn">Login</a>`;
+            loginBtnContainer.innerHTML = `
+                <a href="login.html" class="login-btn" id="loginBtn" style="margin-right: 15px; text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 5px; transition: background-color 0.3s;">
+                    <i class="fas fa-user"></i>
+                    <span>Login</span>
+                </a>
+            `;
         }
     }
     
