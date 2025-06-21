@@ -137,91 +137,97 @@ async function loadOrders() {
     }
 }
 
-function loadEmployees() {
-    const employees = JSON.parse(localStorage.getItem('employees')) || [];
-    const employeesTable = document.getElementById('employees-table');
+async function loadEmployees() {
+    const employeesTable = document.getElementById('employees-table').querySelector('tbody');
     if (!employeesTable) return;
-    employeesTable.innerHTML = '';
-    employees.forEach(employee => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${employee.id}</td>
-            <td>${employee.name}</td>
-            <td>${employee.phone}</td>
-            <td>${employee.role}</td>
-            <td>${employee.status || 'Active'}</td>
-            <td>
-                <button class="btn edit-employee" data-id="${employee.id}"><i class="fas fa-edit"></i></button>
-                <button class="btn delete-employee" data-id="${employee.id}"><i class="fas fa-trash"></i></button>
-            </td>
-        `;
-        employeesTable.appendChild(row);
-    });
-    document.querySelectorAll('.edit-employee').forEach(button => {
-        button.addEventListener('click', function() {
-            const employeeId = this.getAttribute('data-id');
-            editEmployee(employeeId);
-        });
-    });
-    document.querySelectorAll('.delete-employee').forEach(button => {
-        button.addEventListener('click', function() {
-            const employeeId = this.getAttribute('data-id');
-            deleteEmployee(employeeId);
-        });
-    });
+    try {
+        const employees = await apiGet('/api/employees');
+        if (employees.length === 0) {
+            employeesTable.innerHTML = '<tr><td colspan="6">No employees found.</td></tr>';
+            return;
+        }
+        employeesTable.innerHTML = employees.map(emp => `
+            <tr id="emp-${emp.id}">
+                <td>${emp.id}</td>
+                <td>${emp.name}</td>
+                <td>${emp.role}</td>
+                <td>${emp.email}</td>
+                <td>${emp.phone}</td>
+                <td>
+                    <button class="btn btn-sm btn-edit" onclick="editEmployee('${emp.id}')"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-sm btn-delete" onclick="deleteEmployee('${emp.id}')"><i class="fas fa-trash"></i></button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        employeesTable.innerHTML = '<tr><td colspan="6">Error loading employees.</td></tr>';
+        console.error('Error loading employees:', error);
+        showPopup(`Error: ${error.message}`, 'error');
+    }
 }
 
-function loadAdmins() {
-    const admins = JSON.parse(localStorage.getItem('admins')) || [];
-    const adminsTable = document.getElementById('admins-table');
+async function loadAdmins() {
+    const adminsTable = document.getElementById('admins-table').querySelector('tbody');
     if (!adminsTable) return;
-    adminsTable.innerHTML = '';
-    admins.forEach(admin => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${admin.id}</td>
-            <td>${admin.name}</td>
-            <td>${admin.email}</td>
-            <td>${admin.role}</td>
-            <td>${admin.status || 'Active'}</td>
-            <td>
-                <button class="btn edit-admin" data-id="${admin.id}"><i class="fas fa-edit"></i></button>
-                <button class="btn delete-admin" data-id="${admin.id}"><i class="fas fa-trash"></i></button>
-            </td>
-        `;
-        adminsTable.appendChild(row);
-    });
-    document.querySelectorAll('.edit-admin').forEach(button => {
-        button.addEventListener('click', function() {
-            const adminId = this.getAttribute('data-id');
-            editAdmin(adminId);
-        });
-    });
-    document.querySelectorAll('.delete-admin').forEach(button => {
-        button.addEventListener('click', function() {
-            const adminId = this.getAttribute('data-id');
-            deleteAdmin(adminId);
-        });
-    });
+    try {
+        const users = await apiGet('/api/users');
+        adminsTable.innerHTML = users.map(user => `
+            <tr id="user-${user.id}">
+                <td>${user.id}</td>
+                <td>${user.username}</td>
+                <td>${user.email}</td>
+                <td><span class="role-badge role-${user.role}">${user.role}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-edit" onclick="editAdmin('${user.id}')"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-sm btn-delete" onclick="deleteAdmin('${user.id}')"><i class="fas fa-trash"></i></button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        adminsTable.innerHTML = `<tr><td colspan="5">Error loading users: ${error.message}</td></tr>`;
+        console.error('Error loading users:', error);
+    }
 }
 
+let salesChart = null; // To hold the chart instance
+
+function setupReports() {
+    console.log('Reports tab loaded');
+    const reportTypeSelect = document.getElementById('report-type');
+    const customDateRange = document.getElementById('custom-date-range');
+    
+    reportTypeSelect.addEventListener('change', () => {
+        if (reportTypeSelect.value === 'custom') {
+            customDateRange.style.display = 'block';
+        } else {
+            customDateRange.style.display = 'none';
 function loadPayments() {
-    const payments = JSON.parse(localStorage.getItem('payments')) || [];
     const paymentsTable = document.getElementById('payments-table');
     if (!paymentsTable) return;
-    paymentsTable.innerHTML = '';
-    payments.forEach(payment => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${payment.id}</td>
-            <td>${payment.orderId}</td>
-            <td>${payment.amount}</td>
-            <td>${payment.status}</td>
-            <td>${payment.method}</td>
-            <td>${payment.date ? new Date(payment.date).toLocaleString() : ''}</td>
-        `;
-        paymentsTable.appendChild(row);
-    });
+    try {
+        const orders = await apiGet('/api/orders');
+        const completedOrders = orders.filter(o => o.status === 'Completed');
+
+        if (completedOrders.length === 0) {
+            paymentsTable.innerHTML = '<tr><td colspan="6">No completed payments found.</td></tr>';
+            return;
+        }
+
+        paymentsTable.innerHTML = completedOrders.map(order => `
+            <tr>
+                <td>${order.mpesaReceiptCode || 'N/A'}</td>
+                <td>${order.id}</td>
+                <td>${new Date(order.date).toLocaleDateString()}</td>
+                <td>KES ${order.total.toFixed(2)}</td>
+                <td>${order.paymentMethod}</td>
+                <td><span class="status-completed">${order.status}</span></td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        paymentsTable.innerHTML = '<tr><td colspan="6">Error loading payments.</td></tr>';
+        console.error('Error loading payments:', error);
+        showPopup(`Error: ${error.message}`, 'error');
+    }
 }
 
 function updateDashboardStats(orders) {
@@ -323,30 +329,20 @@ function showAddMenuItemModal(item = null) {
     form.onsubmit = async (e) => {
         e.preventDefault();
         const formData = new FormData(form);
-        const menuItem = {
-            id: formData.get('itemId'),
-            name: formData.get('itemName'),
-            price: parseFloat(formData.get('itemPrice')),
-            category: formData.get('itemCategory'),
-            image: formData.get('itemImage'),
-            available: formData.get('itemAvailable') === 'on'
-        };
-
-        await saveMenuItem(menuItem);
+        await saveMenuItem(formData);
         modal.style.display = 'none';
         loadMenuItems();
     };
 }
 
-async function saveMenuItem(item) {
+async function saveMenuItem(formData) {
     try {
+        const itemId = formData.get('itemId');
         let savedItem;
-        if (item.id) {
-            savedItem = await apiPut(`/api/menuItems/${item.id}`, item);
+        if (itemId) {
+            savedItem = await apiPutFormData(`/api/menuItems/${itemId}`, formData);
         } else {
-            // Create a new ID for the item before saving
-            item.id = `menu-${Date.now()}`;
-            savedItem = await apiPost('/api/menuItems', item);
+            savedItem = await apiPostFormData('/api/menuItems', formData);
         }
         showPopup('Menu item saved successfully!', 'success');
         return savedItem;
@@ -383,26 +379,19 @@ function showAddMealModal(meal = null) {
     form.onsubmit = async (e) => {
         e.preventDefault();
         const formData = new FormData(form);
-        const mealData = {
-            id: formData.get('mealId'),
-            name: formData.get('mealName'),
-            description: formData.get('mealDescription'),
-            price: parseFloat(formData.get('mealPrice')),
-            image: formData.get('mealImage')
-        };
-        await saveMeal(mealData);
+        await saveMeal(formData);
         modal.style.display = 'none';
         loadMealsOfTheDay();
     };
 }
 
-async function saveMeal(meal) {
+async function saveMeal(formData) {
     try {
-        if (meal.id) {
-            await apiPut(`/api/mealsOfDay/${meal.id}`, meal);
+        const mealId = formData.get('mealId');
+        if (mealId) {
+            await apiPutFormData(`/api/mealsOfDay/${mealId}`, formData);
         } else {
-            meal.id = `meal-${Date.now()}`;
-            await apiPost('/api/mealsOfDay', meal);
+            await apiPostFormData('/api/mealsOfDay', formData);
         }
         showPopup('Meal of the day saved!', 'success');
     } catch (error) {
@@ -477,10 +466,10 @@ function initializeTabNavigation() {
                     if (typeof loadEmployees === 'function') loadEmployees();
                     break;
                 case 'payments':
-                     if (typeof loadPayments === 'function') loadPayments();
+                    loadPayments();
                     break;
                 case 'reports':
-                    if (typeof initializeReports === 'function') initializeReports();
+                    setupReports();
                     break;
                 case 'admins':
                     if (typeof loadAdmins === 'function') loadAdmins();
@@ -531,6 +520,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (addMealBtn) {
         addMealBtn.addEventListener('click', () => showAddMealModal());
     }
+
+    setupEmployeeModal();
+    setupAdminModal();
 });
 
 function checkAuth() {
@@ -578,12 +570,72 @@ function addAdmin() {
     // ... needs migration to API
 }
 
-function editAdmin(id) {
-    // ... needs migration to API
+async function saveAdmin(event) {
+    event.preventDefault();
+    const form = event.target;
+    const adminId = form.querySelector('#adminId').value;
+    const password = form.querySelector('#adminPassword').value;
+    const adminData = {
+        username: form.querySelector('#adminName').value,
+        email: form.querySelector('#adminEmail').value,
+        role: form.querySelector('#adminRole').value,
+    };
+    if (password) {
+        adminData.password = password;
+    }
+
+    try {
+        if (adminId) {
+            await apiPut(`/api/users/${adminId}`, adminData);
+            showPopup('User updated successfully!', 'success');
+        } else {
+            if (!password) {
+                showPopup('Password is required for new users.', 'error');
+                return;
+            }
+            await apiPost('/api/users', adminData);
+            showPopup('User created successfully!', 'success');
+        }
+        document.getElementById('add-admin-modal').style.display = 'none';
+        loadAdmins();
+    } catch (error) {
+        console.error('Error saving user:', error);
+        showPopup(`Error saving user: ${error.message}`, 'error');
+    }
 }
 
-function deleteAdmin(id) {
-    // ... needs migration to API
+async function editAdmin(userId) {
+    try {
+        const user = await apiGet(`/api/users/${userId}`);
+        if (!user) {
+            showPopup('User not found.', 'error');
+            return;
+        }
+        const modal = document.getElementById('add-admin-modal');
+        const form = document.getElementById('add-admin-form');
+        modal.querySelector('#admin-modal-title').textContent = 'Edit User';
+        form.querySelector('#adminId').value = user.id;
+        form.querySelector('#adminName').value = user.username;
+        form.querySelector('#adminEmail').value = user.email;
+        form.querySelector('#adminRole').value = user.role;
+        form.querySelector('#adminPassword').value = '';
+        modal.style.display = 'block';
+    } catch (error) {
+        console.error('Error fetching user for edit:', error);
+        showPopup(`Error: ${error.message}`, 'error');
+    }
+}
+
+async function deleteAdmin(userId) {
+    if (!confirm('Are you sure you want to delete this user? This is irreversible.')) return;
+    try {
+        await apiDelete(`/api/users/${userId}`);
+        showPopup('User deleted successfully', 'success');
+        loadAdmins();
+    } catch (error) {
+        showPopup(`Error deleting user: ${error.message}`, 'error');
+        console.error('Error deleting user:', error);
+    }
 }
 
 // REPORTS
@@ -711,4 +763,189 @@ async function deleteMenuItem(id) {
         console.error('Error deleting menu item:', error);
         showPopup('Failed to delete menu item.', 'error');
     }
+}
+
+// New API helpers for FormData
+async function apiPostFormData(endpoint, formData) {
+    const token = getToken();
+    const headers = {};
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+    const res = await fetch(API_BASE_URL + endpoint, {
+        method: 'POST',
+        headers: headers, // No 'Content-Type', browser sets it for FormData
+        body: formData
+    });
+    const responseData = await res.json();
+    if (!res.ok) {
+        throw new Error(responseData.message || 'An unknown error occurred');
+    }
+    return responseData;
+}
+
+async function apiPutFormData(endpoint, formData) {
+    const token = getToken();
+    const headers = {};
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+    const res = await fetch(API_BASE_URL + endpoint, {
+        method: 'PUT',
+        headers: headers, // No 'Content-Type'
+        body: formData
+    });
+    const responseData = await res.json();
+    if (!res.ok) {
+        throw new Error(responseData.message || 'An unknown error occurred');
+    }
+    return responseData;
+}
+
+// Placeholder functions for new sections
+function setupReports() {
+    console.log('Reports tab loaded');
+    const reportTypeSelect = document.getElementById('report-type');
+    const customDateRange = document.getElementById('custom-date-range');
+    
+    reportTypeSelect.addEventListener('change', () => {
+        if (reportTypeSelect.value === 'custom') {
+            customDateRange.style.display = 'block';
+        } else {
+            customDateRange.style.display = 'none';
+        }
+    });
+
+    // Chart.js example
+    const ctx = document.getElementById('sales-chart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Sales (KES)',
+                data: [1200, 1900, 3000, 5000, 2300, 4100, 5500],
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+// Modal handling for Add Employee
+function setupEmployeeModal() {
+    const addEmployeeModal = document.getElementById('add-employee-modal');
+    const addEmployeeBtn = document.querySelector('.add-employee-btn');
+    if (!addEmployeeModal || !addEmployeeBtn) return;
+    
+    const form = document.getElementById('add-employee-form');
+    const closeBtn = addEmployeeModal.querySelector('.close');
+
+    addEmployeeBtn.onclick = () => {
+        form.reset();
+        addEmployeeModal.querySelector('#employee-modal-title').textContent = 'Add New Employee';
+        form.querySelector('#employeeId').value = '';
+        addEmployeeModal.style.display = 'block';
+    }
+    
+    closeBtn.onclick = () => {
+        addEmployeeModal.style.display = 'none';
+    }
+
+    window.addEventListener('click', (event) => {
+        if (event.target == addEmployeeModal) {
+            addEmployeeModal.style.display = 'none';
+        }
+    });
+
+    form.onsubmit = saveEmployee;
+}
+
+async function saveEmployee(event) {
+    event.preventDefault();
+    const form = event.target;
+    const employeeId = form.querySelector('#employeeId').value;
+    const employeeData = {
+        name: form.querySelector('#employeeName').value,
+        role: form.querySelector('#employeeRole').value,
+        email: form.querySelector('#employeeEmail').value,
+        phone: form.querySelector('#employeePhone').value,
+    };
+
+    try {
+        if (employeeId) {
+            await apiPut(`/api/employees/${employeeId}`, employeeData);
+            showPopup('Employee updated successfully!', 'success');
+        } else {
+            await apiPost('/api/employees', employeeData);
+            showPopup('Employee added successfully!', 'success');
+        }
+        document.getElementById('add-employee-modal').style.display = 'none';
+        loadEmployees();
+    } catch (error) {
+        console.error('Error saving employee:', error);
+        showPopup(`Error saving employee: ${error.message}`, 'error');
+    }
+}
+
+async function editEmployee(employeeId) {
+    try {
+        const employee = await apiGet(`/api/employees/${employeeId}`);
+        if (!employee) {
+            showPopup('Employee not found.', 'error');
+            return;
+        }
+        const modal = document.getElementById('add-employee-modal');
+        const form = document.getElementById('add-employee-form');
+        modal.querySelector('#employee-modal-title').textContent = 'Edit Employee';
+        form.querySelector('#employeeId').value = employee.id;
+        form.querySelector('#employeeName').value = employee.name;
+        form.querySelector('#employeeRole').value = employee.role;
+        form.querySelector('#employeeEmail').value = employee.email;
+        form.querySelector('#employeePhone').value = employee.phone;
+        modal.style.display = 'block';
+    } catch(error) {
+        console.error('Error fetching employee for edit:', error);
+        showPopup(`Error: ${error.message}`, 'error');
+    }
+}
+
+async function deleteEmployee(id) {
+    if (!confirm('Are you sure you want to delete this employee?')) return;
+    try {
+        await apiDelete(`/api/employees/${id}`);
+        showPopup('Employee deleted successfully', 'success');
+        loadEmployees(); // Refresh the list
+    } catch (error) {
+        showPopup(`Error deleting employee: ${error.message}`, 'error');
+        console.error('Error deleting employee:', error);
+    }
+}
+
+// Modal handling for Add Admin
+function setupAdminModal() {
+    const modal = document.getElementById('add-admin-modal');
+    const btn = document.querySelector('.add-admin-btn');
+    if (!modal || !btn) return;
+    const form = document.getElementById('add-admin-form');
+    const closeBtn = modal.querySelector('.close');
+    btn.onclick = () => {
+        form.reset();
+        modal.querySelector('#admin-modal-title').textContent = 'Add New User';
+        form.querySelector('#adminId').value = '';
+        modal.style.display = 'block';
+    }
+    closeBtn.onclick = () => { modal.style.display = 'none'; }
+    window.addEventListener('click', (event) => {
+        if (event.target == modal) { modal.style.display = 'none'; }
+    });
+    form.onsubmit = saveAdmin;
 }
