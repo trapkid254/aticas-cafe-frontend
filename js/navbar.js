@@ -48,9 +48,6 @@ function injectNavbar() {
         navbar.insertAdjacentHTML('afterend', mobileMenuHTML);
     }
 
-    // Initialize login status
-    updateLoginButton();
-
     // Initialize hamburger menu
     initializeHamburgerMenu();
 }
@@ -108,5 +105,6 @@ async function updateCartCount() {
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     injectNavbar();
-    updateCartCount();
-}); 
+    // The initial call to updateCartCount is now handled by updateAuthUI() in auth.js
+    // to ensure user data is loaded first.
+});
