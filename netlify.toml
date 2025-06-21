@@ -1,0 +1,11 @@
+[build]
+  # No build command needed for this static site
+  command = ""
+  # The publish directory is the root of the repository
+  publish = "/"
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://aticas-cafe-backend.onrender.com/:splat" # Replace this with your actual Render URL
+  status = 200
+  force = true 

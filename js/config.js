@@ -1,1 +1,3 @@
-const API_BASE = 'http://localhost:3000'; 
+const API_BASE_URL = '/api';
+
+// Replace this with your backend URL when deployed 
