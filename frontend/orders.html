@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders - ATICAS CAFE'</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Algerian font is not available on Google Fonts, so we use a similar decorative font as fallback -->
+    <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
+    <style>
+        .order-history-section {
+            margin-top: 80px;
+            padding: 4rem 2rem;
+            display: flex;
+            justify-content: center;
+        }
+        .receipt {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            padding: 2rem;
+            width: 100%;
+            max-width: 600px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .receipt-header h2 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+        .receipt-body {
+            text-align: center;
+            padding: 3rem 0;
+            border-top: 1px dashed #ccc;
+            border-bottom: 1px dashed #ccc;
+        }
+        .receipt-body p {
+            font-size: 1.2rem;
+            color: #555;
+            margin-bottom: 1.5rem;
+        }
+        .receipt-footer {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <img src="images/aticas.png" alt="Cafeteria Logo" class="logo">
+            <span class="cafeteria-name">ATICAS CAFE'</span>
+        </div>
+        <div class="navbar-center">
+            <div class="moving-text">Welcome to <b>Aticas Cafe'</b>. Your Hospitality Partner - Enjoy our freshly prepared meals at affordable prices! Open from Mon - Sat @ 6:00am - 12:00am</div>
+        </div>
+        <div class="navbar-right">
+            <a href="cart.html" class="cart-icon"><i class="fas fa-shopping-cart"></i></a>
+            <button class="login-btn" id="loginBtn">Login</button>
+            <div class="hamburger-menu" id="hamburgerMenu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="index.html">Home</a>
+        <a href="about.html">About Us</a>
+        <a href="menu.html">Menu</a>
+        <a href="orders.html">My Orders</a>
+        <a href="contact.html">Contact</a>
+    </div>
+
+    <!-- Orders Content -->
+    <section class="order-history-section">
+        <div id="ordersContainer" style="width:100%;max-width:600px;"></div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="social-icons">
+            <a href="#"><i class="fab fa-facebook"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-linkedin"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+        </div>
+        <p class="built-by">Proudly built by Delvin Opwoko A.</p>
+        <p class="contact-info">254714003218 | aleyladely5@gmail.com</p>
+        <p class="copyright">© Aticas Cafe' 2025 - All Rights Reserved</p>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        const ordersContainer = document.getElementById('ordersContainer');
+        const token = localStorage.getItem('userToken');
+        if (!token) {
+            ordersContainer.innerHTML = '<div style="text-align:center;color:#e74c3c;">Please log in to view your orders.<br><button id="goToLoginBtn" style="margin-top:1.2rem;padding:0.7rem 1.5rem;background:#27ae60;color:#fff;border:none;border-radius:6px;font-weight:bold;cursor:pointer;">Login</button></div>';
+            document.getElementById('goToLoginBtn').onclick = function() { window.location.href = "login.html"; };
+            return;
+        }
+        try {
+            const res = await fetch('http://localhost:3000/api/user-orders', {
+                headers: { 'Authorization': token }
+            });
+            if (!res.ok) throw new Error('Failed to fetch orders');
+            const orders = await res.json();
+            if (!orders.length) {
+                ordersContainer.innerHTML = `
+                  <div class="receipt" style="background:#fff;border:1px solid #ddd;box-shadow:0 5px 15px rgba(0,0,0,0.1);padding:2rem;width:100%;max-width:600px;margin:2rem auto 0 auto;font-family:'Courier New',Courier,monospace;text-align:center;">
+                    <div class="receipt-header" style="margin-bottom:2rem;">
+                      <h2 style="font-size:2rem;margin-bottom:0.5rem;text-transform:uppercase;">No Orders Yet</h2>
+                    </div>
+                    <div class="receipt-body" style="padding:2rem 0;color:#888;">
+                      <p>You have not placed any orders yet.</p>
+                    </div>
+                    <div style="margin-top:2rem;">
+                      <a href="menu.html" class="continue-shopping-btn" style="padding:0.8rem 1.5rem;background-color:#27ae60;color:white;border:none;border-radius:5px;font-weight:bold;cursor:pointer;text-decoration:none;">Order Now</a>
+                    </div>
+                  </div>
+                `;
+                return;
+            }
+            // Sort orders by date descending (most recent first)
+            orders.sort((a, b) => new Date(b.date) - new Date(a.date));
+            ordersContainer.innerHTML = orders.map(order => `
+                <div class="receipt" style="background:#fff;border-radius:14px;border:1.5px solid #e0e0e0;box-shadow:0 6px 24px rgba(39,174,96,0.08);padding:2.5rem 2rem 2rem 2rem;width:100%;max-width:540px;margin:2.5rem auto 0 auto;font-family:'Segoe UI',Arial,sans-serif;">
+                    <div class="receipt-header" style="text-align:center;margin-bottom:2.2rem;">
+                        <div style="font-family:'UnifrakturCook',cursive;font-size:2.3rem;color:#27ae60;letter-spacing:2px;">Aticas Cafe</div>
+                        <div style="font-size:1.1rem;color:#888;margin-top:0.2rem;">Order Receipt</div>
+                        <div style="margin-top:0.7rem;font-size:1rem;"><b>Date:</b> ${new Date(order.date).toLocaleString()}</div>
+                        <div style="margin-top:0.2rem;font-size:1rem;"><b>Order ID:</b> ${order._id}</div>
+                    </div>
+                    <div class="receipt-body" style="padding:2.2rem 0 1.5rem 0;border-top:1px dashed #b2dfdb;border-bottom:1px dashed #b2dfdb;">
+                        <div style="margin-bottom:1.1rem;"><b>Customer:</b> ${order.customerName} (${order.customerPhone})</div>
+                        <div style="margin-bottom:1.1rem;"><b>Order Type:</b> ${order.orderType ? order.orderType.charAt(0).toUpperCase() + order.orderType.slice(1) : 'N/A'} &nbsp; | &nbsp; <b>Payment:</b> ${order.paymentMethod ? (order.paymentMethod === 'mpesa' ? 'M-Pesa' : 'Cash') : 'N/A'}</div>
+                        <div style="margin-bottom:1.1rem;"><b>Status:</b> <span style="color:#27ae60;font-weight:bold;">${order.status}</span></div>
+                        <table style="width:100%;margin:1.2rem 0;text-align:left;border-collapse:collapse;">
+                            <thead><tr style="background:#f8f8f8;"><th style="padding:8px 0;">Item</th><th>Qty</th><th>Price</th></tr></thead>
+                            <tbody>
+                                ${order.items.map(i => `
+                                    <tr>
+                                        <td style="padding:6px 0;">${i.menuItem ? i.menuItem.name : 'Item'}</td>
+                                        <td>${i.quantity}</td>
+                                        <td>Ksh ${i.menuItem ? Number(i.menuItem.price).toLocaleString() : '-'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        <div style="margin-top:1.3rem;font-size:1.15rem;"><b>Total:</b> <span style="color:#27ae60;">Ksh ${Number(order.total).toLocaleString()}</span></div>
+                    </div>
+                    <div class="receipt-footer" style="text-align:center;margin-top:2.2rem;font-size:1rem;color:#888;">
+                        Thank you for your order!<br>We appreciate your business.
+                    </div>
+                </div>
+            `).join('<hr style="margin:2rem 0;">');
+        } catch (err) {
+            ordersContainer.innerHTML = '<div style="text-align:center;color:#e74c3c;">Failed to load orders. Please try again later.</div>';
+        }
+    });
+    </script>
+</body>
+</html> 
