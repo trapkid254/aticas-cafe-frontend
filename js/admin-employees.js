@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function loadEmployees() {
     try {
-        const res = await fetch('http://localhost:3000/api/employees', {
+        const res = await fetch('https://aticas-backend.onrender.com/api/employees', {
             headers: { 'Authorization': localStorage.getItem('adminToken') || '' }
         });
         const employees = await res.json();
@@ -172,7 +172,7 @@ async function loadEmployees() {
 
 async function addEmployee(employee) {
     try {
-        await fetch('http://localhost:3000/api/employees', {
+        await fetch('https://aticas-backend.onrender.com/api/employees', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -188,7 +188,7 @@ async function addEmployee(employee) {
 
 async function editEmployee(employeeId) {
     try {
-        const res = await fetch('http://localhost:3000/api/employees', {
+        const res = await fetch('https://aticas-backend.onrender.com/api/employees', {
             headers: { 'Authorization': localStorage.getItem('adminToken') || '' }
         });
         const employees = await res.json();
@@ -253,7 +253,7 @@ if (editEmployeeForm) {
 
 async function updateEmployee(employeeId, updatedEmployee) {
     try {
-        await fetch(`http://localhost:3000/api/employees/${employeeId}`, {
+        await fetch(`https://aticas-backend.onrender.com/api/employees/${employeeId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -269,7 +269,7 @@ async function updateEmployee(employeeId, updatedEmployee) {
 async function deleteEmployee(employeeId) {
     if (confirm('Are you sure you want to delete this employee?')) {
         try {
-            await fetch(`http://localhost:3000/api/employees/${employeeId}`, {
+            await fetch(`https://aticas-backend.onrender.com/api/employees/${employeeId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': localStorage.getItem('adminToken') || '' }
             });

@@ -21,7 +21,7 @@ async function fetchCart() {
     const token = getUserToken();
     if (userId && token) {
         try {
-            const res = await fetch(`http://localhost:3000/api/cart/${userId}`, {
+            const res = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
                 headers: { 'Authorization': token }
             });
             if (!res.ok) throw new Error('Failed to fetch cart');
@@ -47,7 +47,7 @@ async function updateCartItem(menuItemId, quantity, itemType) {
     const userId = getUserId();
     const token = getUserToken();
     if (userId && token) {
-        await fetch(`http://localhost:3000/api/cart/${userId}/items`, {
+        await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': token },
             body: JSON.stringify({ menuItemId, quantity, itemType })
@@ -72,7 +72,7 @@ async function removeCartItem(menuItemId, itemType) {
     const userId = getUserId();
     const token = getUserToken();
     if (userId && token) {
-        await fetch(`http://localhost:3000/api/cart/${userId}/items/${itemType}/${menuItemId}`, {
+        await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items/${itemType}/${menuItemId}`, {
             method: 'DELETE',
             headers: { 'Authorization': token }
         });
@@ -88,7 +88,7 @@ async function clearCart() {
     const userId = getUserId();
     const token = getUserToken();
     if (userId && token) {
-        await fetch(`http://localhost:3000/api/cart/${userId}`, {
+        await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
             method: 'DELETE',
             headers: { 'Authorization': token }
         });
@@ -384,7 +384,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // M-Pesa STK Push via backend
     async function initiateMpesaSTKPush(phone, amount, orderId) {
         try {
-            const response = await fetch('http://localhost:3000/api/mpesa/payment', {
+            const response = await fetch('https://aticas-backend.onrender.com/api/mpesa/payment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phone, amount, orderId })
@@ -460,7 +460,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!success) return;
         }
         try {
-            const response = await fetch('http://localhost:3000/api/orders', {
+            const response = await fetch('https://aticas-backend.onrender.com/api/orders', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': token } : {}) },
                 body: JSON.stringify(order)

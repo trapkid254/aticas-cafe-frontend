@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- API Fetch Functions ---
     const fetchFromApi = async (endpoint) => {
-        const response = await fetch(`http://localhost:3000${endpoint}`, {
+        const response = await fetch(`https://aticas-backend.onrender.com${endpoint}`, {
             headers: { 'Authorization': adminToken }
         });
         if (!response.ok) throw new Error(`Failed to fetch from ${endpoint}`);
@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 image: document.getElementById('mealImage').value
             };
             // If editing, update; else, add new
-            let method = 'POST', url = 'http://localhost:3000/api/menu';
+            let method = 'POST', url = 'https://aticas-backend.onrender.com/api/menu';
             if (addMealForm.dataset.editing === 'true') {
                 method = 'PUT';
                 url += '/' + addMealForm.dataset.mealId;
@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Remove meal button logic (for menu list)
     window.removeMeal = async function(mealId) {
         if (!confirm('Are you sure you want to remove this meal?')) return;
-        await fetch('http://localhost:3000/api/menu/' + mealId, {
+        await fetch('https://aticas-backend.onrender.com/api/menu/' + mealId, {
             method: 'DELETE',
             headers: { 'Authorization': localStorage.getItem('adminToken') || '' }
         });
@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.target.classList.contains('remove-btn')) {
                 const mealId = e.target.dataset.mealId;
                 if (!confirm('Remove this meal from Meals of the Day?')) return;
-                await fetch('http://localhost:3000/api/meals/' + mealId, {
+                await fetch('https://aticas-backend.onrender.com/api/meals/' + mealId, {
                     method: 'DELETE',
                     headers: { 'Authorization': localStorage.getItem('adminToken') || '' }
                 });
@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const ordersTab = document.querySelector('.admin-navbar-tabs a[href="orders.html"]');
         if (!ordersTab) return;
         try {
-            const res = await fetch('http://localhost:3000/api/orders', {
+            const res = await fetch('https://aticas-backend.onrender.com/api/orders', {
                 headers: { 'Authorization': adminToken }
             });
             if (!res.ok) throw new Error('Failed to fetch orders');
@@ -283,7 +283,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             try {
-                const res = await fetch('http://localhost:3000/api/meals', {
+                const res = await fetch('https://aticas-backend.onrender.com/api/meals', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('adminToken') || '' },
                     body: JSON.stringify({ name, price, image, quantity })

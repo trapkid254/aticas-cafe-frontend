@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fetch menu items from API
     async function fetchMenuItems() {
         try {
-            const res = await fetch('http://localhost:3000/api/menu', {
+            const res = await fetch('https://aticas-backend.onrender.com/api/menu', {
                 headers: { 'Authorization': localStorage.getItem('adminToken') || '' }
             });
             menuItems = await res.json();
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fetch meals of the day from API
     async function fetchMealsOfDay() {
         try {
-            const res = await fetch('http://localhost:3000/api/meals', {
+            const res = await fetch('https://aticas-backend.onrender.com/api/meals', {
                 headers: { 'Authorization': localStorage.getItem('adminToken') || '' }
             });
             mealsOfDay = await res.json();
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Remove meal from Meals of the Day (by id)
     window.removeMealOfDay = async function(id) {
         try {
-            await fetch('http://localhost:3000/api/meals/' + id, {
+            await fetch('https://aticas-backend.onrender.com/api/meals/' + id, {
                 method: 'DELETE',
                 headers: { 'Authorization': localStorage.getItem('adminToken') || '' }
             });
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Remove meal from Menu (by id)
     window.removeMenuMeal = async function(id) {
         try {
-            await fetch('http://localhost:3000/api/menu/' + id, {
+            await fetch('https://aticas-backend.onrender.com/api/menu/' + id, {
                 method: 'DELETE',
                 headers: { 'Authorization': localStorage.getItem('adminToken') || '' }
             });
@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     category: mealCategory ? mealCategory.value : '',
                     quantity: parseInt(mealQuantity.value, 10) || 0
                 };
-                await fetch('http://localhost:3000/api/menu', {
+                await fetch('https://aticas-backend.onrender.com/api/menu', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -232,7 +232,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     category: mealCategory ? mealCategory.value : '',
                     quantity: parseInt(mealQuantity.value, 10) || 0
                 };
-                await fetch('http://localhost:3000/api/menu/' + editId, {
+                await fetch('https://aticas-backend.onrender.com/api/menu/' + editId, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 const meal = { name, price, image, quantity };
-                await fetch('http://localhost:3000/api/meals', {
+                await fetch('https://aticas-backend.onrender.com/api/meals', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -277,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const meal = {
                     quantity: parseInt(modMealQuantity.value, 10) || 0
                 };
-                await fetch('http://localhost:3000/api/meals/' + editId, {
+                await fetch('https://aticas-backend.onrender.com/api/meals/' + editId, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
