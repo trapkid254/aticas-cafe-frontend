@@ -145,7 +145,7 @@
                     </div>
                     <div class="receipt-body" style="padding:2.2rem 0 1.5rem 0;border-top:1px dashed #b2dfdb;border-bottom:1px dashed #b2dfdb;">
                         <div style="margin-bottom:1.1rem;"><b>Customer:</b> ${order.customerName} (${order.customerPhone})</div>
-                        <div style="margin-bottom:1.1rem;"><b>Order Type:</b> ${order.orderType ? order.orderType.charAt(0).toUpperCase() + order.orderType.slice(1) : 'N/A'} &nbsp; | &nbsp; <b>Payment:</b> ${order.paymentMethod ? (order.paymentMethod === 'mpesa' ? 'M-Pesa' : 'Cash') : 'N/A'}</div>
+                        <div style="margin-bottom:1.1rem;"><b>Order Type:</b> ${order.orderType ? (order.orderType.toLowerCase() === 'delivery' ? 'Delivery' : 'Inhouse') : 'Inhouse'} &nbsp; | &nbsp; <b>Payment:</b> ${order.paymentMethod ? (order.paymentMethod === 'mpesa' ? 'M-Pesa' : 'Cash') : 'N/A'}</div>
                         <div style="margin-bottom:1.1rem;"><b>Status:</b> <span style="color:#27ae60;font-weight:bold;">${order.status}</span></div>
                         <table style="width:100%;margin:1.2rem 0;text-align:left;border-collapse:collapse;">
                             <thead><tr style="background:#f8f8f8;"><th style="padding:8px 0;">Item</th><th>Qty</th><th>Price</th></tr></thead>
