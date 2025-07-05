@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 'Authorization': adminToken
             }
         };
-        const response = await fetch(`http://localhost:3000${endpoint}`, { ...defaultOptions, ...options });
+        const response = await fetch(`https://aticas-backend.onrender.com${endpoint}`, { ...defaultOptions, ...options });
         if (!response.ok) throw new Error(`API call to ${endpoint} failed.`);
         return response.json();
     };

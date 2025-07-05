@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fetch admins from API
     async function fetchAdmins() {
         try {
-            const res = await fetch('http://localhost:3000/api/admins', {
+            const res = await fetch('https://aticas-backend.onrender.com/api/admins', {
                 headers: { 'Authorization': localStorage.getItem('adminToken') || '' }
             });
             return await res.json();
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function addAdmin(admin) {
     try {
-        await fetch('http://localhost:3000/api/admins', {
+        await fetch('https://aticas-backend.onrender.com/api/admins', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -98,7 +98,7 @@ async function addAdmin(admin) {
 
 async function deleteAdmin(adminId) {
     try {
-        await fetch(`http://localhost:3000/api/admins/${adminId}`, {
+        await fetch(`https://aticas-backend.onrender.com/api/admins/${adminId}`, {
             method: 'DELETE',
             headers: { 'Authorization': localStorage.getItem('adminToken') || '' }
         });

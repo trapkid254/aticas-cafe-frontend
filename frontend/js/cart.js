@@ -21,13 +21,14 @@ async function fetchCart() {
     const token = getUserToken();
     if (userId && token) {
         try {
-            const res = await fetch(`http://localhost:3000/api/cart/${userId}`, {
+            const res = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
                 headers: { 'Authorization': token }
             });
             if (!res.ok) throw new Error('Failed to fetch cart');
             const cart = await res.json();
             return cart && cart.items ? cart : { items: [] };
         } catch (err) {
+            console.error('Error fetching cart:', err);
             return { items: [] };
         }
     } else {
@@ -47,11 +48,15 @@ async function updateCartItem(menuItemId, quantity, itemType) {
     const userId = getUserId();
     const token = getUserToken();
     if (userId && token) {
-        await fetch(`http://localhost:3000/api/cart/${userId}/items`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': token },
-            body: JSON.stringify({ menuItemId, quantity, itemType })
-        });
+        try {
+            await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': token },
+                body: JSON.stringify({ menuItemId, quantity, itemType })
+            });
+        } catch (err) {
+            console.error('Error updating cart item:', err);
+        }
     } else {
         // Guest: update localStorage cart
         let cart = getGuestCart();
@@ -72,10 +77,14 @@ async function removeCartItem(menuItemId, itemType) {
     const userId = getUserId();
     const token = getUserToken();
     if (userId && token) {
-        await fetch(`http://localhost:3000/api/cart/${userId}/items/${itemType}/${menuItemId}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': token }
-        });
+        try {
+            await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items/${itemType}/${menuItemId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': token }
+            });
+        } catch (err) {
+            console.error('Error removing cart item:', err);
+        }
     } else {
         let cart = getGuestCart();
         cart.items = cart.items.filter(i => !(i.menuItem._id === menuItemId && i.itemType === itemType));
@@ -88,10 +97,14 @@ async function clearCart() {
     const userId = getUserId();
     const token = getUserToken();
     if (userId && token) {
-        await fetch(`http://localhost:3000/api/cart/${userId}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': token }
-        });
+        try {
+            await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': token }
+            });
+        } catch (err) {
+            console.error('Error clearing cart:', err);
+        }
     } else {
         console.log('[guestCart] clearCart called. Cart will be emptied.');
         setGuestCart({ items: [] });
@@ -384,7 +397,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // M-Pesa STK Push via backend
     async function initiateMpesaSTKPush(phone, amount, orderId) {
         try {
-            const response = await fetch('http://localhost:3000/api/mpesa/payment', {
+            const response = await fetch('https://aticas-backend.onrender.com/api/mpesa/payment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phone, amount, orderId })
@@ -460,7 +473,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!success) return;
         }
         try {
-            const response = await fetch('http://localhost:3000/api/orders', {
+            const response = await fetch('https://aticas-backend.onrender.com/api/orders', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': token } : {}) },
                 body: JSON.stringify(order)

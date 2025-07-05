@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function fetchMenuItems() {
         try {
-            const res = await fetch('http://localhost:3000/api/menu');
+            const res = await fetch('https://aticas-backend.onrender.com/api/menu');
             menuItems = await res.json();
             displayMenuItems();
         } catch (err) {
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function fetchCart() {
         const userId = getUserIdFromToken();
         if (!userId) return [];
-        const res = await fetch(`http://localhost:3000/api/cart/${userId}`, {
+        const res = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
             headers: { 'Authorization': localStorage.getItem('userToken') || '' }
         });
         if (!res.ok) return [];
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const menuItemId = menuItem ? menuItem._id : menuItemOrId;
             const itemType = menuItem ? (menuItem.category ? 'Menu' : 'MealOfDay') : 'Menu';
             try {
-                await fetch(`http://localhost:3000/api/cart/${userId}/items`, {
+                await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': userToken },
                     body: JSON.stringify({ menuItemId: menuItemId, quantity: 1, itemType })
@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 // Fallback: fetch menu item details from backend
                 try {
-                    const res = await fetch(`http://localhost:3000/api/menu/${menuItemOrId}`);
+                    const res = await fetch(`https://aticas-backend.onrender.com/api/menu/${menuItemOrId}`);
                     if (!res.ok) {
                         alert('Failed to fetch menu item details.');
                         return;
@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const container = document.getElementById('mealsOfDayContainer');
         if (!container) return;
         try {
-            const res = await fetch('http://localhost:3000/api/meals');
+            const res = await fetch('https://aticas-backend.onrender.com/api/meals');
             const mealsOfDay = await res.json();
             if (!mealsOfDay.length) {
                 container.innerHTML = '<p style="color:#888;">No meals of the day available.</p>';

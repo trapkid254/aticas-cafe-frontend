@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function fetchMenuItems() {
         try {
-            const res = await fetch('http://localhost:3000/api/menu');
+            const res = await fetch('https://aticas-backend.onrender.com/api/menu');
             menuItems = await res.json();
             renderMenuOptions(menuSearch.value);
         } catch (err) {
@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
             customerPhone
         };
         try {
-            const res = await fetch('http://localhost:3000/api/orders', {
+            const res = await fetch('https://aticas-backend.onrender.com/api/orders', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
                 body: JSON.stringify(order)
@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
         mpesaStatus.textContent = 'Sending payment request...';
         mpesaStatus.style.color = '#222';
         try {
-            const response = await fetch('http://localhost:3000/api/mpesa/payment', {
+            const response = await fetch('https://aticas-backend.onrender.com/api/mpesa/payment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phone: placedOrder.customerPhone.startsWith('0') ? '254' + placedOrder.customerPhone.slice(1) : placedOrder.customerPhone, amount: placedOrder.total, orderId: placedOrder._id })
