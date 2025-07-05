@@ -112,11 +112,25 @@ document.addEventListener('DOMContentLoaded', function() {
             menuItem.className = 'menu-item';
             menuItem.dataset.category = item.category;
             const outOfStock = item.quantity === 0;
+            const lowStock = item.quantity > 0 && item.quantity <= 3;
+            
+            // Determine quantity display styling
+            let quantityClass = '';
+            let quantityText = `Available: ${item.quantity ?? 0}`;
+            
+            if (outOfStock) {
+                quantityClass = 'out-of-stock';
+                quantityText = 'Out of Stock';
+            } else if (lowStock) {
+                quantityClass = 'low-stock';
+                quantityText = `Low Stock: ${item.quantity}`;
+            }
+            
             menuItem.innerHTML = `
                 <img src="${item.image}" alt="${item.name}">
                 <div class="menu-item-details">
                     <h3>${item.name}</h3>
-                    <p>Available: <span class="menu-qty">${item.quantity ?? 0}</span></p>
+                    <p class="menu-qty ${quantityClass}">${quantityText}</p>
                     <span class="price">Ksh ${Number(item.price).toLocaleString()}</span>
                     <button class="add-to-cart" data-id="${item._id}" ${outOfStock ? 'disabled style="background:#ccc;cursor:not-allowed;"' : ''}>${outOfStock ? 'Out of Stock' : 'Add to Cart'}</button>
                 </div>

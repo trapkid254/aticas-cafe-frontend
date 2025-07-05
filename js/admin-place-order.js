@@ -104,6 +104,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         const customerName = document.getElementById('customerName').value.trim();
         const customerPhone = document.getElementById('customerPhone').value.trim();
+        // Accept 07, 01, or 2541
+        if (!/^((07|01)\d{8}|2541\d{8})$/.test(customerPhone)) {
+            orderError.textContent = 'Enter a valid phone number (07XXXXXXXX, 01XXXXXXXX, or 2541XXXXXXXX)';
+            orderError.style.display = 'block';
+            return;
+        }
         if (!customerName || !customerPhone) {
             orderError.textContent = 'Enter customer name and phone.';
             orderError.style.display = 'block';
