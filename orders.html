@@ -112,8 +112,8 @@
             return;
         }
         try {
-            const res = await fetch('http://localhost:3000/api/user-orders', {
-                headers: { 'Authorization': token }
+            const res = await fetch('https://aticas-backend.onrender.com/api/user-orders', {
+                headers: { 'Authorization': localStorage.getItem('userToken') || '' }
             });
             if (!res.ok) throw new Error('Failed to fetch orders');
             const orders = await res.json();
