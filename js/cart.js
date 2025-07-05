@@ -524,9 +524,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 await clearCart();
                 if (window.updateCartCount) window.updateCartCount();
-                localStorage.setItem('lastOrderId', data.order._id);
-                window.location.href = `order-confirmation.html?orderId=${data.order._id}`;
                 await displayCartItems();
+                localStorage.setItem('lastOrderId', data.order._id);
+                setTimeout(() => {
+                    window.location.href = `order-confirmation.html?orderId=${data.order._id}`;
+                }, 300);
             } else {
                 showMpesaToast('Order failed: ' + (data.error || 'Unknown error'), '#e74c3c');
             }
