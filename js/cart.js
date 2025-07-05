@@ -481,6 +481,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             if (data.success) {
                 await clearCart();
+                if (window.updateCartCount) window.updateCartCount();
                 localStorage.setItem('lastOrderId', data.order._id);
                 window.location.href = `order-confirmation.html?orderId=${data.order._id}`;
                 await displayCartItems();
