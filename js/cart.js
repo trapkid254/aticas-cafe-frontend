@@ -709,6 +709,11 @@ document.addEventListener('DOMContentLoaded', function() {
             locationStatus.style.border = '1px solid #c3e6cb';
         }
     });
+
+    window.addEventListener('pageshow', function() {
+        // Always re-fetch and display cart items when returning to the cart page
+        if (typeof displayCartItems === 'function') displayCartItems();
+    });
 });
 
 // This would be replaced with actual M-Pesa API integration
