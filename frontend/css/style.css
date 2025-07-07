@@ -758,13 +758,15 @@ body {
         gap: 0.5rem !important;
     }
     .menu-item, .meal-card {
-        max-width: 100%;
-        margin: 0;
-        padding: 0.35rem 0.2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
     .menu-item img, .meal-card img {
-        width: 40px;
-        height: 40px;
+        width: 64px;
+        height: 64px;
+        object-fit: cover;
+        margin: 0 auto 0.3rem auto;
     }
 }
 
@@ -775,13 +777,15 @@ body {
         gap: 0.5rem !important;
     }
     .menu-item, .meal-card {
-        max-width: 100% !important;
-        margin: 0 !important;
-        padding: 0.35rem 0.2rem !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
     }
     .menu-item img, .meal-card img {
-        width: 40px !important;
-        height: 40px !important;
+        width: 64px !important;
+        height: 64px !important;
+        object-fit: cover !important;
+        margin: 0 auto 0.3rem auto !important;
     }
 }
 
