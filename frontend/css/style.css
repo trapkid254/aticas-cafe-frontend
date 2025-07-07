@@ -754,34 +754,34 @@ body {
 @media (max-width: 600px) {
     .menu-items, .meals-container {
         display: grid !important;
-        grid-template-columns: 1fr 1fr !important;
-        gap: 0.7rem !important;
+        grid-template-columns: 1fr 1fr 1fr !important;
+        gap: 0.5rem !important;
     }
     .menu-item, .meal-card {
         max-width: 100%;
         margin: 0;
-        padding: 0.5rem 0.4rem;
+        padding: 0.35rem 0.2rem;
     }
     .menu-item img, .meal-card img {
-        width: 54px;
-        height: 54px;
+        width: 40px;
+        height: 40px;
     }
 }
 
 @media (max-width: 576px) {
     .menu-items, .meals-container {
         display: grid !important;
-        grid-template-columns: 1fr 1fr !important;
-        gap: 0.7rem !important;
+        grid-template-columns: 1fr 1fr 1fr !important;
+        gap: 0.5rem !important;
     }
     .menu-item, .meal-card {
         max-width: 100% !important;
         margin: 0 !important;
-        padding: 0.5rem 0.4rem !important;
+        padding: 0.35rem 0.2rem !important;
     }
     .menu-item img, .meal-card img {
-        width: 54px !important;
-        height: 54px !important;
+        width: 40px !important;
+        height: 40px !important;
     }
 }
 
