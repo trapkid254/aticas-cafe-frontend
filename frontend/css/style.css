@@ -424,9 +424,6 @@ body {
     .navbar-center {
         display: none;
     }
-    .moving-text {
-        display: none;
-    }
     .about-body {
         flex-direction: column;
         align-items: center;
