@@ -509,10 +509,10 @@ body {
         font-size: 1.2rem;
         margin-bottom: 0.7rem;;
     }
-    .menu-btn {
+    .video-overlay .menu-btn {
         font-size: 1rem;
-        padding: 0.7rem 1.2rem;
-        margin-bottom: 0.5rem;
+        padding: 0.6rem 1.2rem;
+        border-radius: 5px;
     }
     h1 {
         font-size: 1.25rem;
@@ -580,6 +580,11 @@ body {
         height: 56px !important;
         object-fit: cover !important;
         margin-bottom: 0.3rem !important;
+    }
+    .video-overlay .menu-btn {
+        font-size: 0.95rem !important;
+        padding: 0.5rem 1rem !important;
+        border-radius: 4px !important;
     }
 }
 
