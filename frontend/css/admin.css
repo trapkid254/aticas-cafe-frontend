@@ -6,6 +6,7 @@ body {
 }
 .admin-navbar {
     display: flex;
+    flex-direction: row;
     justify-content: space-between;
     align-items: center;
     padding: 0.7rem 2rem;
@@ -22,6 +23,7 @@ body {
     display: flex;
     align-items: center;
     gap: 1rem;
+    height: 60px;
 }
 .admin-navbar-left .logo {
     width: 44px;
@@ -40,9 +42,14 @@ body {
 .admin-navbar-right {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    height: 60px;
 }
 .logout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    margin: 0;
     background: linear-gradient(90deg, #27ae60 60%, #2ecc71 100%);
     color: #fff;
     border: none;
@@ -315,8 +322,16 @@ body {
 }
 @media (max-width: 700px) {
     .admin-navbar {
-        position: static !important;
-        z-index: 1000 !important;
+        padding: 0.3rem 0.7rem;
+        min-height: 44px;
+    }
+    .admin-navbar-left, .admin-navbar-right {
+        height: 44px;
+    }
+    .logout-btn {
+        height: 34px;
+        font-size: 0.95rem;
+        padding: 0.3rem 0.7rem;
     }
     .admin-sidebar {
         flex-direction: row !important;
