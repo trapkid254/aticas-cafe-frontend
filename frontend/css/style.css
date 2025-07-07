@@ -3,14 +3,13 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif !important;
+    font-family: 'Arial', sans-serif;
 }
 
-html, body {
+body {
     background-color: yellow;
-    color: #222 !important;
-    line-height: 1.65 !important;
-    font-size: 17px !important;
+    color: #333;
+    line-height: 1.6;
 }
 
 /* Navbar Styles */
@@ -1723,142 +1722,5 @@ html, body {
     .delivery-location-popup textarea {
         padding: 0.7rem;
         font-size: 0.9rem;
-    }
-}
-
-/* --- GLOBAL PROFESSIONALIZATION --- */
-h1, h2, h3, h4, h5, h6 {
-    font-weight: 700 !important;
-    color: #222 !important;
-    margin-bottom: 0.7em !important;
-    letter-spacing: 0.01em;
-}
-h1 { font-size: 2.2rem !important; }
-h2 { font-size: 1.6rem !important; }
-h3 { font-size: 1.25rem !important; }
-h4 { font-size: 1.1rem !important; }
-
-p, li, label, span, input, textarea, select, button {
-    font-size: 1rem !important;
-    color: #333 !important;
-}
-
-section, .meals-section, .why-us, .about-section, .team-section, .menu-section, .cart-section, .footer {
-    padding: 2.5rem 1.2rem !important;
-    margin-bottom: 1.5rem !important;
-    background: #fff !important;
-    border-radius: 14px !important;
-    box-shadow: 0 2px 12px rgba(39,174,96,0.07) !important;
-}
-
-/* --- CARDS & CONTAINERS --- */
-.meal-card, .menu-item, .reason, .team-member, .cart-item, .contact-card {
-    background: #fff !important;
-    border-radius: 12px !important;
-    box-shadow: 0 2px 12px rgba(39,174,96,0.07) !important;
-    padding: 1.2rem 1rem !important;
-    margin-bottom: 1.2rem !important;
-    transition: box-shadow 0.2s, transform 0.2s !important;
-}
-.meal-card:hover, .menu-item:hover, .reason:hover, .team-member:hover, .contact-card:hover {
-    box-shadow: 0 4px 24px rgba(39,174,96,0.13) !important;
-    transform: translateY(-4px) scale(1.02) !important;
-}
-
-/* --- BUTTONS --- */
-button, .add-to-cart, .menu-btn, .submit-btn, .checkout-btn, .continue-shopping-btn, .action-btn {
-    font-size: 1.08rem !important;
-    font-weight: 600 !important;
-    border-radius: 7px !important;
-    padding: 0.7rem 1.5rem !important;
-    background: linear-gradient(90deg, #27ae60 60%, #2ecc71 100%) !important;
-    color: #fff !important;
-    border: none !important;
-    box-shadow: 0 1px 4px rgba(39,174,96,0.08) !important;
-    cursor: pointer !important;
-    transition: background 0.2s, color 0.2s, box-shadow 0.2s !important;
-    margin-bottom: 0.5rem !important;
-}
-button:hover, .add-to-cart:hover, .menu-btn:hover, .submit-btn:hover, .checkout-btn:hover, .continue-shopping-btn:hover, .action-btn:hover {
-    background: linear-gradient(90deg, #2ecc71 60%, #27ae60 100%) !important;
-    color: #fff !important;
-    box-shadow: 0 4px 16px rgba(39,174,96,0.13) !important;
-}
-
-input, textarea, select {
-    border-radius: 6px !important;
-    border: 1.5px solid #ddd !important;
-    padding: 0.7rem 1rem !important;
-    font-size: 1rem !important;
-    margin-bottom: 0.7rem !important;
-    box-sizing: border-box !important;
-    background: #f9f9f9 !important;
-    transition: border-color 0.2s, box-shadow 0.2s !important;
-}
-input:focus, textarea:focus, select:focus {
-    border-color: #27ae60 !important;
-    box-shadow: 0 0 0 2px rgba(39,174,96,0.10) !important;
-    outline: none !important;
-}
-
-/* --- TABLES --- */
-table {
-    width: 100% !important;
-    border-collapse: collapse !important;
-    background: #fff !important;
-    border-radius: 10px !important;
-    box-shadow: 0 2px 8px rgba(39,174,96,0.07) !important;
-    overflow: hidden !important;
-    margin-bottom: 1.2rem !important;
-}
-th, td {
-    padding: 0.85rem 0.7rem !important;
-    font-size: 1rem !important;
-    text-align: left !important;
-}
-th {
-    background: #f4f6fa !important;
-    color: #27ae60 !important;
-    font-weight: bold !important;
-    border-bottom: 2px solid #e0e0e0 !important;
-}
-tr:nth-child(even) {
-    background: #f9f9f9 !important;
-}
-
-/* --- RESPONSIVE --- */
-@media (max-width: 900px) {
-    section, .meals-section, .why-us, .about-section, .team-section, .menu-section, .cart-section, .footer {
-        padding: 1.2rem 0.5rem !important;
-        border-radius: 10px !important;
-    }
-    .meal-card, .menu-item, .reason, .team-member, .cart-item, .contact-card {
-        padding: 0.7rem 0.5rem !important;
-        border-radius: 8px !important;
-    }
-    h1 { font-size: 1.5rem !important; }
-    h2 { font-size: 1.2rem !important; }
-    h3 { font-size: 1.05rem !important; }
-    th, td { font-size: 0.97rem !important; }
-}
-@media (max-width: 600px) {
-    section, .meals-section, .why-us, .about-section, .team-section, .menu-section, .cart-section, .footer {
-        padding: 0.7rem 0.2rem !important;
-        border-radius: 7px !important;
-        margin-bottom: 0.7rem !important;
-    }
-    .meal-card, .menu-item, .reason, .team-member, .cart-item, .contact-card {
-        padding: 0.5rem 0.2rem !important;
-        border-radius: 6px !important;
-        margin-bottom: 0.5rem !important;
-    }
-    h1 { font-size: 1.1rem !important; }
-    h2 { font-size: 1rem !important; }
-    h3 { font-size: 0.95rem !important; }
-    th, td { font-size: 0.93rem !important; }
-    table { font-size: 0.93rem !important; }
-    .navbar, .admin-navbar {
-        padding: 0.2rem 0.2rem !important;
-        min-height: 38px !important;
     }
 }
