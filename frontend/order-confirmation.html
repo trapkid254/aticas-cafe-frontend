@@ -94,8 +94,8 @@
         </div>
         <div id="orderReceipt"></div>
         <div style="display: flex; justify-content: center; gap: 1.2rem; margin-top: 1.2rem;">
-            <button class="view-orders-btn" onclick="window.location.href='orders.html'" style="padding: 0.8rem 1.5rem; background-color: #ffc107; color: #222; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; transition: background-color 0.3s;">View Orders</button>
-            <button class="continue-shopping-btn" onclick="window.location.href='menu.html'">Continue Shopping</button>
+            <button class="view-orders-btn" id="viewOrdersBtn" style="padding: 0.8rem 1.5rem; background-color: #ffc107; color: #222; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; transition: background-color 0.3s;">View Orders</button>
+            <button class="continue-shopping-btn" id="continueShoppingBtn">Continue Shopping</button>
         </div>
     </div>
     <footer class="footer">
@@ -179,6 +179,36 @@
                 orderDetailsElement.innerHTML = '<p>Could not load order details. Please try again later.</p>';
                 if (orderReceiptElement) orderReceiptElement.innerHTML = '';
             }
+        });
+
+        // Cart clearing logic for buttons
+        async function clearCart() {
+            const userId = localStorage.getItem('userId');
+            const token = localStorage.getItem('userToken');
+            if (userId && token) {
+                try {
+                    await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': token }
+                    });
+                } catch (err) {
+                    console.error('[clearCart] Error clearing cart:', err);
+                }
+            } else {
+                localStorage.setItem('guestCart', JSON.stringify({ items: [] }));
+            }
+        }
+
+        document.getElementById('viewOrdersBtn').addEventListener('click', async function(e) {
+            e.preventDefault();
+            await clearCart();
+            window.location.href = 'orders.html';
+        });
+
+        document.getElementById('continueShoppingBtn').addEventListener('click', async function(e) {
+            e.preventDefault();
+            await clearCart();
+            window.location.href = 'menu.html';
         });
     </script>
 </body>

@@ -428,8 +428,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Validate M-Pesa number
         if (paymentMethod === 'mpesa') {
-            if (!/^(07\d{8}|01\d{8}|2541\d{8})$/.test(mpesaNumber)) {
-                showMpesaToast('Enter a valid M-Pesa number (07XXXXXXXX, 01XXXXXXXX, or 2541XXXXXXXX)', '#e74c3c');
+            if (!/^(07\d{8}|01\d{8}|2547\d{8}|2541\d{8})$/.test(mpesaNumber)) {
+                showMpesaToast('Enter a valid M-Pesa number (07XXXXXXXX, 01XXXXXXXX, 2547XXXXXXXX, or 2541XXXXXXXX)', '#e74c3c');
                 document.getElementById('mpesaNumber').focus();
                 return;
             }
