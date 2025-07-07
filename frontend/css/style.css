@@ -428,6 +428,9 @@ body {
         flex-direction: column;
         align-items: center;
     }
+    .moving-text {
+        display: block !important;
+    }
 }
 
 @media (max-width: 576px) {
@@ -476,7 +479,7 @@ body {
         border-radius: 4px;
     }
     .hamburger-menu {
-        margin-left: 0.09rem;
+        margin-left: 0.01rem;
         width: 22px;
     }
     .bar {
@@ -502,6 +505,9 @@ body {
     }
     .about-section, .team-section, .menu-section, .cart-section {
         padding: 1.2rem 0.5rem !important;
+    }
+    .moving-text {
+        display: block !important;
     }
 }
 
