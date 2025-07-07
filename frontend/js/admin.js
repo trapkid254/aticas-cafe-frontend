@@ -241,8 +241,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show unviewed orders count badge in admin navbar
     async function updateUnviewedOrdersBadge() {
         const adminToken = localStorage.getItem('adminToken');
+        // Horizontal nav
         const ordersTab = document.querySelector('.admin-navbar-tabs a[href="orders.html"]');
-        if (!ordersTab) return;
+        // Sidebar nav
+        const sidebarOrdersTab = document.querySelector('.admin-sidebar a[href="orders.html"]');
+        if (!ordersTab && !sidebarOrdersTab) return;
         try {
             const res = await fetch('https://aticas-backend.onrender.com/api/orders', {
                 headers: { 'Authorization': adminToken }
@@ -251,19 +254,40 @@ document.addEventListener('DOMContentLoaded', function() {
             const orders = await res.json();
             // Count unviewed orders that are not completed/cancelled
             const unviewed = orders.filter(o => !o.viewedByAdmin && (!o.status || (o.status !== 'completed' && o.status !== 'cancelled')));
-            let badge = ordersTab.querySelector('.order-badge');
-            if (!badge) {
+            // Horizontal nav badge
+            let badge = ordersTab ? ordersTab.querySelector('.order-badge') : null;
+            if (ordersTab && !badge) {
                 badge = document.createElement('span');
                 badge.className = 'order-badge';
                 badge.style.cssText = 'background:#e74c3c;color:#fff;font-size:0.85rem;padding:2px 8px;border-radius:12px;margin-left:7px;vertical-align:middle;';
                 ordersTab.appendChild(badge);
             }
-            badge.textContent = unviewed.length > 0 ? unviewed.length : '';
-            badge.style.display = unviewed.length > 0 ? 'inline-block' : 'none';
+            if (badge) {
+                badge.textContent = unviewed.length > 0 ? unviewed.length : '';
+                badge.style.display = unviewed.length > 0 ? 'inline-block' : 'none';
+            }
+            // Sidebar badge
+            let sidebarBadge = sidebarOrdersTab ? sidebarOrdersTab.querySelector('.order-badge') : null;
+            if (sidebarOrdersTab && !sidebarBadge) {
+                sidebarBadge = document.createElement('span');
+                sidebarBadge.className = 'order-badge';
+                sidebarBadge.style.cssText = 'background:#e74c3c;color:#fff;font-size:0.85rem;padding:2px 8px;border-radius:12px;margin-left:7px;vertical-align:middle;';
+                sidebarOrdersTab.appendChild(sidebarBadge);
+            }
+            if (sidebarBadge) {
+                sidebarBadge.textContent = unviewed.length > 0 ? unviewed.length : '';
+                sidebarBadge.style.display = unviewed.length > 0 ? 'inline-block' : 'none';
+            }
         } catch (err) {
-            // Hide badge on error
-            const badge = ordersTab.querySelector('.order-badge');
-            if (badge) badge.style.display = 'none';
+            // Hide badges on error
+            if (ordersTab) {
+                const badge = ordersTab.querySelector('.order-badge');
+                if (badge) badge.style.display = 'none';
+            }
+            if (sidebarOrdersTab) {
+                const sidebarBadge = sidebarOrdersTab.querySelector('.order-badge');
+                if (sidebarBadge) sidebarBadge.style.display = 'none';
+            }
         }
     }
     document.addEventListener('DOMContentLoaded', updateUnviewedOrdersBadge);
