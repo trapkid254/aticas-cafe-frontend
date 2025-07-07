@@ -90,9 +90,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Status cycling logic (pending → verifying → completed)
+    // Status cycling logic (pending → verifying → completed → cancelled)
     function cycleOrderStatus(orderId, currentStatus) {
-        const statuses = ['pending', 'verifying', 'completed'];
+        const statuses = ['pending', 'verifying', 'completed', 'cancelled'];
         let idx = statuses.indexOf(currentStatus);
         idx = (idx + 1) % statuses.length;
         const newStatus = statuses[idx];
@@ -101,14 +101,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function updateOrderStatus(orderId, newStatus) {
         try {
-            await fetchFromApi(`/api/orders/${orderId}`, {
+            const response = await fetchFromApi(`/api/orders/${orderId}`, {
                 method: 'PUT',
                 body: JSON.stringify({ status: newStatus })
             });
-            fetchAndDisplayOrders(); // Refresh list
+            
+            if (response.success) {
+                // Show success message
+                showToast(`Order status updated to ${newStatus}`, 'success');
+                fetchAndDisplayOrders(); // Refresh list
+            } else {
+                showToast(response.error || 'Failed to update order status', 'error');
+            }
         } catch (error) {
             console.error('Failed to update order status:', error);
+            showToast('Failed to update order status', 'error');
         }
+    }
+
+    // Toast notification function
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            z-index: 10000;
+            max-width: 300px;
+            word-wrap: break-word;
+        `;
+        
+        switch(type) {
+            case 'success':
+                toast.style.backgroundColor = '#27ae60';
+                break;
+            case 'error':
+                toast.style.backgroundColor = '#e74c3c';
+                break;
+            default:
+                toast.style.backgroundColor = '#3498db';
+        }
+        
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
     }
 
     function showOrderDetails(order) {
@@ -134,6 +177,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="margin-bottom:1.1rem;"><b>Customer:</b> ${order.customerName} (${order.customerPhone})</div>
                     <div style="margin-bottom:1.1rem;"><b>Order Type:</b> ${order.orderType ? order.orderType.charAt(0).toUpperCase() + order.orderType.slice(1) : 'N/A'} &nbsp; | &nbsp; <b>Payment:</b> ${order.paymentMethod ? (order.paymentMethod === 'mpesa' ? 'M-Pesa' : 'Cash') : 'N/A'}</div>
                     <div style="margin-bottom:1.1rem;"><b>Status:</b> <span style="color:#27ae60;font-weight:bold;">${order.status}</span></div>
+                    ${order.orderType === 'delivery' && order.deliveryLocation ? `
+                        <div style="margin-bottom:1.1rem;padding:1rem;background:#f8f9fa;border-radius:8px;border-left:4px solid #27ae60;">
+                            <div style="margin-bottom:0.5rem;"><b><i class="fas fa-map-marker-alt" style="color:#27ae60;"></i> Delivery Location:</b></div>
+                            <div style="margin-bottom:0.3rem;"><b>Building:</b> ${order.deliveryLocation.buildingName}</div>
+                            <div style="margin-bottom:0.3rem;"><b>Address:</b> ${order.deliveryLocation.streetAddress}</div>
+                            ${order.deliveryLocation.additionalInfo ? `<div style="margin-bottom:0.3rem;"><b>Additional Info:</b> ${order.deliveryLocation.additionalInfo}</div>` : ''}
+                            <div style="margin-bottom:0.3rem;"><b>Coordinates:</b> ${order.deliveryLocation.coordinates.latitude.toFixed(6)}, ${order.deliveryLocation.coordinates.longitude.toFixed(6)}</div>
+                            <div style="margin-top:0.5rem;">
+                                <a href="https://www.google.com/maps?q=${order.deliveryLocation.coordinates.latitude},${order.deliveryLocation.coordinates.longitude}" target="_blank" style="color:#27ae60;text-decoration:none;font-weight:bold;">
+                                    <i class="fas fa-external-link-alt"></i> View on Google Maps
+                                </a>
+                            </div>
+                        </div>
+                    ` : ''}
                     ${itemsHtml}
                     <div style="margin-top:1.3rem;font-size:1.15rem;"><b>Total:</b> <span style="color:#27ae60;">Ksh ${Number(order.total).toLocaleString()}</span></div>
                 </div>

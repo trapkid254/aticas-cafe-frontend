@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="css/style.css">
     <!-- Algerian font is not available on Google Fonts, so we use a similar decorative font as fallback -->
     <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg&libraries=places"></script>
 </head>
 <body>
     <!-- Navbar -->
@@ -32,11 +34,11 @@
 
     <!-- Mobile Menu -->
     <div class="mobile-menu" id="mobileMenu">
-        <a href="index.html">Home</a>
-        <a href="about.html">About Us</a>
-        <a href="menu.html">Menu</a>
-        <a href="orders.html">My Orders</a>
-        <a href="contact.html">Contact</a>
+        <a href="index.html"><i class="fas fa-home"></i> Home</a>
+        <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
+        <a href="menu.html"><i class="fas fa-utensils"></i> Menu</a>
+        <a href="orders.html"><i class="fas fa-receipt"></i> My Orders</a>
+        <a href="contact.html"><i class="fas fa-envelope"></i> Contact</a>
     </div>
 
     <!-- Cart Hero Section -->
@@ -85,6 +87,62 @@
                                     <input type="radio" name="orderType" value="delivery">
                                     <i class="fas fa-truck"></i> <span>Delivery</span>
                                 </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Delivery Location Popup -->
+                        <div class="form-group delivery-location-popup" id="deliveryLocationPopup" style="display: none; background: #f8f9fa; border-radius: 12px; padding: 1.5rem; margin-top: 1rem; border: 2px solid #27ae60;">
+                            <div style="text-align: center; margin-bottom: 1.5rem;">
+                                <i class="fas fa-map-marker-alt" style="font-size: 2rem; color: #27ae60; margin-bottom: 0.5rem;"></i>
+                                <h4 style="color: #27ae60; margin: 0;">Delivery Location</h4>
+                                <p style="color: #666; margin: 0.5rem 0 0 0; font-size: 0.9rem;">Please provide your delivery details</p>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="buildingName">Building/Location Name</label>
+                                <input type="text" id="buildingName" placeholder="e.g., JKUAT Main Campus, Building A" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="streetAddress">Street Address</label>
+                                <input type="text" id="streetAddress" placeholder="e.g., Main Street, Juja" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="additionalInfo">Additional Information</label>
+                                <textarea id="additionalInfo" placeholder="e.g., Near the main gate, 2nd floor, Room 201" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; min-height: 80px; resize: vertical;"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Pin Your Location</label>
+                                <div style="text-align: center; margin-bottom: 1rem;">
+                                    <button type="button" id="getLocationBtn" style="background: #27ae60; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 1rem;">
+                                        <i class="fas fa-crosshairs"></i> Use Current Location
+                                    </button>
+                                    <p style="color: #666; font-size: 0.9rem; margin: 0;">Or manually enter coordinates below</p>
+                                </div>
+                                
+                                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                                    <div style="flex: 1;">
+                                        <label for="latitude">Latitude</label>
+                                        <input type="number" id="latitude" step="any" placeholder="e.g., -1.1011" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <label for="longitude">Longitude</label>
+                                        <input type="number" id="longitude" step="any" placeholder="e.g., 37.0144" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
+                                    </div>
+                                </div>
+                                
+                                <div id="locationStatus" style="text-align: center; padding: 0.5rem; border-radius: 6px; margin-bottom: 1rem; display: none;">
+                                    <i class="fas fa-check-circle"></i> <span>Location captured successfully!</span>
+                                </div>
+                                
+                                <div id="mapContainer" style="height: 200px; border: 2px dashed #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; margin-bottom: 1rem;">
+                                    <div style="text-align: center; color: #666;">
+                                        <i class="fas fa-map" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                                        <p>Map will appear here when location is selected</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="form-group">

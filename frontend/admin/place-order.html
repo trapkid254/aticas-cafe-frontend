@@ -22,6 +22,66 @@
         .payment-method-label:hover i {
             color: #bfa100 !important;
         }
+        .mpesa-btn-pro {
+            background: linear-gradient(90deg, #27ae60 60%, #2ecc71 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 1rem 2.2rem;
+            font-size: 1.18rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 12px rgba(39,174,96,0.10);
+            transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
+            letter-spacing: 0.5px;
+        }
+        .mpesa-btn-pro:hover {
+            background: linear-gradient(90deg, #2ecc71 60%, #27ae60 100%);
+            box-shadow: 0 4px 24px rgba(39,174,96,0.13);
+            transform: translateY(-2px) scale(1.03);
+        }
+        .mpesa-status-card {
+            background: #f8fbf7;
+            border: 1.5px solid #27ae60;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(39,174,96,0.07);
+            padding: 1.5rem 1.5rem 1.2rem 1.5rem;
+            text-align: center;
+            font-size: 1.13rem;
+            color: #222;
+            margin-top: 1.2rem;
+            min-height: 60px;
+            position: relative;
+        }
+        .mpesa-status-card.success {
+            color: #27ae60;
+        }
+        .mpesa-status-card.error {
+            color: #e74c3c;
+        }
+        .mpesa-status-card .fa-check-circle {
+            color: #27ae60;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .mpesa-status-card .fa-times-circle {
+            color: #e74c3c;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .mpesa-status-card .fa-spinner {
+            color: #27ae60;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -95,9 +155,9 @@
             <button type="submit" class="submit-btn" style="width:100%;margin-top:1.2rem;background:linear-gradient(90deg,#27ae60 60%,#2ecc71 100%);color:#fff;font-size:1.15rem;padding:0.9rem 0;">Place Order</button>
         </form>
         <div id="orderSuccess" style="display:none;text-align:center;margin-top:2rem;">
-            <div style="font-size:1.2rem;color:#27ae60;margin-bottom:1rem;">Order placed successfully!</div>
-            <button id="sendMpesaBtn" class="action-btn" style="background:#27ae60;color:#fff;">Send M-Pesa Payment Request</button>
-            <div id="mpesaStatus" style="margin-top:1rem;"></div>
+            <div style="font-size:1.2rem;color:#27ae60;margin-bottom:1rem;"><i class="fas fa-check-circle" style="font-size:2.2rem;margin-bottom:0.3rem;"></i><br>Order placed successfully!</div>
+            <button id="sendMpesaBtn" class="mpesa-btn-pro" style="margin-top:1.2rem;"><i class="fas fa-mobile-alt"></i> Send M-Pesa Payment Request</button>
+            <div id="mpesaStatusCard" class="mpesa-status-card" style="display:none;margin:2rem auto 0 auto;max-width:420px;"></div>
         </div>
         <div id="orderError" style="display:none;text-align:center;color:#e74c3c;margin-top:2rem;"></div>
     </div>

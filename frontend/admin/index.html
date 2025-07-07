@@ -233,7 +233,7 @@
             // It was causing a TypeError. All menu management is handled elsewhere.
             /*
             // Fetch menu items for the meals of the day dropdown
-            const menuRes = await fetch('http://localhost:3000/api/menu', { headers: { 'Authorization': localStorage.getItem('adminToken') || '' } });
+            const menuRes = await fetch('https://aticas-backend.onrender.com/api/menu', { headers: { 'Authorization': localStorage.getItem('adminToken') || '' } });
             const menuItems = await menuRes.json();
             const mealSelect = document.getElementById('meal-menu-item');
             menuItems.forEach(item => {
@@ -245,7 +245,7 @@
             */
 
             // Fetch existing meals of the day
-            const mealsRes = await fetch('http://localhost:3000/api/meals', { headers: { 'Authorization': localStorage.getItem('adminToken') || '' } });
+            const mealsRes = await fetch('https://aticas-backend.onrender.com/api/meals', { headers: { 'Authorization': localStorage.getItem('adminToken') || '' } });
             const meals = await mealsRes.json();
             // ... (rest of the script to display meals)
 

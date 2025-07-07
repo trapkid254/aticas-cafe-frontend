@@ -50,6 +50,15 @@ const orderSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   paymentMethod: { type: String },
   orderType: { type: String },
+  deliveryLocation: {
+    buildingName: String,
+    streetAddress: String,
+    additionalInfo: String,
+    coordinates: {
+      latitude: Number,
+      longitude: Number
+    }
+  },
   viewedByAdmin: { type: Boolean, default: false }
 });
 const Order = mongoose.model('Order', orderSchema);
@@ -312,25 +321,74 @@ app.post('/api/orders', async (req, res) => {
         }
       } catch (err) {}
     }
-    // Validate each item
+    // Validate each item and check quantities
     for (const item of req.body.items) {
       if (!item.itemType || !['Menu', 'MealOfDay'].includes(item.itemType)) {
         return res.status(400).json({ success: false, error: 'Invalid itemType for one or more items.' });
       }
+      
       let found;
       if (item.itemType === 'Menu') {
         found = await Menu.findById(item.menuItem);
       } else if (item.itemType === 'MealOfDay') {
         found = await MealOfDay.findById(item.menuItem);
       }
+      
       if (!found) {
         return res.status(400).json({ success: false, error: `Invalid menuItem for itemType ${item.itemType}.` });
       }
+      
+      // Check if sufficient quantity is available
+      const requestedQuantity = item.quantity || 1;
+      if (found.quantity < requestedQuantity) {
+        return res.status(400).json({ 
+          success: false, 
+          error: `Insufficient quantity for ${found.name}. Available: ${found.quantity}, Requested: ${requestedQuantity}` 
+        });
+      }
     }
-    const newOrder = new Order({ ...req.body, userId, customerName, customerPhone, viewedByAdmin: false });
+    
+    // Prepare order data
+    const orderData = {
+      ...req.body,
+      userId,
+      customerName,
+      customerPhone,
+      viewedByAdmin: false
+    };
+    
+    // Validate delivery location if order type is delivery
+    if (req.body.orderType === 'delivery') {
+      if (!req.body.deliveryLocation) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Delivery location is required for delivery orders' 
+        });
+      }
+      
+      const { deliveryLocation } = req.body;
+      if (!deliveryLocation.buildingName || !deliveryLocation.streetAddress) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Building name and street address are required for delivery' 
+        });
+      }
+      
+      if (!deliveryLocation.coordinates || 
+          typeof deliveryLocation.coordinates.latitude !== 'number' || 
+          typeof deliveryLocation.coordinates.longitude !== 'number') {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Valid coordinates are required for delivery' 
+        });
+      }
+    }
+    
+    const newOrder = new Order(orderData);
     await newOrder.save();
     res.json({ success: true, order: newOrder });
   } catch (err) {
+    console.error('Order creation error:', err);
     res.status(500).json({ success: false, error: 'Failed to add order' });
   }
 });
@@ -338,13 +396,85 @@ app.post('/api/orders', async (req, res) => {
 // Update order status (protected)
 app.put('/api/orders/:id', authenticateAdmin, async (req, res) => {
   try {
-    const updatedOrder = await Order.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (updatedOrder) {
-      res.json({ success: true, order: updatedOrder });
-    } else {
-      res.status(404).json({ success: false, error: 'Order not found' });
+    const { status } = req.body;
+    const order = await Order.findById(req.params.id);
+    
+    if (!order) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
     }
+
+    // If status is being changed to 'completed', reduce quantities
+    if (status === 'completed' && order.status !== 'completed') {
+      for (const item of order.items) {
+        const quantityToReduce = item.quantity || 1;
+        
+        if (item.itemType === 'Menu') {
+          // Check current quantity before reducing
+          const menuItem = await Menu.findById(item.menuItem);
+          if (menuItem.quantity < quantityToReduce) {
+            return res.status(400).json({ 
+              success: false, 
+              error: `Cannot complete order: Insufficient quantity for ${menuItem.name}. Available: ${menuItem.quantity}, Required: ${quantityToReduce}` 
+            });
+          }
+          // Reduce quantity for menu items
+          await Menu.findByIdAndUpdate(
+            item.menuItem,
+            { $inc: { quantity: -quantityToReduce } },
+            { new: true }
+          );
+        } else if (item.itemType === 'MealOfDay') {
+          // Check current quantity before reducing
+          const mealItem = await MealOfDay.findById(item.menuItem);
+          if (mealItem.quantity < quantityToReduce) {
+            return res.status(400).json({ 
+              success: false, 
+              error: `Cannot complete order: Insufficient quantity for ${mealItem.name}. Available: ${mealItem.quantity}, Required: ${quantityToReduce}` 
+            });
+          }
+          // Reduce quantity for meals of the day
+          await MealOfDay.findByIdAndUpdate(
+            item.menuItem,
+            { $inc: { quantity: -quantityToReduce } },
+            { new: true }
+          );
+        }
+      }
+    }
+    
+    // If status is being changed to 'cancelled' from 'completed', restore quantities
+    if (status === 'cancelled' && order.status === 'completed') {
+      for (const item of order.items) {
+        const quantityToRestore = item.quantity || 1;
+        
+        if (item.itemType === 'Menu') {
+          // Restore quantity for menu items
+          await Menu.findByIdAndUpdate(
+            item.menuItem,
+            { $inc: { quantity: quantityToRestore } },
+            { new: true }
+          );
+        } else if (item.itemType === 'MealOfDay') {
+          // Restore quantity for meals of the day
+          await MealOfDay.findByIdAndUpdate(
+            item.menuItem,
+            { $inc: { quantity: quantityToRestore } },
+            { new: true }
+          );
+        }
+      }
+    }
+
+    // Update the order status
+    const updatedOrder = await Order.findByIdAndUpdate(
+      req.params.id, 
+      req.body, 
+      { new: true }
+    );
+    
+    res.json({ success: true, order: updatedOrder });
   } catch (err) {
+    console.error('Order update error:', err);
     res.status(500).json({ success: false, error: 'Failed to update order' });
   }
 });

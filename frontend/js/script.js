@@ -174,14 +174,28 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             container.innerHTML = mealsOfDay.map(meal => {
                 const outOfStock = meal.quantity === 0;
+                const lowStock = meal.quantity > 0 && meal.quantity <= 3;
                 const imageUrl = meal.image && meal.image.trim() !== "" 
                     ? meal.image 
                     : "images/varied menu.jpeg"; // Use a placeholder image
+                
+                // Determine quantity display styling
+                let quantityClass = '';
+                let quantityText = `Available: ${meal.quantity ?? 10}`;
+                
+                if (outOfStock) {
+                    quantityClass = 'out-of-stock';
+                    quantityText = 'Out of Stock';
+                } else if (lowStock) {
+                    quantityClass = 'low-stock';
+                    quantityText = `Low Stock: ${meal.quantity}`;
+                }
+                
                 return `
                 <div class="meal-card">
                     <img src="${imageUrl}" alt="${meal.name}">
                     <h3>${meal.name}</h3>
-                    <p>Available: <span class="meal-qty">${meal.quantity ?? 10}</span></p>
+                    <p class="meal-qty ${quantityClass}">${quantityText}</p>
                     <span class="price">Ksh ${Number(meal.price).toLocaleString()}</span>
                     <button class="add-to-cart" data-id="${meal._id}" ${outOfStock ? 'disabled style=\"background:#ccc;cursor:not-allowed;\"' : ''}>${outOfStock ? 'Out of Stock' : 'Add to Cart'}</button>
                 </div>
