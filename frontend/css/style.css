@@ -557,6 +557,20 @@ body {
         padding: 0.65rem 0.8rem !important;
         font-size: 0.98rem !important;
     }
+    .team-container {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: center !important;
+        align-items: stretch !important;
+        gap: 0.7rem !important;
+        overflow-x: auto !important;
+        flex-wrap: nowrap !important;
+    }
+    .team-member {
+        min-width: 180px !important;
+        max-width: 220px !important;
+        flex: 0 0 auto !important;
+    }
 }
 
 @media (max-width: 576px) {
@@ -607,6 +621,20 @@ body {
     .mobile-menu a {
         padding: 0.55rem 0.6rem !important;
         font-size: 0.92rem !important;
+    }
+    .team-container {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: flex-start !important;
+        align-items: stretch !important;
+        gap: 0.6rem !important;
+        overflow-x: auto !important;
+        flex-wrap: nowrap !important;
+    }
+    .team-member {
+        min-width: 150px !important;
+        max-width: 180px !important;
+        flex: 0 0 auto !important;
     }
 }
 
