@@ -429,10 +429,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Validate M-Pesa number
         if (paymentMethod === 'mpesa') {
             let userInput = document.getElementById('mpesaNumber').value.replace(/[-\s]/g, '');
-            let mpesaNumber = '254' + userInput; // Always prepend 254
-            // Now validate
+            let mpesaNumber = userInput;
+            if (mpesaNumber.length === 9 && (mpesaNumber.startsWith('7') || mpesaNumber.startsWith('1'))) {
+                mpesaNumber = '254' + mpesaNumber;
+            }
             if (!/^254(7\d{8}|1\d{8})$/.test(mpesaNumber)) {
-                showMpesaToast('Enter a valid M-Pesa number (e.g. 714003218 or 114789101)', '#e74c3c');
+                showMpesaToast('Enter a valid M-Pesa number (e.g. 714003218 or 254714003218)', '#e74c3c');
                 document.getElementById('mpesaNumber').focus();
                 return;
             }
