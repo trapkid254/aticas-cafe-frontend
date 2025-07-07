@@ -189,11 +189,12 @@ body {
     height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-end;
     align-items: center;
     color: white;
     z-index: 2;
     pointer-events: none;
+    padding-bottom: 2.5rem;
 }
 .video-overlay h1,
 .video-overlay .menu-btn {
@@ -201,23 +202,11 @@ body {
 }
 .video-overlay h1 {
     font-size: 3rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.2rem;
     text-align: center;
 }
-
 .video-overlay .menu-btn {
-    padding: 0.8rem 2rem;
-    background-color: green;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: bold;
-    font-size: 1.2rem;
-    transition: background-color 0.3s;
-}
-
-.video-overlay .menu-btn:hover {
-    background-color: #ff5252;
+    margin-bottom: 0;
 }
 
 /* Meals Section */
