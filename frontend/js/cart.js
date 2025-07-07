@@ -428,12 +428,14 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Validate M-Pesa number
         if (paymentMethod === 'mpesa') {
-            if (!/^(07\d{8}|01\d{8}|2547\d{8}|2541\d{8})$/.test(mpesaNumber)) {
-                showMpesaToast('Enter a valid M-Pesa number (07XXXXXXXX, 01XXXXXXXX, 2547XXXXXXXX, or 2541XXXXXXXX)', '#e74c3c');
+            let userInput = document.getElementById('mpesaNumber').value.replace(/[-\s]/g, '');
+            let mpesaNumber = '254' + userInput; // Always prepend 254
+            // Now validate
+            if (!/^254(7\d{8}|1\d{8})$/.test(mpesaNumber)) {
+                showMpesaToast('Enter a valid M-Pesa number (e.g. 714003218 or 114789101)', '#e74c3c');
                 document.getElementById('mpesaNumber').focus();
                 return;
             }
-            if (mpesaNumber.startsWith('0')) mpesaNumber = '254' + mpesaNumber.slice(1);
         }
         
         // Validate delivery location if delivery is selected
