@@ -549,7 +549,15 @@ const shortcode = process.env.MPESA_SHORTCODE;
 const passkey = process.env.MPESA_PASSKEY;
 
 app.post('/api/mpesa/payment', async (req, res) => {
-    const { phone, amount, orderId } = req.body;
+    let { phone, amount, orderId } = req.body;
+    // Sanitize and format phone number
+    phone = String(phone).replace(/[-\s]/g, '');
+    if (phone.length === 9 && (phone.startsWith('7') || phone.startsWith('1'))) {
+        phone = '254' + phone;
+    } else if (phone.startsWith('0')) {
+        phone = '254' + phone.slice(1);
+    }
+    // If phone already starts with 254 and is 12 digits, use as is
     try {
         console.log('Received M-Pesa payment request:', { phone, amount, orderId });
         // 1. Get access token
