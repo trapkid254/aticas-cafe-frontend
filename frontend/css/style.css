@@ -455,22 +455,13 @@ body {
         gap: 0.12rem;
     }
     .cafeteria-name {
-        font-size: 0.72rem;
-        max-width: 48px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        font-weight: bold;
-        letter-spacing: 0.01em;
-        flex-shrink: 1;
+        font-size: 1.05rem;
+        max-width: 70px;
     }
     .logo {
-        width: 20px;
-        height: 20px;
-        margin-right: 0.18rem;
-        border-radius: 50%;
-        object-fit: cover;
-        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        margin-right: 0.22rem;
     }
     .navbar-right {
         gap: 0.08rem;
@@ -478,26 +469,22 @@ body {
         flex-shrink: 1;
     }
     .cart-icon {
-        font-size: 0.92rem;
-        margin-right: 0.13rem;
-        flex-shrink: 0;
+        font-size: 1.25rem;
+        margin-right: 0.18rem;
     }
     .login-btn {
-        padding: 0.13rem 0.38rem;
-        font-size: 0.68rem;
-        margin-right: 0.13rem;
-        border-radius: 3px;
-        flex-shrink: 0;
+        padding: 0.22rem 0.55rem;
+        font-size: 0.95rem;
+        margin-right: 0.18rem;
+        border-radius: 4px;
     }
     .hamburger-menu {
-        margin-left: 0.05rem;
-        width: 16px;
-        flex-shrink: 0;
+        margin-left: 0.09rem;
+        width: 22px;
     }
     .bar {
-        width: 16px;
-        height: 1.5px;
-        margin: 1px 0;
+        width: 22px;
+        height: 2.5px;
     }
     /* Responsive images */
     img, .logo {
