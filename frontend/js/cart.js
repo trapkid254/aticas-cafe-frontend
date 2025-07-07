@@ -96,18 +96,21 @@ async function removeCartItem(menuItemId, itemType) {
 async function clearCart() {
     const userId = getUserId();
     const token = getUserToken();
+    console.log('[clearCart] Called. userId:', userId, 'token:', token);
     if (userId && token) {
         try {
-            await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
+            const res = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': token }
             });
+            console.log('[clearCart] Backend DELETE response:', res.status, await res.text());
         } catch (err) {
-            console.error('Error clearing cart:', err);
+            console.error('[clearCart] Error clearing cart:', err);
         }
     } else {
-        console.log('[guestCart] clearCart called. Cart will be emptied.');
+        console.log('[clearCart] Guest cart. Clearing localStorage.');
         setGuestCart({ items: [] });
+        console.log('[clearCart] guestCart after clear:', localStorage.getItem('guestCart'));
     }
 }
 
@@ -420,15 +423,55 @@ document.addEventListener('DOMContentLoaded', function() {
     checkoutForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+        const orderType = document.querySelector('input[name="orderType"]:checked').value;
         let mpesaNumber = paymentMethod === 'mpesa' ? document.getElementById('mpesaNumber').value : null;
+        
+        // Validate M-Pesa number
         if (paymentMethod === 'mpesa') {
-            if (!/^7\d{8}$/.test(mpesaNumber)) {
-                showMpesaToast('Enter a valid M-Pesa number (7XXXXXXXX)', '#e74c3c');
+            if (!/^(07\d{8}|01\d{8}|2541\d{8})$/.test(mpesaNumber)) {
+                showMpesaToast('Enter a valid M-Pesa number (07XXXXXXXX, 01XXXXXXXX, or 2541XXXXXXXX)', '#e74c3c');
                 document.getElementById('mpesaNumber').focus();
                 return;
             }
-            mpesaNumber = '254' + mpesaNumber;
+            if (mpesaNumber.startsWith('0')) mpesaNumber = '254' + mpesaNumber.slice(1);
         }
+        
+        // Validate delivery location if delivery is selected
+        let deliveryLocation = null;
+        if (orderType === 'delivery') {
+            const buildingName = document.getElementById('buildingName').value.trim();
+            const streetAddress = document.getElementById('streetAddress').value.trim();
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const longitude = parseFloat(document.getElementById('longitude').value);
+            
+            if (!buildingName) {
+                showMpesaToast('Please enter the building/location name.', '#e74c3c');
+                document.getElementById('buildingName').focus();
+                return;
+            }
+            
+            if (!streetAddress) {
+                showMpesaToast('Please enter the street address.', '#e74c3c');
+                document.getElementById('streetAddress').focus();
+                return;
+            }
+            
+            if (isNaN(latitude) || isNaN(longitude) || latitude === 0 || longitude === 0) {
+                showMpesaToast('Please set your location coordinates.', '#e74c3c');
+                return;
+            }
+            
+            deliveryLocation = {
+                buildingName: buildingName,
+                streetAddress: streetAddress,
+                additionalInfo: document.getElementById('additionalInfo').value.trim(),
+                coordinates: {
+                    latitude: latitude,
+                    longitude: longitude
+                }
+            };
+        }
+        
         const userId = getUserId();
         const token = getUserToken();
         let latestCart;
@@ -458,6 +501,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const order = {
             items: latestCart.items.map(item => ({ menuItem: item.menuItem._id, itemType: item.itemType, quantity: item.quantity })),
             total: latestCart.items.reduce((sum, item) => sum + (item.menuItem.price * item.quantity), 0),
+            orderType: orderType,
+            deliveryLocation: deliveryLocation,
             paymentMethod: paymentMethod,
             mpesaNumber: mpesaNumber,
             status: 'pending',
@@ -481,9 +526,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             if (data.success) {
                 await clearCart();
-                localStorage.setItem('lastOrderId', data.order._id);
-                window.location.href = `order-confirmation.html?orderId=${data.order._id}`;
+                console.log('[order] Called clearCart after order. Cart should be empty now.');
+                if (window.updateCartCount) window.updateCartCount();
                 await displayCartItems();
+                localStorage.setItem('lastOrderId', data.order._id);
+                setTimeout(() => {
+                    window.location.href = `order-confirmation.html?orderId=${data.order._id}`;
+                }, 500); // increased delay for UI update
             } else {
                 showMpesaToast('Order failed: ' + (data.error || 'Unknown error'), '#e74c3c');
             }
@@ -520,6 +569,155 @@ document.addEventListener('DOMContentLoaded', function() {
         guestFields.style.display = 'none';
         guestPhoneField.style.display = 'none';
     }
+
+    // Delivery Location Functionality
+    const deliveryLocationPopup = document.getElementById('deliveryLocationPopup');
+    const orderTypeRadios = document.querySelectorAll('input[name="orderType"]');
+    const getLocationBtn = document.getElementById('getLocationBtn');
+    const locationStatus = document.getElementById('locationStatus');
+    const mapContainer = document.getElementById('mapContainer');
+    let map, marker;
+
+    // Order type change listener
+    orderTypeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'delivery') {
+                deliveryLocationPopup.style.display = 'block';
+                // Smooth scroll to delivery location popup
+                deliveryLocationPopup.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                deliveryLocationPopup.style.display = 'none';
+            }
+        });
+    });
+
+    // Get current location
+    getLocationBtn.addEventListener('click', function() {
+        if (navigator.geolocation) {
+            getLocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting Location...';
+            getLocationBtn.disabled = true;
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    // Update input fields
+                    document.getElementById('latitude').value = lat.toFixed(6);
+                    document.getElementById('longitude').value = lng.toFixed(6);
+                    
+                    // Show map
+                    showMap(lat, lng);
+                    
+                    // Update status
+                    locationStatus.style.display = 'block';
+                    locationStatus.style.background = '#d4edda';
+                    locationStatus.style.color = '#155724';
+                    locationStatus.style.border = '1px solid #c3e6cb';
+                    
+                    // Reset button
+                    getLocationBtn.innerHTML = '<i class="fas fa-crosshairs"></i> Use Current Location';
+                    getLocationBtn.disabled = false;
+                },
+                function(error) {
+                    console.error('Error getting location:', error);
+                    showMpesaToast('Unable to get your location. Please enter coordinates manually.', '#e74c3c');
+                    getLocationBtn.innerHTML = '<i class="fas fa-crosshairs"></i> Use Current Location';
+                    getLocationBtn.disabled = false;
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 300000
+                }
+            );
+        } else {
+            showMpesaToast('Geolocation is not supported by this browser.', '#e74c3c');
+        }
+    });
+
+    // Show map function
+    function showMap(lat, lng) {
+        mapContainer.innerHTML = '';
+        
+        const mapElement = document.createElement('div');
+        mapElement.style.width = '100%';
+        mapElement.style.height = '100%';
+        mapElement.style.borderRadius = '6px';
+        mapContainer.appendChild(mapElement);
+        
+        const location = { lat: parseFloat(lat), lng: parseFloat(lng) };
+        
+        map = new google.maps.Map(mapElement, {
+            zoom: 15,
+            center: location,
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            styles: [
+                {
+                    featureType: 'poi',
+                    elementType: 'labels',
+                    stylers: [{ visibility: 'off' }]
+                }
+            ]
+        });
+        
+        marker = new google.maps.Marker({
+            position: location,
+            map: map,
+            title: 'Your Location',
+            draggable: true,
+            animation: google.maps.Animation.DROP
+        });
+        
+        // Add info window
+        const infoWindow = new google.maps.InfoWindow({
+            content: '<div style="text-align: center;"><strong>Your Delivery Location</strong><br>Drag marker to adjust</div>'
+        });
+        
+        marker.addListener('click', () => {
+            infoWindow.open(map, marker);
+        });
+        
+        // Update coordinates when marker is dragged
+        marker.addListener('dragend', function() {
+            const position = marker.getPosition();
+            document.getElementById('latitude').value = position.lat().toFixed(6);
+            document.getElementById('longitude').value = position.lng().toFixed(6);
+        });
+        
+        // Show info window initially
+        infoWindow.open(map, marker);
+    }
+
+    // Manual coordinate input listeners
+    document.getElementById('latitude').addEventListener('input', function() {
+        const lat = parseFloat(this.value);
+        const lng = parseFloat(document.getElementById('longitude').value);
+        if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+            showMap(lat, lng);
+            locationStatus.style.display = 'block';
+            locationStatus.style.background = '#d4edda';
+            locationStatus.style.color = '#155724';
+            locationStatus.style.border = '1px solid #c3e6cb';
+        }
+    });
+
+    document.getElementById('longitude').addEventListener('input', function() {
+        const lat = parseFloat(document.getElementById('latitude').value);
+        const lng = parseFloat(this.value);
+        if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+            showMap(lat, lng);
+            locationStatus.style.display = 'block';
+            locationStatus.style.background = '#d4edda';
+            locationStatus.style.color = '#155724';
+            locationStatus.style.border = '1px solid #c3e6cb';
+        }
+    });
+
+    window.addEventListener('pageshow', function() {
+        // Always re-fetch and display cart items when returning to the cart page
+        if (typeof displayCartItems === 'function') displayCartItems();
+    });
 });
 
 // This would be replaced with actual M-Pesa API integration
