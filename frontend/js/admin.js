@@ -303,6 +303,81 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    let lastUnviewedOrderCount = 0;
+
+    function showAdminOrderToast(message) {
+        let toast = document.getElementById('adminOrderToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'adminOrderToast';
+            toast.style.position = 'fixed';
+            toast.style.top = '30px';
+            toast.style.right = '30px';
+            toast.style.background = '#27ae60';
+            toast.style.color = '#fff';
+            toast.style.padding = '16px 28px';
+            toast.style.borderRadius = '8px';
+            toast.style.fontSize = '1.1rem';
+            toast.style.zIndex = 3000;
+            toast.style.boxShadow = '0 2px 12px rgba(39,174,96,0.18)';
+            toast.style.display = 'none';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = message;
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 4000);
+    }
+
+    function showAdminOrderModal(message) {
+        let modal = document.getElementById('adminOrderModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'adminOrderModal';
+            modal.style.position = 'fixed';
+            modal.style.top = 0;
+            modal.style.left = 0;
+            modal.style.width = '100vw';
+            modal.style.height = '100vh';
+            modal.style.background = 'rgba(0,0,0,0.25)';
+            modal.style.display = 'flex';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            modal.style.zIndex = 4000;
+            modal.innerHTML = '<div style="background:#fff;padding:2rem 2.5rem;border-radius:12px;box-shadow:0 2px 16px rgba(0,0,0,0.12);font-size:1.2rem;color:#222;text-align:center;max-width:90vw;">' +
+                '<span id="adminOrderModalMsg"></span><br><br>' +
+                '<button id="closeAdminOrderModal" style="padding:0.5rem 1.2rem;background:#27ae60;color:#fff;border:none;border-radius:6px;font-size:1rem;cursor:pointer;">Close</button>' +
+                '</div>';
+            document.body.appendChild(modal);
+            document.getElementById('closeAdminOrderModal').onclick = function() {
+                modal.style.display = 'none';
+            };
+        }
+        document.getElementById('adminOrderModalMsg').textContent = message;
+        modal.style.display = 'flex';
+    }
+
+    async function pollForNewOrders() {
+        try {
+            const adminToken = localStorage.getItem('adminToken');
+            const res = await fetch('https://aticas-backend.onrender.com/api/orders', {
+                headers: { 'Authorization': adminToken }
+            });
+            if (!res.ok) throw new Error('Failed to fetch orders');
+            const orders = await res.json();
+            const unviewed = orders.filter(o => !o.viewedByAdmin && (!o.status || (o.status !== 'completed' && o.status !== 'cancelled')));
+            if (typeof updateUnviewedOrdersBadge === 'function') updateUnviewedOrdersBadge();
+            if (unviewed.length > lastUnviewedOrderCount) {
+                showAdminOrderToast('New order received!');
+                showAdminOrderModal('A new customer order has been placed!');
+            }
+            lastUnviewedOrderCount = unviewed.length;
+        } catch (err) {
+            // Optionally handle error
+        }
+        setTimeout(pollForNewOrders, 10000);
+    }
+
     // Now call updateDashboardData after all functions are defined
     updateDashboardData();
+    setTimeout(pollForNewOrders, 10000);
 });
