@@ -7,7 +7,7 @@
 }
 
 html, body {
-    background-color: yellow;
+    background: yellow !important;
     color: #222 !important;
     line-height: 1.65 !important;
     font-size: 17px !important;
@@ -45,10 +45,10 @@ html, body {
 }
 
 .cafeteria-name {
-    font-size: 2.2rem;
-    font-weight: bold;
-    color: green;
-    font-family: 'Algerian', 'UnifrakturCook', cursive, serif;
+    font-size: 2.2rem !important;
+    font-weight: bold !important;
+    color: green !important;
+    font-family: 'Algerian', 'UnifrakturCook', cursive, serif !important;
 }
 
 .navbar-center {
@@ -58,8 +58,10 @@ html, body {
 }
 
 .navbar-center marquee {
-    font-size: 1rem;
-    color: green;
+    font-size: 1.1rem !important;
+    color: green !important;
+    font-weight: 600 !important;
+    font-family: 'Segoe UI', Arial, sans-serif !important;
 }
 
 .navbar-right {
@@ -251,7 +253,10 @@ html, body {
 
 .meal-card h3 {
     margin: 1rem 0;
-    font-size: 1.5rem;
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    color: #27ae60 !important;
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif !important;
 }
 
 .meal-card p {
@@ -336,7 +341,10 @@ html, body {
 }
 
 .reason h3 {
-    font-size: 1.5rem;
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    color: #27ae60 !important;
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif !important;
     margin-bottom: 1rem;
 }
 
@@ -444,8 +452,8 @@ html, body {
         gap: 0.12rem;
     }
     .cafeteria-name {
-        font-size: 1.05rem;
-        max-width: 70px;
+        font-size: 1.05rem !important;
+        max-width: 70px !important;
     }
     .logo {
         width: 32px;
@@ -726,7 +734,10 @@ html, body {
 }
 
 .team-member h3 {
-    font-size: 1.5rem;
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    color: #27ae60 !important;
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif !important;
     margin-bottom: 0.5rem;
 }
 
@@ -1861,4 +1872,17 @@ tr:nth-child(even) {
         padding: 0.2rem 0.2rem !important;
         min-height: 38px !important;
     }
+}
+
+/* --- ICONS: PROTECT FONT AND COLOR --- */
+.fa, .fas, .far, .fab, .fal, .fad, .material-icons {
+    font-family: inherit !important;
+    color: inherit !important;
+    font-style: normal !important;
+    font-weight: normal !important;
+    vertical-align: middle !important;
+}
+.navbar i, .admin-navbar i, .cart-icon i, .mobile-menu a i, .admin-sidebar i, .admin-navbar-tabs a i {
+    color: green !important;
+    font-size: 1.3em !important;
 }
