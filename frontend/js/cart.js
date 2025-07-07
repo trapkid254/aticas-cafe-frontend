@@ -531,12 +531,18 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 await clearCart();
                 console.log('[order] Called clearCart after order. Cart should be empty now.');
-                if (window.updateCartCount) window.updateCartCount();
+                if (window.updateCartCount) await window.updateCartCount();
                 await displayCartItems();
+                // Double-check guest cart is cleared
+                if (!getUserId() || !getUserToken()) {
+                    const guestCart = localStorage.getItem('guestCart');
+                    console.log('[order] guestCart after clear:', guestCart);
+                }
                 localStorage.setItem('lastOrderId', data.order._id);
+                // Add a small delay to ensure UI updates before redirect
                 setTimeout(() => {
                     window.location.href = `order-confirmation.html?orderId=${data.order._id}`;
-                }, 500); // increased delay for UI update
+                }, 400);
             } else {
                 showMpesaToast('Order failed: ' + (data.error || 'Unknown error'), '#e74c3c');
             }
