@@ -410,7 +410,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 showMpesaToast('M-Pesa push sent. Complete payment on your phone.');
                 return true;
             } else {
-                showMesaToast('M-Pesa push failed: ' + (data.errorMessage || data.error || 'Unknown error'), '#e74c3c');
+                showMpesaToast('M-Pesa push failed: ' + (data.errorMessage || data.error || 'Unknown error'), '#e74c3c');
                 return false;
             }
         } catch (err) {
