@@ -960,3 +960,41 @@ body, html {
         display: none !important;
     }
 }
+
+/* --- Compact Chart Container Styles for Reports --- */
+.chart-container {
+    padding: 0.8rem 0.8rem 0.5rem 0.8rem !important;
+    margin-bottom: 1.1rem !important;
+    border-radius: 8px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+    background: #fff;
+    min-height: unset !important;
+}
+.chart-container h3 {
+    margin-bottom: 0.7rem !important;
+    font-size: 1.08rem !important;
+}
+.chart-type-select {
+    margin-bottom: 0.3rem !important;
+}
+#salesChart, #popularItemsChart {
+    width: 100% !important;
+    height: 260px !important;
+    max-height: 260px !important;
+    min-height: 180px !important;
+}
+@media (max-width: 700px) {
+    .chart-container {
+        padding: 0.5rem 0.2rem 0.3rem 0.2rem !important;
+        margin-bottom: 0.7rem !important;
+    }
+    #salesChart, #popularItemsChart {
+        height: 170px !important;
+        max-height: 170px !important;
+        min-height: 120px !important;
+    }
+    .chart-container h3 {
+        margin-bottom: 0.4rem !important;
+        font-size: 0.98rem !important;
+    }
+}
