@@ -242,11 +242,27 @@
         
         <div class="chart-container">
             <h3>Sales Overview</h3>
+            <label for="salesChartType" style="font-size:0.95rem;margin-bottom:0.3rem;display:block;">Chart Type:
+                <select id="salesChartType" class="chart-type-select" style="margin-left:0.5rem;">
+                    <option value="bar" selected>Bar</option>
+                    <option value="line">Line</option>
+                    <option value="pie">Pie</option>
+                    <option value="doughnut">Doughnut</option>
+                </select>
+            </label>
             <canvas id="salesChart"></canvas>
         </div>
         
         <div class="chart-container">
             <h3>Popular Menu Items</h3>
+            <label for="popularItemsChartType" style="font-size:0.95rem;margin-bottom:0.3rem;display:block;">Chart Type:
+                <select id="popularItemsChartType" class="chart-type-select" style="margin-left:0.5rem;">
+                    <option value="bar" selected>Bar</option>
+                    <option value="line">Line</option>
+                    <option value="pie">Pie</option>
+                    <option value="doughnut">Doughnut</option>
+                </select>
+            </label>
             <canvas id="popularItemsChart"></canvas>
         </div>
         
