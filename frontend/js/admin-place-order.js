@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const orderSuccess = document.getElementById('orderSuccess');
     const orderError = document.getElementById('orderError');
     const sendMpesaBtn = document.getElementById('sendMpesaBtn');
-    const mpesaStatus = document.getElementById('mpesaStatus');
+    const mpesaStatus = document.getElementById('mpesaStatusCard');
     const menuSearch = document.getElementById('menuSearch');
 
     let menuItems = [];
