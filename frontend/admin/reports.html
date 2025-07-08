@@ -242,18 +242,12 @@
         
         <div class="chart-container">
             <h3>Sales Overview</h3>
-            <div id="salesChart">
-                <!-- Chart will be rendered here -->
-                <p style="text-align: center; color: #666;">Sales chart will appear here</p>
-            </div>
+            <canvas id="salesChart"></canvas>
         </div>
         
         <div class="chart-container">
             <h3>Popular Menu Items</h3>
-            <div id="popularItemsChart">
-                <!-- Chart will be rendered here -->
-                <p style="text-align: center; color: #666;">Popular items chart will appear here</p>
-            </div>
+            <canvas id="popularItemsChart"></canvas>
         </div>
         
         <div class="report-table-container">
@@ -328,22 +322,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../js/admin-reports.js"></script>
-    <script>
-        // Time period toggle
-        document.getElementById('timePeriod').addEventListener('change', function() {
-            const customDateRange = document.getElementById('customDateRange');
-            if (this.value === 'custom') {
-                customDateRange.style.display = 'block';
-            } else {
-                customDateRange.style.display = 'none';
-            }
-        });
-        
-        // Generate report button
-        document.getElementById('generateReportBtn').addEventListener('click', function() {
-            alert('Report generation would be implemented here with actual data');
-        });
-    </script>
 
     <!-- Menu Management Modal -->
     <div id="menuManagementModal" class="modal">
