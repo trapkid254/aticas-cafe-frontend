@@ -531,6 +531,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 await clearCart();
                 console.log('[order] Called clearCart after order. Cart should be empty now.');
+                // Reset in-memory cart and localStorage for guests
+                cart = { items: [] };
+                if (!getUserId() || !getUserToken()) {
+                    setGuestCart({ items: [] });
+                }
                 if (window.updateCartCount) await window.updateCartCount();
                 await displayCartItems();
                 // Double-check guest cart is cleared
