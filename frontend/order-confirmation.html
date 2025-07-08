@@ -77,7 +77,7 @@
             <div class="moving-text">Thank you for your order! Enjoy your meal from Aticas Cafe'.</div>
         </div>
         <div class="navbar-right">
-            <a href="cart.html" class="cart-icon"><i class="fas fa-shopping-cart"></i></a>
+            <a href="cart.html" class="cart-icon"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cartCount">0</span></a>
             <button class="login-btn" id="loginBtn">Login</button>
             <div class="hamburger-menu" id="hamburgerMenu">
                 <div class="bar"></div>
@@ -86,6 +86,14 @@
             </div>
         </div>
     </nav>
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="index.html"><i class="fas fa-home"></i> Home</a>
+        <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
+        <a href="menu.html"><i class="fas fa-utensils"></i> Menu</a>
+        <a href="orders.html"><i class="fas fa-receipt"></i> My Orders</a>
+        <a href="contact.html"><i class="fas fa-envelope"></i> Contact</a>
+    </div>
     <div class="confirmation-container">
         <i class="fas fa-check-circle"></i>
         <h2>Order Placed Successfully!</h2>
@@ -110,6 +118,7 @@
         <p class="contact-info">254714003218 | aleyladely5@gmail.com</p>
         <p class="copyright">© Aticas Cafe' 2025 - All Rights Reserved</p>
     </footer>
+    <div id="toast" class="toast"></div>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const params = new URLSearchParams(window.location.search);
