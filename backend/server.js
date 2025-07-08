@@ -763,14 +763,15 @@ app.delete('/api/cart/:userId/items/:itemType/:menuItemId', async (req, res) => 
 // Clear all items from a user's cart
 app.delete('/api/cart/:userId', async (req, res) => {
   try {
-    const cart = await Cart.findOne({ userId: req.params.userId });
+    let cart = await Cart.findOne({ userId: req.params.userId });
     if (!cart) {
       return res.status(404).json({ success: false, error: 'Cart not found' });
     }
-    await Cart.deleteOne({ userId: req.params.userId });
-    res.json({ success: true, message: 'Cart deleted' });
+    cart.items = [];
+    await cart.save();
+    res.json({ success: true, cart });
   } catch (err) {
-    res.status(500).json({ success: false, error: 'Failed to delete cart' });
+    res.status(500).json({ success: false, error: 'Failed to clear cart' });
   }
 });
 
