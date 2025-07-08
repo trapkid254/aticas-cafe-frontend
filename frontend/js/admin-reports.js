@@ -265,16 +265,14 @@ function renderSalesOverviewChart(orders) {
     // Remove previous chart
     if (salesChartInstance) salesChartInstance.destroy();
     salesChartInstance = new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: {
             labels,
             datasets: [{
                 label: 'Revenue (Ksh)',
                 data,
-                borderColor: '#3498db',
-                backgroundColor: 'rgba(52,152,219,0.1)',
-                fill: true,
-                tension: 0.3
+                backgroundColor: '#3498db',
+                borderRadius: 6
             }]
         },
         options: {
