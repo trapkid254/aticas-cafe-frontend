@@ -192,6 +192,10 @@ async function generateSalesReport(startDate, endDate) {
             `;
             tableBody.appendChild(row);
         });
+        // --- Render Sales Overview Chart ---
+        renderSalesOverviewChart(filteredData);
+        // --- Render Popular Menu Items Chart ---
+        renderPopularItemsChart(filteredData);
     } catch (err) {
         // Handle error
         document.querySelector('.report-card:nth-child(1) .value').textContent = 'Ksh 0';
@@ -241,4 +245,78 @@ async function fetchOrdersAndGenerateReport() {
         const tableBody = document.querySelector('#salesReportTable tbody');
         if (tableBody) tableBody.innerHTML = '<tr><td colspan="7">Failed to load sales data.</td></tr>';
     }
+}
+
+// Chart.js chart instances
+let salesChartInstance = null;
+let popularItemsChartInstance = null;
+
+function renderSalesOverviewChart(orders) {
+    const ctx = document.getElementById('salesChart');
+    if (!ctx) return;
+    // Aggregate daily revenue
+    const dailyRevenue = {};
+    orders.forEach(order => {
+        const date = (order.date || '').split('T')[0];
+        dailyRevenue[date] = (dailyRevenue[date] || 0) + (order.total || 0);
+    });
+    const labels = Object.keys(dailyRevenue).sort();
+    const data = labels.map(date => dailyRevenue[date]);
+    // Remove previous chart
+    if (salesChartInstance) salesChartInstance.destroy();
+    salesChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Revenue (Ksh)',
+                data,
+                borderColor: '#3498db',
+                backgroundColor: 'rgba(52,152,219,0.1)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+}
+
+function renderPopularItemsChart(orders) {
+    const ctx = document.getElementById('popularItemsChart');
+    if (!ctx) return;
+    // Aggregate menu item counts
+    const itemCounts = {};
+    orders.forEach(order => {
+        (order.items || []).forEach(item => {
+            const name = item.menuItem && item.menuItem.name ? item.menuItem.name : 'Unknown';
+            itemCounts[name] = (itemCounts[name] || 0) + item.quantity;
+        });
+    });
+    // Top 5 items
+    const sorted = Object.entries(itemCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const labels = sorted.map(([name]) => name);
+    const data = sorted.map(([, count]) => count);
+    // Remove previous chart
+    if (popularItemsChartInstance) popularItemsChartInstance.destroy();
+    popularItemsChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Orders',
+                data,
+                backgroundColor: '#27ae60',
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
 }
