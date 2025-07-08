@@ -96,18 +96,21 @@ async function removeCartItem(menuItemId, itemType) {
 async function clearCart() {
     const userId = getUserId();
     const token = getUserToken();
+    console.log('[clearCart] Called. userId:', userId, 'token:', token);
     if (userId && token) {
         try {
-            await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
+            const res = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': token }
             });
+            console.log('[clearCart] Backend DELETE response:', res.status, await res.text());
         } catch (err) {
-            console.error('Error clearing cart:', err);
+            console.error('[clearCart] Error clearing cart:', err);
         }
     } else {
-        console.log('[guestCart] clearCart called. Cart will be emptied.');
+        console.log('[clearCart] Guest cart. Clearing localStorage.');
         setGuestCart({ items: [] });
+        console.log('[clearCart] guestCart after clear:', localStorage.getItem('guestCart'));
     }
 }
 
@@ -407,7 +410,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 showMpesaToast('M-Pesa push sent. Complete payment on your phone.');
                 return true;
             } else {
-                showMesaToast('M-Pesa push failed: ' + (data.errorMessage || data.error || 'Unknown error'), '#e74c3c');
+                showMpesaToast('M-Pesa push failed: ' + (data.errorMessage || data.error || 'Unknown error'), '#e74c3c');
                 return false;
             }
         } catch (err) {
@@ -425,12 +428,16 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Validate M-Pesa number
         if (paymentMethod === 'mpesa') {
-            if (!/^(07\d{8}|01\d{8}|2541\d{8})$/.test(mpesaNumber)) {
-                showMpesaToast('Enter a valid M-Pesa number (07XXXXXXXX, 01XXXXXXXX, or 2541XXXXXXXX)', '#e74c3c');
+            let userInput = document.getElementById('mpesaNumber').value.replace(/[-\s]/g, '');
+            let mpesaNumber = userInput;
+            if (mpesaNumber.length === 9 && (mpesaNumber.startsWith('7') || mpesaNumber.startsWith('1'))) {
+                mpesaNumber = '254' + mpesaNumber;
+            }
+            if (!/^254(7\d{8}|1\d{8})$/.test(mpesaNumber)) {
+                showMpesaToast('Enter a valid M-Pesa number (e.g. 714003218 or 254714003218)', '#e74c3c');
                 document.getElementById('mpesaNumber').focus();
                 return;
             }
-            if (mpesaNumber.startsWith('0')) mpesaNumber = '254' + mpesaNumber.slice(1);
         }
         
         // Validate delivery location if delivery is selected
@@ -508,11 +515,27 @@ document.addEventListener('DOMContentLoaded', function() {
             customerPhone: customerPhone
         };
         if (paymentMethod === 'mpesa') {
-            const amount = order.total;
-            const phone = mpesaNumber;
+            // Send order details to backend for STK Push, do not save order yet
             showMpesaToast('Initiating M-Pesa payment...');
-            const success = await initiateMpesaSTKPush(phone, amount, order.orderId);
-            if (!success) return;
+            const response = await fetch('https://aticas-backend.onrender.com/api/mpesa/payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    phone: mpesaNumber,
+                    amount: order.total, // Use order.total for amount
+                    orderDetails: order // send the full order object
+                })
+            });
+            const data = await response.json();
+            if (data.errorMessage || data.error) {
+                showMpesaToast('M-Pesa push failed: ' + (data.errorMessage || data.error), '#e74c3c');
+                return;
+            }
+            showMpesaToast('M-Pesa push sent. Complete payment on your phone.');
+            // Show a message to the user to wait for payment confirmation
+            alert('Please complete the payment on your phone. Your order will be confirmed after payment.');
+            // Optionally, you can implement polling to check if the order is saved (not included here for brevity)
+            return;
         }
         try {
             const response = await fetch('https://aticas-backend.onrender.com/api/orders', {
@@ -523,12 +546,24 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             if (data.success) {
                 await clearCart();
-                if (window.updateCartCount) window.updateCartCount();
+                console.log('[order] Called clearCart after order. Cart should be empty now.');
+                // Reset in-memory cart and localStorage for guests
+                cart = { items: [] };
+                if (!getUserId() || !getUserToken()) {
+                    setGuestCart({ items: [] });
+                }
+                if (window.updateCartCount) await window.updateCartCount();
                 await displayCartItems();
+                // Double-check guest cart is cleared
+                if (!getUserId() || !getUserToken()) {
+                    const guestCart = localStorage.getItem('guestCart');
+                    console.log('[order] guestCart after clear:', guestCart);
+                }
                 localStorage.setItem('lastOrderId', data.order._id);
+                // Add a small delay to ensure UI updates before redirect
                 setTimeout(() => {
                     window.location.href = `order-confirmation.html?orderId=${data.order._id}`;
-                }, 300);
+                }, 400);
             } else {
                 showMpesaToast('Order failed: ' + (data.error || 'Unknown error'), '#e74c3c');
             }
