@@ -532,15 +532,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             showMpesaToast('M-Pesa push sent. Complete payment on your phone.');
-            // Save a pending orderId (if available) or generate a temp one
-            let pendingOrderId = data.orderId || data.MerchantRequestID || null;
-            if (!pendingOrderId) {
-                // Fallback: generate a temp id (not ideal, but allows demo)
-                pendingOrderId = 'mpesa-' + Date.now();
+            // Save a pending merchantRequestId (if available) for polling
+            let merchantRequestId = data.MerchantRequestID || data.merchantRequestId || null;
+            if (merchantRequestId) {
+                localStorage.setItem('pendingMerchantRequestId', merchantRequestId);
+                window.location.href = `payment-waiting.html?merchantRequestId=${merchantRequestId}`;
+            } else {
+                alert('Could not initiate payment. Please try again.');
             }
-            localStorage.setItem('pendingMpesaOrderId', pendingOrderId);
-            // Redirect to payment waiting page
-            window.location.href = `payment-waiting.html?orderId=${pendingOrderId}`;
             return;
         }
         // Only for non-M-Pesa payments, send order to /api/orders

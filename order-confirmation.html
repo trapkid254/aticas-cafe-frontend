@@ -123,6 +123,7 @@
         document.addEventListener('DOMContentLoaded', async () => {
             const params = new URLSearchParams(window.location.search);
             const orderId = params.get('orderId') || localStorage.getItem('lastOrderId');
+            const isCancelled = params.get('cancelled') === '1';
             const orderDetailsElement = document.getElementById('orderDetails');
             const orderReceiptElement = document.getElementById('orderReceipt');
 
@@ -152,7 +153,14 @@
                 orderDetailsElement.innerHTML = itemsHtml;
 
                 // Render a full receipt
-                orderReceiptElement.innerHTML = `
+                let receiptHtml = '';
+                if (isCancelled || order.status === 'cancelled') {
+                    receiptHtml += `<div style="background:#fff3f3;border:2px solid #e74c3c;padding:1.5rem 1rem;border-radius:10px;text-align:center;margin-bottom:1.5rem;">
+                        <h2 style="color:#e74c3c;">Order Cancelled</h2>
+                        <p style="color:#e74c3c;font-size:1.1rem;">This order was cancelled and will not be processed.</p>
+                    </div>`;
+                }
+                receiptHtml += `
                     <div class="receipt" style="background:#fff;border-radius:14px;border:1.5px solid #e0e0e0;box-shadow:0 6px 24px rgba(39,174,96,0.08);padding:2.5rem 2rem 2rem 2rem;width:100%;max-width:540px;margin:2.5rem auto 0 auto;font-family:'Segoe UI',Arial,sans-serif;">
                         <div class="receipt-header" style="text-align:center;margin-bottom:2.2rem;">
                             <div style="font-family:'UnifrakturCook',cursive;font-size:2.3rem;color:#27ae60;letter-spacing:2px;">Aticas Cafe</div>
@@ -183,6 +191,7 @@
                         </div>
                     </div>
                 `;
+                orderReceiptElement.innerHTML = receiptHtml;
             } catch (error) {
                 console.error('Error fetching order:', error);
                 orderDetailsElement.innerHTML = '<p>Could not load order details. Please try again later.</p>';

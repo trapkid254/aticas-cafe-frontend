@@ -2,6 +2,7 @@
 
 const timerElement = document.getElementById('timer');
 const statusMessage = document.getElementById('statusMessage');
+const cancelBtn = document.getElementById('cancelPaymentBtn');
 
 // Set countdown time (in seconds)
 let timeLeft = 180; // 3 minutes
@@ -12,20 +13,48 @@ let pollIntervalId;
 const orderKey = 'pendingMpesaOrderId';
 const orderId = localStorage.getItem(orderKey) || new URLSearchParams(window.location.search).get('orderId');
 
+// Get merchantRequestId from localStorage or query param
+const merchantRequestIdKey = 'pendingMerchantRequestId';
+const merchantRequestId = localStorage.getItem(merchantRequestIdKey) || new URLSearchParams(window.location.search).get('merchantRequestId');
+
 function updateTimerDisplay() {
     const min = String(Math.floor(timeLeft / 60)).padStart(2, '0');
     const sec = String(timeLeft % 60).padStart(2, '0');
     timerElement.textContent = `${min}:${sec}`;
 }
 
-function cancelOrder() {
-    if (!orderId) return;
-    fetch('https://aticas-backend.onrender.com/api/orders/cancel', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId })
-    });
+function redirectToCancelled(orderId) {
+    window.location.href = `order-confirmation.html?orderId=${orderId}&cancelled=1`;
 }
+
+async function cancelOrderAndRedirect() {
+    if (!merchantRequestId) return;
+    try {
+        // Try to cancel the order by merchantRequestId
+        const res = await fetch('https://aticas-backend.onrender.com/api/orders/cancel', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ merchantRequestId })
+        });
+        let orderId = '';
+        if (res.ok) {
+            const data = await res.json();
+            if (data.order && data.order._id) {
+                orderId = data.order._id;
+            }
+        }
+        // Remove pending merchantRequestId from localStorage
+        localStorage.removeItem(merchantRequestIdKey);
+        // Redirect to order confirmation page (showing cancelled order)
+        redirectToCancelled(orderId);
+    } catch (err) {
+        // Fallback: just redirect
+        localStorage.removeItem(merchantRequestIdKey);
+        redirectToCancelled('');
+    }
+}
+
+cancelBtn.addEventListener('click', cancelOrderAndRedirect);
 
 function startCountdown() {
     updateTimerDisplay();
@@ -36,26 +65,25 @@ function startCountdown() {
             clearInterval(intervalId);
             clearInterval(pollIntervalId);
             statusMessage.innerHTML = '<span class="cancelled-message">Payment time expired. Your order has been cancelled.</span>';
-            cancelOrder();
-            localStorage.removeItem(orderKey);
+            cancelOrderAndRedirect();
         }
     }, 1000);
 }
 
 async function pollPaymentStatus() {
-    if (!orderId) return;
+    if (!merchantRequestId) return;
     try {
-        const res = await fetch(`https://aticas-backend.onrender.com/api/orders/${orderId}`);
+        const res = await fetch(`https://aticas-backend.onrender.com/api/orders/by-merchant-request/${merchantRequestId}`);
         if (res.ok) {
             const order = await res.json();
             if (order.status && order.status.toLowerCase() === 'paid') {
                 clearInterval(intervalId);
                 clearInterval(pollIntervalId);
                 statusMessage.innerHTML = '<span class="success-message">Payment received! Redirecting to your receipt...</span>';
-                // Remove pending order from localStorage
-                localStorage.removeItem(orderKey);
+                // Remove pending merchantRequestId from localStorage
+                localStorage.removeItem(merchantRequestIdKey);
                 setTimeout(() => {
-                    window.location.href = `order-confirmation.html?orderId=${orderId}`;
+                    window.location.href = `order-confirmation.html?orderId=${order._id}`;
                 }, 1500);
             }
         }
