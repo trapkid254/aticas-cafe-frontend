@@ -28,14 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const orders = await fetchFromApi('/api/orders');
             orders.sort((a, b) => new Date(b.date) - new Date(a.date));
             allOrders = orders;
-            // Mark all unviewed, non-completed/cancelled orders as viewed
-            const unviewed = orders.filter(o => !o.viewedByAdmin && (!o.status || (o.status !== 'completed' && o.status !== 'cancelled')));
-            if (unviewed.length > 0) {
-                await Promise.all(unviewed.map(order => fetchFromApi(`/api/orders/${order._id}`, {
-                    method: 'PUT',
-                    body: JSON.stringify({ viewedByAdmin: true })
-                })));
-            }
+            // Do NOT mark all unviewed orders as viewed here
             if (window.updateUnviewedOrdersBadge) window.updateUnviewedOrdersBadge();
             displayOrders(orders);
         } catch (error) {
@@ -154,8 +147,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     }
 
-    function showOrderDetails(order) {
+    async function showOrderDetails(order) {
         const modalBody = document.getElementById('orderDetailsContent');
+        // Mark as viewed if not already
+        if (!order.viewedByAdmin) {
+            try {
+                await fetchFromApi(`/api/orders/${order._id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ viewedByAdmin: true })
+                });
+                if (window.updateUnviewedOrdersBadge) window.updateUnviewedOrdersBadge();
+                // Also update local order object so repeated views don't re-trigger
+                order.viewedByAdmin = true;
+            } catch (err) {
+                // Optionally handle error
+            }
+        }
         let itemsHtml = '<table style="width:100%;margin:1.2rem 0;text-align:left;border-collapse:collapse;">';
         itemsHtml += '<thead><tr style="background:#f8f8f8;"><th style="padding:8px 0;">Item</th><th>Qty</th><th>Price</th></tr></thead><tbody>';
         order.items.forEach(item => {
@@ -172,6 +179,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="font-size:1.1rem;color:#888;margin-top:0.2rem;">Order Details</div>
                     <div style="margin-top:0.7rem;font-size:1rem;"><b>Date:</b> ${new Date(order.date).toLocaleString()}</div>
                     <div style="margin-top:0.2rem;font-size:1rem;"><b>Order ID:</b> ${order._id}</div>
+                    ${order.merchantRequestId ? `<div style=\"margin-top:0.2rem;font-size:1rem;\"><b>MerchantRequestID:</b> ${order.merchantRequestId}</div>` : ''}
+                    ${order.mpesaReceipt ? `<div style=\"margin-top:0.2rem;font-size:1rem;\"><b>M-Pesa Receipt:</b> ${order.mpesaReceipt}</div>` : ''}
                 </div>
                 <div class="receipt-body" style="padding:2.2rem 0 1.5rem 0;border-top:1px dashed #b2dfdb;border-bottom:1px dashed #b2dfdb;">
                     <div style="margin-bottom:1.1rem;"><b>Customer:</b> ${order.customerName} (${order.customerPhone})</div>

@@ -6,6 +6,7 @@ body {
 }
 .admin-navbar {
     display: flex;
+    flex-direction: row;
     justify-content: space-between;
     align-items: center;
     padding: 0.7rem 2rem;
@@ -22,6 +23,7 @@ body {
     display: flex;
     align-items: center;
     gap: 1rem;
+    height: 60px;
 }
 .admin-navbar-left .logo {
     width: 44px;
@@ -40,9 +42,14 @@ body {
 .admin-navbar-right {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    height: 60px;
 }
 .logout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    margin: 0;
     background: linear-gradient(90deg, #27ae60 60%, #2ecc71 100%);
     color: #fff;
     border: none;
@@ -315,8 +322,16 @@ body {
 }
 @media (max-width: 700px) {
     .admin-navbar {
-        position: static !important;
-        z-index: 1000 !important;
+        padding: 0.3rem 0.7rem;
+        min-height: 44px;
+    }
+    .admin-navbar-left, .admin-navbar-right {
+        height: 44px;
+    }
+    .logout-btn {
+        height: 34px;
+        font-size: 0.95rem;
+        padding: 0.3rem 0.7rem;
     }
     .admin-sidebar {
         flex-direction: row !important;
@@ -862,4 +877,124 @@ body, html {
     font-size: 1.1rem;
     width: 100%;
     margin-bottom: 0.5rem;
+}
+
+@media (max-width: 600px) {
+    .admin-content {
+        margin-left: 0 !important;
+        margin-top: 60px !important;
+        padding: 1.1rem 0.3rem 1.2rem 0.3rem !important;
+        min-width: 0 !important;
+    }
+    .dashboard-card {
+        padding: 1.1rem 0.5rem !important;
+        margin-bottom: 1.2rem !important;
+        border-radius: 10px !important;
+        box-shadow: 0 2px 8px rgba(39,174,96,0.08) !important;
+    }
+    .recent-orders {
+        padding: 0.7rem 0.2rem !important;
+        margin-top: 1.2rem !important;
+        box-shadow: 0 1px 4px rgba(39,174,96,0.07) !important;
+        border-radius: 8px !important;
+        overflow-x: auto !important;
+    }
+    .recent-orders table {
+        min-width: 520px !important;
+        font-size: 0.95rem !important;
+        border-radius: 8px !important;
+        overflow-x: auto !important;
+        display: block !important;
+    }
+    .recent-orders th, .recent-orders td {
+        padding: 0.55rem 0.4rem !important;
+        font-size: 0.93rem !important;
+    }
+    #addAdminForm {
+        flex-direction: column !important;
+        gap: 0.7rem !important;
+        align-items: stretch !important;
+    }
+    #addAdminForm input, #addAdminForm button {
+        width: 100% !important;
+        min-width: 0 !important;
+        font-size: 0.98rem !important;
+        padding: 0.6rem 0.7rem !important;
+        box-sizing: border-box !important;
+    }
+    #addAdminForm input[type="file"] {
+        padding: 0.3rem 0.2rem !important;
+    }
+    #addAdminSection h3 {
+        font-size: 1.05rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    .admin-navbar-tabs {
+        gap: 0.3rem !important;
+        padding: 0.3rem 0 !important;
+    }
+    .admin-navbar-tabs a {
+        font-size: 0.95rem !important;
+        padding: 0.4rem 0.7rem !important;
+    }
+    .admin-sidebar {
+        width: 100vw !important;
+        position: static !important;
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        height: auto !important;
+        padding: 0.2rem 0 !important;
+        gap: 0.1rem !important;
+    }
+    .admin-sidebar a {
+        font-size: 0.95rem !important;
+        padding: 0.5rem 0.7rem !important;
+        margin-right: 0.2rem !important;
+        border-radius: 6px !important;
+    }
+    .admin-sidebar i {
+        font-size: 1rem !important;
+        width: 18px !important;
+    }
+    #adminSidebarPhotoContainer {
+        display: none !important;
+    }
+}
+
+/* --- Compact Chart Container Styles for Reports --- */
+.chart-container {
+    padding: 0.8rem 0.8rem 0.5rem 0.8rem !important;
+    margin-bottom: 1.1rem !important;
+    border-radius: 8px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+    background: #fff;
+    min-height: unset !important;
+}
+.chart-container h3 {
+    margin-bottom: 0.7rem !important;
+    font-size: 1.08rem !important;
+}
+.chart-type-select {
+    margin-bottom: 0.3rem !important;
+}
+#salesChart, #popularItemsChart {
+    width: 100% !important;
+    height: 260px !important;
+    max-height: 260px !important;
+    min-height: 180px !important;
+}
+@media (max-width: 700px) {
+    .chart-container {
+        padding: 0.5rem 0.2rem 0.3rem 0.2rem !important;
+        margin-bottom: 0.7rem !important;
+    }
+    #salesChart, #popularItemsChart {
+        height: 170px !important;
+        max-height: 170px !important;
+        min-height: 120px !important;
+    }
+    .chart-container h3 {
+        margin-bottom: 0.4rem !important;
+        font-size: 0.98rem !important;
+    }
 }

@@ -192,6 +192,10 @@ async function generateSalesReport(startDate, endDate) {
             `;
             tableBody.appendChild(row);
         });
+        // --- Render Sales Overview Chart ---
+        renderSalesOverviewChart(filteredData);
+        // --- Render Popular Menu Items Chart ---
+        renderPopularItemsChart(filteredData);
     } catch (err) {
         // Handle error
         document.querySelector('.report-card:nth-child(1) .value').textContent = 'Ksh 0';
@@ -241,4 +245,132 @@ async function fetchOrdersAndGenerateReport() {
         const tableBody = document.querySelector('#salesReportTable tbody');
         if (tableBody) tableBody.innerHTML = '<tr><td colspan="7">Failed to load sales data.</td></tr>';
     }
+}
+
+// Chart.js chart instances
+let salesChartInstance = null;
+let popularItemsChartInstance = null;
+let lastSalesChartType = 'bar';
+let lastPopularItemsChartType = 'bar';
+
+// Listen for chart type changes
+if (typeof window !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', function() {
+        const salesTypeSelect = document.getElementById('salesChartType');
+        if (salesTypeSelect) {
+            salesTypeSelect.addEventListener('change', function() {
+                lastSalesChartType = this.value;
+                // Re-generate report to update chart
+                document.getElementById('generateReportBtn').click();
+            });
+        }
+        const popularTypeSelect = document.getElementById('popularItemsChartType');
+        if (popularTypeSelect) {
+            popularTypeSelect.addEventListener('change', function() {
+                lastPopularItemsChartType = this.value;
+                document.getElementById('generateReportBtn').click();
+            });
+        }
+    });
+}
+
+function renderSalesOverviewChart(orders) {
+    const ctx = document.getElementById('salesChart');
+    if (!ctx) return;
+    const chartType = document.getElementById('salesChartType')?.value || lastSalesChartType || 'bar';
+    // Aggregate daily revenue
+    const dailyRevenue = {};
+    orders.forEach(order => {
+        const date = (order.date || '').split('T')[0];
+        dailyRevenue[date] = (dailyRevenue[date] || 0) + (order.total || 0);
+    });
+    const labels = Object.keys(dailyRevenue).sort();
+    const data = labels.map(date => dailyRevenue[date]);
+    if (salesChartInstance) salesChartInstance.destroy();
+    // Pie/doughnut need special data structure
+    let chartData = {};
+    if (chartType === 'pie' || chartType === 'doughnut') {
+        chartData = {
+            labels,
+            datasets: [{
+                label: 'Revenue (Ksh)',
+                data,
+                backgroundColor: labels.map((_, i) => `hsl(${i * 360 / labels.length}, 70%, 60%)`)
+            }]
+        };
+    } else {
+        chartData = {
+            labels,
+            datasets: [{
+                label: 'Revenue (Ksh)',
+                data,
+                backgroundColor: '#3498db',
+                borderColor: '#3498db',
+                borderRadius: 6,
+                fill: chartType === 'line' ? false : true,
+                tension: chartType === 'line' ? 0.3 : undefined
+            }]
+        };
+    }
+    salesChartInstance = new Chart(ctx, {
+        type: chartType,
+        data: chartData,
+        options: {
+            responsive: true,
+            plugins: { legend: { display: chartType !== 'bar' && chartType !== 'line' ? true : false } },
+            scales: (chartType === 'pie' || chartType === 'doughnut') ? {} : { y: { beginAtZero: true } }
+        }
+    });
+}
+
+function renderPopularItemsChart(orders) {
+    const ctx = document.getElementById('popularItemsChart');
+    if (!ctx) return;
+    const chartType = document.getElementById('popularItemsChartType')?.value || lastPopularItemsChartType || 'bar';
+    // Aggregate menu item counts
+    const itemCounts = {};
+    orders.forEach(order => {
+        (order.items || []).forEach(item => {
+            const name = item.menuItem && item.menuItem.name ? item.menuItem.name : 'Unknown';
+            itemCounts[name] = (itemCounts[name] || 0) + item.quantity;
+        });
+    });
+    // Top 5 items
+    const sorted = Object.entries(itemCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const labels = sorted.map(([name]) => name);
+    const data = sorted.map(([, count]) => count);
+    if (popularItemsChartInstance) popularItemsChartInstance.destroy();
+    let chartData = {};
+    if (chartType === 'pie' || chartType === 'doughnut') {
+        chartData = {
+            labels,
+            datasets: [{
+                label: 'Orders',
+                data,
+                backgroundColor: labels.map((_, i) => `hsl(${i * 360 / labels.length}, 70%, 60%)`)
+            }]
+        };
+    } else {
+        chartData = {
+            labels,
+            datasets: [{
+                label: 'Orders',
+                data,
+                backgroundColor: '#27ae60',
+                borderColor: '#27ae60',
+                borderRadius: 6,
+                fill: chartType === 'line' ? false : true,
+                tension: chartType === 'line' ? 0.3 : undefined
+            }]
+        };
+    }
+    popularItemsChartInstance = new Chart(ctx, {
+        type: chartType,
+        data: chartData,
+        options: {
+            responsive: true,
+            plugins: { legend: { display: chartType !== 'bar' && chartType !== 'line' ? true : false } },
+            scales: (chartType === 'pie' || chartType === 'doughnut') ? {} : { y: { beginAtZero: true } }
+        }
+    });
 }

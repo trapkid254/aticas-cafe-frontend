@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Payment</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .waiting-container {
+            max-width: 500px;
+            margin: 80px auto 0 auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(39,174,96,0.10);
+            padding: 2.5rem 2rem 2rem 2rem;
+            text-align: center;
+        }
+        .timer {
+            font-size: 2.5rem;
+            color: #e67e22;
+            margin: 1.5rem 0;
+            font-weight: bold;
+        }
+        .waiting-message {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
+        .cancelled-message {
+            color: #e74c3c;
+            font-size: 1.2rem;
+            margin-top: 1.5rem;
+        }
+        .success-message {
+            color: #27ae60;
+            font-size: 1.2rem;
+            margin-top: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="waiting-container">
+        <h2>Complete Your Payment</h2>
+        <div class="waiting-message">
+            Please complete the M-Pesa payment on your phone.<br>
+            Your order will be confirmed once payment is received.<br>
+            <b>Time remaining:</b>
+        </div>
+        <div class="timer" id="timer">03:00</div>
+        <div id="statusMessage"></div>
+    </div>
+    <script src="js/payment-waiting.js"></script>
+</body>
+</html> 

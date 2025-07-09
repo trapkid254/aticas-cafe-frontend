@@ -532,11 +532,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             showMpesaToast('M-Pesa push sent. Complete payment on your phone.');
-            // Show a message to the user to wait for payment confirmation
-            alert('Please complete the payment on your phone. Your order will be confirmed after payment.');
-            // Optionally, you can implement polling to check if the order is saved (not included here for brevity)
+            // Save a pending orderId (if available) or generate a temp one
+            let pendingOrderId = data.orderId || data.MerchantRequestID || null;
+            if (!pendingOrderId) {
+                // Fallback: generate a temp id (not ideal, but allows demo)
+                pendingOrderId = 'mpesa-' + Date.now();
+            }
+            localStorage.setItem('pendingMpesaOrderId', pendingOrderId);
+            // Redirect to payment waiting page
+            window.location.href = `payment-waiting.html?orderId=${pendingOrderId}`;
             return;
         }
+        // Only for non-M-Pesa payments, send order to /api/orders
         try {
             const response = await fetch('https://aticas-backend.onrender.com/api/orders', {
                 method: 'POST',
