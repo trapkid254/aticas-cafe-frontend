@@ -36,21 +36,23 @@ async function cancelOrderAndRedirect() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ merchantRequestId })
         });
-        let orderId = '';
         if (res.ok) {
             const data = await res.json();
             if (data.order && data.order._id) {
-                orderId = data.order._id;
+                // Remove pending merchantRequestId from localStorage
+                localStorage.removeItem(merchantRequestIdKey);
+                // Redirect to order confirmation page (showing cancelled order)
+                redirectToCancelled(data.order._id);
+                return;
             }
         }
-        // Remove pending merchantRequestId from localStorage
+        // If no order was created, show a cancelled message page
         localStorage.removeItem(merchantRequestIdKey);
-        // Redirect to order confirmation page (showing cancelled order)
-        redirectToCancelled(orderId);
+        window.location.href = 'order-cancelled.html';
     } catch (err) {
-        // Fallback: just redirect
+        // Fallback: just redirect to cancelled page
         localStorage.removeItem(merchantRequestIdKey);
-        redirectToCancelled('');
+        window.location.href = 'order-cancelled.html';
     }
 }
 

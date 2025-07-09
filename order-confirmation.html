@@ -128,7 +128,8 @@
             const orderReceiptElement = document.getElementById('orderReceipt');
 
             if (!orderId) {
-                orderDetailsElement.innerHTML = '<p>No order details found.</p>';
+                orderDetailsElement.innerHTML = '<div style="background:#fff3f3;border:2px solid #e74c3c;padding:1.5rem 1rem;border-radius:10px;text-align:center;margin-bottom:1.5rem;"><h2 style="color:#e74c3c;">Order Cancelled or Not Found</h2><p style="color:#e74c3c;font-size:1.1rem;">Your order was cancelled or could not be found. No payment was made.</p></div>';
+                orderReceiptElement.innerHTML = '';
                 return;
             }
 
@@ -155,10 +156,7 @@
                 // Render a full receipt
                 let receiptHtml = '';
                 if (isCancelled || order.status === 'cancelled') {
-                    receiptHtml += `<div style="background:#fff3f3;border:2px solid #e74c3c;padding:1.5rem 1rem;border-radius:10px;text-align:center;margin-bottom:1.5rem;">
-                        <h2 style="color:#e74c3c;">Order Cancelled</h2>
-                        <p style="color:#e74c3c;font-size:1.1rem;">This order was cancelled and will not be processed.</p>
-                    </div>`;
+                    receiptHtml += `<div style="background:#fff3f3;border:2px solid #e74c3c;padding:1.5rem 1rem;border-radius:10px;text-align:center;margin-bottom:1.5rem;"><h2 style="color:#e74c3c;">Order Cancelled</h2><p style="color:#e74c3c;font-size:1.1rem;">This order was cancelled and will not be processed.</p></div>`;
                 }
                 receiptHtml += `
                     <div class="receipt" style="background:#fff;border-radius:14px;border:1.5px solid #e0e0e0;box-shadow:0 6px 24px rgba(39,174,96,0.08);padding:2.5rem 2rem 2rem 2rem;width:100%;max-width:540px;margin:2.5rem auto 0 auto;font-family:'Segoe UI',Arial,sans-serif;">
@@ -192,10 +190,9 @@
                     </div>
                 `;
                 orderReceiptElement.innerHTML = receiptHtml;
-            } catch (error) {
-                console.error('Error fetching order:', error);
-                orderDetailsElement.innerHTML = '<p>Could not load order details. Please try again later.</p>';
-                if (orderReceiptElement) orderReceiptElement.innerHTML = '';
+            } catch (err) {
+                orderDetailsElement.innerHTML = `<div style="background:#fff3f3;border:2px solid #e74c3c;padding:1.5rem 1rem;border-radius:10px;text-align:center;margin-bottom:1.5rem;"><h2 style="color:#e74c3c;">Order Cancelled or Not Found</h2><p style="color:#e74c3c;font-size:1.1rem;">Your order was cancelled or could not be found. No payment was made.</p></div>`;
+                orderReceiptElement.innerHTML = '';
             }
         });
 
