@@ -84,18 +84,25 @@ async function pollPaymentStatus() {
                 statusMessage.innerHTML = '<span class="success-message">Payment received! Redirecting to your receipt...</span>';
                 // Remove pending merchantRequestId from localStorage
                 localStorage.removeItem(merchantRequestIdKey);
+                // After payment is confirmed and order is created:
+                if (typeof clearCart === 'function') clearCart();
                 setTimeout(() => {
                     window.location.href = `order-confirmation.html?orderId=${order._id}`;
                 }, 1500);
             }
         }
     } catch (err) {
-        // Ignore errors, just keep polling
+        console.error('Error polling payment status:', err);
+        // Optionally, show an error message to the user
+        statusMessage.innerHTML = '<span class="error-message">Failed to check payment status. Please try again later.</span>';
+        // Fallback to cancelled page if polling fails
+        localStorage.removeItem(merchantRequestIdKey);
+        window.location.href = 'order-cancelled.html';
     }
 }
 
-// Start everything
-startCountdown();
-if (orderId) {
-    pollIntervalId = setInterval(pollPaymentStatus, 4000); // Poll every 4 seconds
-} 
+// Start polling immediately
+pollPaymentStatus();
+
+// Start countdown after a short delay to ensure polling has a chance to initialize
+setTimeout(startCountdown, 1000);
