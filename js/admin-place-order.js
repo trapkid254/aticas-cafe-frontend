@@ -124,70 +124,59 @@ document.addEventListener('DOMContentLoaded', function() {
             customerName,
             customerPhone
         };
-        try {
-            const res = await fetch('https://aticas-backend.onrender.com/api/orders', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
-                body: JSON.stringify(order)
-            });
-            const data = await res.json();
-            if (data.success) {
-                placedOrder = data.order;
-                placeOrderForm.style.display = 'none';
-                if (order.paymentMethod === 'cash') {
+        if (order.paymentMethod === 'cash') {
+            // Cash: create order immediately
+            try {
+                const res = await fetch('https://aticas-backend.onrender.com/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
+                    body: JSON.stringify(order)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    placedOrder = data.order;
+                    placeOrderForm.style.display = 'none';
                     window.location.href = 'orders.html';
                 } else {
-                    orderSuccess.style.display = 'block';
+                    orderError.textContent = data.error || 'Order failed.';
+                    orderError.style.display = 'block';
                 }
-            } else {
-                orderError.textContent = data.error || 'Order failed.';
+            } catch (err) {
+                orderError.textContent = 'Order error: ' + err.message;
                 orderError.style.display = 'block';
             }
-        } catch (err) {
-            orderError.textContent = 'Order error: ' + err.message;
-            orderError.style.display = 'block';
+        } else if (order.paymentMethod === 'mpesa') {
+            // M-Pesa: trigger payment, do NOT create order yet
+            try {
+                orderSuccess.style.display = 'block';
+                orderSuccess.textContent = 'Sending M-Pesa payment request...';
+                const response = await fetch('https://aticas-backend.onrender.com/api/mpesa/payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phone: customerPhone.startsWith('0') ? '254' + customerPhone.slice(1) : customerPhone,
+                        amount: order.total,
+                        orderDetails: order
+                    })
+                });
+                const data = await response.json();
+                if (data.ResponseCode === '0') {
+                    orderSuccess.textContent = 'M-Pesa push sent. Customer should complete payment on their phone.';
+                    setTimeout(() => {
+                        window.location.href = 'index.html'; // Redirect to dashboard
+                    }, 3000);
+                } else {
+                    orderError.textContent = 'M-Pesa push failed: ' + (data.errorMessage || data.error || 'Unknown error');
+                    orderError.style.display = 'block';
+                }
+            } catch (err) {
+                orderError.textContent = 'M-Pesa error: ' + err.message;
+                orderError.style.display = 'block';
+            }
         }
     };
 
-    sendMpesaBtn.onclick = async function() {
-        if (!placedOrder) return;
-        mpesaStatus.textContent = 'Sending payment request...';
-        mpesaStatus.style.color = '#222';
-        try {
-            const response = await fetch('https://aticas-backend.onrender.com/api/mpesa/payment', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ phone: placedOrder.customerPhone.startsWith('0') ? '254' + placedOrder.customerPhone.slice(1) : placedOrder.customerPhone, amount: placedOrder.total, orderId: placedOrder._id })
-            });
-            const data = await response.json();
-            if (data.ResponseCode === '0') {
-                mpesaStatus.textContent = 'M-Pesa push sent. Customer should complete payment on their phone.';
-                mpesaStatus.style.color = '#27ae60';
-                // Add redirect countdown
-                let seconds = 10;
-                const redirectMsg = document.createElement('div');
-                redirectMsg.style = 'margin-top:1rem;font-size:1.1rem;color:#222;';
-                redirectMsg.id = 'redirectMsg';
-                mpesaStatus.appendChild(redirectMsg);
-                function updateCountdown() {
-                    redirectMsg.textContent = `Redirecting to orders in ${seconds} sec...`;
-                    if (seconds === 0) {
-                        window.location.href = 'orders.html';
-                    } else {
-                        seconds--;
-                        setTimeout(updateCountdown, 1000);
-                    }
-                }
-                updateCountdown();
-            } else {
-                mpesaStatus.textContent = 'M-Pesa push failed: ' + (data.errorMessage || data.error || 'Unknown error');
-                mpesaStatus.style.color = '#e74c3c';
-            }
-        } catch (err) {
-            mpesaStatus.textContent = 'M-Pesa error: ' + err.message;
-            mpesaStatus.style.color = '#e74c3c';
-        }
-    };
+    // Remove sendMpesaBtn.onclick, as M-Pesa is now handled in the form submit
 
     fetchMenuItems();
     renderOrderItems();
