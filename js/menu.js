@@ -161,6 +161,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial fetch and display
     fetchMenuItems();
     if (window.updateCartCount) window.updateCartCount();
+    renderMealsOfDayHomepage();
 
     // Filter buttons
     filterButtons.forEach(button => {
