@@ -170,6 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
         cartContainer.innerHTML = '';
         cartSummary.style.display = 'block';
         cart.items.forEach(item => {
+            if (!item.menuItem || !item.menuItem._id) return; // Skip invalid items
             const menuItem = item.menuItem;
             const image = menuItem && menuItem.image ? menuItem.image : 'images/varied menu.jpeg';
             const name = menuItem && menuItem.name ? menuItem.name : 'Unknown Item';
@@ -287,6 +288,7 @@ document.addEventListener('DOMContentLoaded', function() {
         cartContainer.innerHTML = '';
         cartSummary.style.display = 'block';
         cart.items.forEach(item => {
+            if (!item.menuItem || !item.menuItem._id) return; // Skip invalid items
             const menuItem = item.menuItem;
             const image = menuItem && menuItem.image ? menuItem.image : 'images/varied menu.jpeg';
             const name = menuItem && menuItem.name ? menuItem.name : 'Unknown Item';
