@@ -320,9 +320,26 @@ document.addEventListener('DOMContentLoaded', function() {
             const price = item.menuItem && typeof item.menuItem.price === 'number' ? item.menuItem.price : 0;
             return sum + (price * item.quantity);
         }, 0);
-        // No tax
         subtotalElement.textContent = `Ksh ${subtotal.toLocaleString()}`;
-        totalElement.textContent = `Ksh ${subtotal.toLocaleString()}`;
+        // Calculate delivery fee if delivery is selected
+        let deliveryFee = 0;
+        const orderTypeRadio = document.querySelector('input[name="orderType"]:checked');
+        if (orderTypeRadio && orderTypeRadio.value === 'delivery') {
+            const lat = parseFloat(document.getElementById('latitude').value);
+            const lng = parseFloat(document.getElementById('longitude').value);
+            if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+                const distance = haversineDistance(CAFE_LAT, CAFE_LNG, lat, lng);
+                deliveryFee = calculateDeliveryFee(distance);
+                document.getElementById('deliveryFeeDisplay').textContent = `Ksh ${deliveryFee.toLocaleString()}`;
+            } else {
+                document.getElementById('deliveryFeeDisplay').textContent = '';
+            }
+        } else {
+            document.getElementById('deliveryFeeDisplay').textContent = '';
+        }
+        // Total = subtotal + delivery fee
+        const total = subtotal + deliveryFee;
+        totalElement.textContent = `Ksh ${total.toLocaleString()}`;
     }
     
     // Payment method toggle
@@ -751,6 +768,59 @@ document.addEventListener('DOMContentLoaded', function() {
             locationStatus.style.color = '#155724';
             locationStatus.style.border = '1px solid #c3e6cb';
         }
+    });
+
+    // Cafe coordinates (Juja):
+    const CAFE_LAT = -1.10221; // Example: replace with actual decimal latitude
+    const CAFE_LNG = 37.01337; // Example: replace with actual decimal longitude
+
+    function haversineDistance(lat1, lng1, lat2, lng2) {
+        const toRad = deg => deg * Math.PI / 180;
+        const R = 6371; // Earth radius in km
+        const dLat = toRad(lat2 - lat1);
+        const dLng = toRad(lng2 - lng1);
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                  Math.sin(dLng/2) * Math.sin(dLng/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
+
+    function calculateDeliveryFee(distanceKm) {
+        const baseFee = 50;
+        if (distanceKm <= 1) return baseFee;
+        const extra = distanceKm - 1;
+        if (extra <= 0.5) return baseFee;
+        const additionalFee = extra * 55.56;
+        const total = baseFee + additionalFee;
+        return Math.round(total / 10) * 10;
+    }
+
+    // After user pins location and enters building/street name:
+    // Calculate and display delivery fee
+    function updateDeliveryFeeDisplay() {
+        const lat = parseFloat(document.getElementById('latitude').value);
+        const lng = parseFloat(document.getElementById('longitude').value);
+        const feeElem = document.getElementById('deliveryFeeDisplay');
+        if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+            const distance = haversineDistance(CAFE_LAT, CAFE_LNG, lat, lng);
+            const fee = calculateDeliveryFee(distance);
+            if (feeElem) feeElem.textContent = `Delivery Fee: KES ${fee}`;
+            return fee;
+        } else {
+            if (feeElem) feeElem.textContent = '';
+            return null;
+        }
+    }
+    // Call updateDeliveryFeeDisplay() whenever the pin is moved or coordinates change
+    document.getElementById('latitude').addEventListener('input', updateDeliveryFeeDisplay);
+    document.getElementById('longitude').addEventListener('input', updateDeliveryFeeDisplay);
+
+    // Also call updateCartSummary() when location or order type changes
+    document.getElementById('latitude').addEventListener('input', updateCartSummary);
+    document.getElementById('longitude').addEventListener('input', updateCartSummary);
+    document.querySelectorAll('input[name="orderType"]').forEach(radio => {
+        radio.addEventListener('change', updateCartSummary);
     });
 
     window.addEventListener('pageshow', function() {
