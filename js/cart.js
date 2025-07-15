@@ -320,11 +320,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const price = item.menuItem && typeof item.menuItem.price === 'number' ? item.menuItem.price : 0;
             return sum + (price * item.quantity);
         }, 0);
-        subtotalElement.textContent = `Ksh ${subtotal.toLocaleString()}`;
-        // Calculate delivery fee if delivery is selected
         let deliveryFee = 0;
         const orderTypeRadio = document.querySelector('input[name="orderType"]:checked');
-        const summaryRowsAbove = document.getElementById('summaryRowsAbove');
         const summaryRowsBelow = document.getElementById('summaryRowsBelow');
         const subtotalBelow = document.getElementById('subtotalBelow');
         const deliveryFeeDisplayBelow = document.getElementById('deliveryFeeDisplayBelow');
@@ -335,25 +332,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
                 const distance = haversineDistance(CAFE_LAT, CAFE_LNG, lat, lng);
                 deliveryFee = calculateDeliveryFee(distance);
-                document.getElementById('deliveryFeeDisplay').textContent = `Ksh ${deliveryFee.toLocaleString()}`;
-            } else {
-                document.getElementById('deliveryFeeDisplay').textContent = '';
             }
-            // Hide above, show below
-            if (summaryRowsAbove) summaryRowsAbove.style.display = 'none';
             if (summaryRowsBelow) summaryRowsBelow.style.display = '';
             if (subtotalBelow) subtotalBelow.textContent = `Ksh ${subtotal.toLocaleString()}`;
             if (deliveryFeeDisplayBelow) deliveryFeeDisplayBelow.textContent = `Ksh ${deliveryFee.toLocaleString()}`;
             if (totalBelow) totalBelow.textContent = `Ksh ${(subtotal + deliveryFee).toLocaleString()}`;
         } else {
-            document.getElementById('deliveryFeeDisplay').textContent = '';
-            // Show above, hide below
-            if (summaryRowsAbove) summaryRowsAbove.style.display = '';
             if (summaryRowsBelow) summaryRowsBelow.style.display = 'none';
         }
-        // Total = subtotal + delivery fee
-        const total = subtotal + deliveryFee;
-        totalElement.textContent = `Ksh ${total.toLocaleString()}`;
     }
     
     // Payment method toggle
@@ -501,7 +487,6 @@ document.addEventListener('DOMContentLoaded', function() {
             deliveryLocation = {
                 buildingName: buildingName,
                 streetAddress: streetAddress,
-                additionalInfo: document.getElementById('additionalInfo').value.trim(),
                 coordinates: {
                     latitude: latitude,
                     longitude: longitude
