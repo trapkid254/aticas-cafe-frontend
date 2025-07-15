@@ -324,22 +324,28 @@ document.addEventListener('DOMContentLoaded', function() {
         // Calculate delivery fee if delivery is selected
         let deliveryFee = 0;
         const orderTypeRadio = document.querySelector('input[name="orderType"]:checked');
+        console.log('[updateCartSummary] orderType:', orderTypeRadio ? orderTypeRadio.value : null);
         if (orderTypeRadio && orderTypeRadio.value === 'delivery') {
             const lat = parseFloat(document.getElementById('latitude').value);
             const lng = parseFloat(document.getElementById('longitude').value);
+            console.log('[updateCartSummary] lat:', lat, 'lng:', lng);
             if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
                 const distance = haversineDistance(CAFE_LAT, CAFE_LNG, lat, lng);
                 deliveryFee = calculateDeliveryFee(distance);
+                console.log('[updateCartSummary] distance:', distance, 'deliveryFee:', deliveryFee);
                 document.getElementById('deliveryFeeDisplay').textContent = `Ksh ${deliveryFee.toLocaleString()}`;
             } else {
+                console.log('[updateCartSummary] Invalid coordinates, clearing deliveryFeeDisplay');
                 document.getElementById('deliveryFeeDisplay').textContent = '';
             }
         } else {
+            console.log('[updateCartSummary] Not delivery, clearing deliveryFeeDisplay');
             document.getElementById('deliveryFeeDisplay').textContent = '';
         }
         // Total = subtotal + delivery fee
         const total = subtotal + deliveryFee;
         totalElement.textContent = `Ksh ${total.toLocaleString()}`;
+        console.log('[updateCartSummary] subtotal:', subtotal, 'total:', total);
     }
     
     // Payment method toggle
@@ -802,13 +808,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const lat = parseFloat(document.getElementById('latitude').value);
         const lng = parseFloat(document.getElementById('longitude').value);
         const feeElem = document.getElementById('deliveryFeeDisplay');
+        console.log('[updateDeliveryFeeDisplay] lat:', lat, 'lng:', lng);
         if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
             const distance = haversineDistance(CAFE_LAT, CAFE_LNG, lat, lng);
             const fee = calculateDeliveryFee(distance);
+            console.log('[updateDeliveryFeeDisplay] distance:', distance, 'fee:', fee);
             if (feeElem) feeElem.textContent = `Delivery Fee: KES ${fee}`;
             return fee;
         } else {
             if (feeElem) feeElem.textContent = '';
+            console.log('[updateDeliveryFeeDisplay] Invalid coordinates, clearing feeElem');
             return null;
         }
     }
