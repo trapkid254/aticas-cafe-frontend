@@ -461,6 +461,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Validate delivery location if delivery is selected
         let deliveryLocation = null;
+        let deliveryFee = 0;
         if (orderType === 'delivery') {
             const buildingName = document.getElementById('buildingName').value.trim();
             const streetAddress = document.getElementById('streetAddress').value.trim();
@@ -492,6 +493,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     longitude: longitude
                 }
             };
+            if (!isNaN(latitude) && !isNaN(longitude) && latitude !== 0 && longitude !== 0) {
+                const distance = haversineDistance(CAFE_LAT, CAFE_LNG, latitude, longitude);
+                deliveryFee = calculateDeliveryFee(distance);
+            }
         }
         
         const userId = getUserId();
@@ -525,6 +530,7 @@ document.addEventListener('DOMContentLoaded', function() {
             total: latestCart.items.reduce((sum, item) => sum + (item.menuItem.price * item.quantity), 0),
             orderType: orderType,
             deliveryLocation: deliveryLocation,
+            deliveryFee: deliveryFee,
             paymentMethod: paymentMethod,
             mpesaNumber: mpesaNumber,
             status: 'pending',
