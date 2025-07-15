@@ -59,9 +59,17 @@
                 </div>
                 <div class="cart-summary" id="cartSummary">
                     <h3>Order Summary</h3>
-                    <div id="subtotalRow"><span>Subtotal:</span> <span id="subtotal">$0.00</span></div>
-                    <div id="deliveryFeeRow"><span>Delivery Fee:</span> <span id="deliveryFeeDisplay">$0.00</span></div>
-                    <div id="totalRow"><span>Total:</span> <span id="total">$0.00</span></div>
+                    <div id="summaryRowsAbove">
+                        <div id="subtotalRow"><span>Subtotal:</span> <span id="subtotal">$0.00</span></div>
+                        <div id="deliveryFeeRow"><span>Delivery Fee:</span> <span id="deliveryFeeDisplay">$0.00</span></div>
+                        <div id="totalRow"><span>Total:</span> <span id="total">$0.00</span></div>
+                    </div>
+                    <!-- Summary below delivery form, only for delivery -->
+                    <div id="summaryRowsBelow" style="display:none; margin-top:1.2rem;">
+                        <div id="subtotalRowBelow"><span>Subtotal:</span> <span id="subtotalBelow">$0.00</span></div>
+                        <div id="deliveryFeeRowBelow"><span>Delivery Fee:</span> <span id="deliveryFeeDisplayBelow">$0.00</span></div>
+                        <div id="totalRowBelow"><span>Total:</span> <span id="totalBelow">$0.00</span></div>
+                    </div>
                     <form id="checkoutForm" class="checkout-form" style="display:none;">
                         <div class="form-group" id="guestFields" style="display:none;">
                             <label for="guestName">Full Name</label>
@@ -86,7 +94,7 @@
                         </div>
                         
                         <!-- Delivery Location Popup -->
-                        <div class="form-group delivery-location-popup" id="deliveryLocationPopup" style="display: none; background: #f8f9fa; border-radius: 12px; padding: 1.5rem; margin-top: 1rem; border: 2px solid #27ae60;">
+                        <div class="form-group delivery-location-popup smaller-delivery-form" id="deliveryLocationPopup" style="display: none; background: #f8f9fa; border-radius: 10px; padding: 0.7rem 0.7rem 0.5rem 0.7rem; margin-top: 1rem; border: 2px solid #27ae60; max-width: 370px; margin-left: auto; margin-right: auto;">
                             <div style="text-align: center; margin-bottom: 1.5rem;">
                                 <i class="fas fa-map-marker-alt" style="font-size: 2rem; color: #27ae60; margin-bottom: 0.5rem;"></i>
                                 <h4 style="color: #27ae60; margin: 0;">Delivery Location</h4>

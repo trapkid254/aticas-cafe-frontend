@@ -324,28 +324,36 @@ document.addEventListener('DOMContentLoaded', function() {
         // Calculate delivery fee if delivery is selected
         let deliveryFee = 0;
         const orderTypeRadio = document.querySelector('input[name="orderType"]:checked');
-        console.log('[updateCartSummary] orderType:', orderTypeRadio ? orderTypeRadio.value : null);
+        const summaryRowsAbove = document.getElementById('summaryRowsAbove');
+        const summaryRowsBelow = document.getElementById('summaryRowsBelow');
+        const subtotalBelow = document.getElementById('subtotalBelow');
+        const deliveryFeeDisplayBelow = document.getElementById('deliveryFeeDisplayBelow');
+        const totalBelow = document.getElementById('totalBelow');
         if (orderTypeRadio && orderTypeRadio.value === 'delivery') {
             const lat = parseFloat(document.getElementById('latitude').value);
             const lng = parseFloat(document.getElementById('longitude').value);
-            console.log('[updateCartSummary] lat:', lat, 'lng:', lng);
             if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
                 const distance = haversineDistance(CAFE_LAT, CAFE_LNG, lat, lng);
                 deliveryFee = calculateDeliveryFee(distance);
-                console.log('[updateCartSummary] distance:', distance, 'deliveryFee:', deliveryFee);
                 document.getElementById('deliveryFeeDisplay').textContent = `Ksh ${deliveryFee.toLocaleString()}`;
             } else {
-                console.log('[updateCartSummary] Invalid coordinates, clearing deliveryFeeDisplay');
                 document.getElementById('deliveryFeeDisplay').textContent = '';
             }
+            // Hide above, show below
+            if (summaryRowsAbove) summaryRowsAbove.style.display = 'none';
+            if (summaryRowsBelow) summaryRowsBelow.style.display = '';
+            if (subtotalBelow) subtotalBelow.textContent = `Ksh ${subtotal.toLocaleString()}`;
+            if (deliveryFeeDisplayBelow) deliveryFeeDisplayBelow.textContent = `Ksh ${deliveryFee.toLocaleString()}`;
+            if (totalBelow) totalBelow.textContent = `Ksh ${(subtotal + deliveryFee).toLocaleString()}`;
         } else {
-            console.log('[updateCartSummary] Not delivery, clearing deliveryFeeDisplay');
             document.getElementById('deliveryFeeDisplay').textContent = '';
+            // Show above, hide below
+            if (summaryRowsAbove) summaryRowsAbove.style.display = '';
+            if (summaryRowsBelow) summaryRowsBelow.style.display = 'none';
         }
         // Total = subtotal + delivery fee
         const total = subtotal + deliveryFee;
         totalElement.textContent = `Ksh ${total.toLocaleString()}`;
-        console.log('[updateCartSummary] subtotal:', subtotal, 'total:', total);
     }
     
     // Payment method toggle
@@ -777,8 +785,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Cafe coordinates (Juja):
-    const CAFE_LAT = -1.10221; // Example: replace with actual decimal latitude
-    const CAFE_LNG = 37.01337; // Example: replace with actual decimal longitude
+    const CAFE_LAT = -1.1026212082018603;
+    const CAFE_LNG = 37.01459325054694;
 
     function haversineDistance(lat1, lng1, lat2, lng2) {
         const toRad = deg => deg * Math.PI / 180;
