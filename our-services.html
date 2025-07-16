@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us - ATICAS CAFE'</title>
+    <title>Our Services - ATICAS CAFE'</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
-    <!-- Algerian font is not available on Google Fonts, so we use a similar decorative font as fallback -->
     <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
     <style>
         @media (max-width: 768px) {
-            .about-body {
+            .services-body {
                 flex-direction: column !important;
                 align-items: center !important;
             }
-            .about-image {
+            .services-image {
                 flex: unset !important;
                 min-width: unset !important;
                 max-width: unset !important;
@@ -22,13 +21,13 @@
                 display: flex !important;
                 justify-content: center !important;
             }
-            .about-image img {
+            .services-image img {
                 width: 80% !important;
                 max-width: 350px !important;
                 margin: 0 auto !important;
                 display: block !important;
             }
-            .about-content {
+            .services-content {
                 flex: unset !important;
                 min-width: unset !important;
                 max-width: unset !important;
@@ -70,40 +69,32 @@
         <a href="contact.html"><i class="fas fa-envelope"></i> Contact</a>
     </div>
 
-    <!-- About Us Content -->
+    <!-- Our Services Content -->
     <section class="about-section">
-        <h2 class="about-heading">About Our Cafeteria</h2>
-        <div class="about-body">
-            <div class="about-image">
-                <img src="images/bbg.jpg" alt="Our Cafeteria">
-            </div>
-            <div class="about-content">
-                <p>Welcome to Delicious Cafeteria, where culinary excellence meets warm hospitality. Founded in 2010, we have been serving the community with passion and dedication for over a decade.</p>
-                <p>Our mission is simple: to provide high-quality, delicious meals made from fresh, locally-sourced ingredients at prices that everyone can afford. We believe that good food should be accessible to all.</p>
-                <p>What sets us apart is our commitment to sustainability. We work closely with local farmers and suppliers to ensure that our ingredients are not only fresh but also ethically sourced. Our kitchen operates with minimal waste, and we compost all organic materials.</p>
-                <p>Whether you're joining us for a quick breakfast before work, a leisurely lunch with colleagues, or a family dinner, we promise an experience that will delight your taste buds and warm your heart.</p>
-            </div>
+        <h2 class="about-heading">Our Services</h2>
+        <div class="services-intro" style="text-align:center;max-width:700px;margin:0 auto 2rem auto;font-size:1.15rem;">
+            At ATICAS CAFE', we offer a wide range of services to cater to your dining and event needs. Our commitment is to provide exceptional hospitality and delicious meals, whether you are dining in, taking away, or hosting a special event.
         </div>
-    </section>
-
-    <!-- Meet Our Team -->
-    <section class="team-section">
-        <h2>Meet Our Team</h2>
-        <div class="team-container">
-            <div class="team-member">
-                <img src="images/ceo.jpg" alt="CEO">
-                <h3>Titus</h3>
-                <p>Founder & CEO</p>
+        <div class="services-list" style="display:flex;flex-direction:column;gap:1.5rem;align-items:center;">
+            <div class="service-container" style="background:#f7fff7;padding:1.5rem 1rem;border-radius:10px;box-shadow:0 2px 8px rgba(39,174,96,0.06);max-width:500px;width:100%;text-align:center;">
+                <h3 style="color:#27ae60;">Dine-In Service</h3>
+                <p>Enjoy a comfortable and welcoming atmosphere with table service.</p>
+                <a href="menu.html" class="menu-btn" style="margin-top:1rem;display:inline-block;">View Menu</a>
             </div>
-            <div class="team-member">
-                <img src="images/alesh.jpg" alt="Manager">
-                <h3>Alemba</h3>
-                <p>Operations Manager</p>
+            <div class="service-container" style="background:#f7fff7;padding:1.5rem 1rem;border-radius:10px;box-shadow:0 2px 8px rgba(39,174,96,0.06);max-width:500px;width:100%;text-align:center;">
+                <h3 style="color:#27ae60;">Takeaway & Delivery</h3>
+                <p>Order your favorite meals for pickup or have them delivered to your doorstep.</p>
+                <a href="menu.html" class="menu-btn" style="margin-top:1rem;display:inline-block;">Order Now</a>
             </div>
-            <div class="team-member">
-                <img src="images/chef.jpg" alt="Chef">
-                <h3>Michael</h3>
-                <p>Head Chef</p>
+            <div class="service-container" style="background:#f7fff7;padding:1.5rem 1rem;border-radius:10px;box-shadow:0 2px 8px rgba(39,174,96,0.06);max-width:500px;width:100%;text-align:center;">
+                <h3 style="color:#27ae60;">Event Catering</h3>
+                <p>We provide catering for corporate events, parties, and special occasions.</p>
+                <a href="outside-catering.html" class="menu-btn" style="margin-top:1rem;display:inline-block;">Book Catering</a>
+            </div>
+            <div class="service-container" style="background:#f7fff7;padding:1.5rem 1rem;border-radius:10px;box-shadow:0 2px 8px rgba(39,174,96,0.06);max-width:500px;width:100%;text-align:center;">
+                <h3 style="color:#27ae60;">Touring Services</h3>
+                <p>Explore our special touring and hospitality packages for groups and organizations.</p>
+                <a href="touring.html" class="menu-btn" style="margin-top:1rem;display:inline-block;">Inquire Now</a>
             </div>
         </div>
     </section>
@@ -124,4 +115,4 @@
 
     <script src="js/script.js"></script>
 </body>
-</html>
+</html> 

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Touring Services - ATICAS CAFE'</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <img src="images/aticas.png" alt="Cafeteria Logo" class="logo">
+            <span class="cafeteria-name">ATICAS CAFE'</span>
+        </div>
+        <div class="navbar-center">
+            <div class="moving-text">Welcome to <b>Aticas Cafe'</b>. Your Hospitality Partner - Enjoy our freshly prepared meals at affordable prices! Open from Mon - Sat @ 6:00am - 12:00am</div>
+        </div>
+        <div class="navbar-right">
+            <a href="cart.html" class="cart-icon"><i class="fas fa-shopping-cart"></i></a>
+            <button class="login-btn" id="loginBtn">Login</button>
+            <div class="hamburger-menu" id="hamburgerMenu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="index.html"><i class="fas fa-home"></i> Home</a>
+        <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
+        <a href="menu.html"><i class="fas fa-utensils"></i> Menu</a>
+        <a href="our-services.html"><i class="fas fa-concierge-bell"></i> Our Services</a>
+        <a href="orders.html"><i class="fas fa-receipt"></i> My Orders</a>
+        <a href="contact.html"><i class="fas fa-envelope"></i> Contact</a>
+    </div>
+
+    <!-- Touring Services Content -->
+    <section class="about-section">
+        <h2 class="about-heading">Touring Services</h2>
+        <div style="max-width:800px;margin:0 auto 2rem auto;text-align:center;">
+            <p>Discover Kenya and beyond with ATICAS CAFE' Touring Services. We offer comfortable, safe, and memorable tours for groups, families, and organizations.</p>
+        </div>
+        <div class="services-list" style="display:flex;flex-direction:column;gap:2.5rem;align-items:center;">
+            <!-- City Tours & Sightseeing -->
+            <h3 style="color:#27ae60;">City Tours & Sightseeing</h3>
+            <div style="display:flex;justify-content:center;margin-bottom:1rem;">
+                <img src="images/tours.jpeg" alt="City Tour" style="width:300px;height:200px;object-fit:cover;border-radius:10px;box-shadow:0 2px 8px rgba(39,174,96,0.08);">
+            </div>
+            <p style="max-width:600px;text-align:center;margin-bottom:2rem;">Explore vibrant cities, historical landmarks, and local attractions with our guided city tours.</p>
+            <!-- Safari Adventures -->
+            <h3 style="color:#27ae60;">Safari Adventures</h3>
+            <div style="display:flex;justify-content:center;margin-bottom:1rem;">
+                <img src="images/adventure.jpeg" alt="Safari Adventure" style="width:300px;height:200px;object-fit:cover;border-radius:10px;box-shadow:0 2px 8px rgba(39,174,96,0.08);">
+            </div>
+            <p style="max-width:600px;text-align:center;margin-bottom:2rem;">Experience the thrill of wildlife safaris in Kenya's most scenic parks and reserves.</p>
+            <!-- Beach & Coastal Tours -->
+            <h3 style="color:#27ae60;">Beach & Coastal Tours</h3>
+            <div style="display:flex;justify-content:center;margin-bottom:1rem;">
+                <img src="images/coast.jpeg" alt="Beach Tour" style="width:300px;height:200px;object-fit:cover;border-radius:10px;box-shadow:0 2px 8px rgba(39,174,96,0.08);">
+            </div>
+            <p style="max-width:600px;text-align:center;margin-bottom:2rem;">Relax and unwind on Kenya's beautiful beaches and coastal destinations.</p>
+            <!-- Mountain & Hiking Expeditions -->
+            <h3 style="color:#27ae60;">Mountain & Hiking Expeditions</h3>
+            <div style="display:flex;justify-content:center;margin-bottom:1rem;">
+                <img src="images/hiking.jpeg" alt="Mountain Hiking" style="width:300px;height:200px;object-fit:cover;border-radius:10px;box-shadow:0 2px 8px rgba(39,174,96,0.08);">
+            </div>
+            <p style="max-width:600px;text-align:center;margin-bottom:2rem;">Join us for breathtaking hikes and mountain expeditions in Kenya's highlands and beyond.</p>
+            <!-- Group Retreats & Team Building -->
+            <h3 style="color:#27ae60;">Group Retreats & Team Building</h3>
+            <div style="display:flex;justify-content:center;margin-bottom:1rem;">
+                <img src="images/team.jpeg" alt="Group Retreat" style="width:300px;height:200px;object-fit:cover;border-radius:10px;box-shadow:0 2px 8px rgba(39,174,96,0.08);">
+            </div>
+            <p style="max-width:600px;text-align:center;margin-bottom:2rem;">Strengthen bonds and build teamwork with our custom group retreats and team-building adventures.</p>
+        </div>
+        <div style="text-align:center;">
+            <button id="bookTourBtn" class="menu-btn" style="margin-bottom:1rem;">Book Now</button>
+            <div style="margin-bottom:1rem;">or call us to make your bookings: 
+  <a href="tel:+254786181670" style="color:#27ae60;font-weight:600;text-decoration:none;">+254786181670</a> 
+  or 
+  <a href="tel:+254759995245" style="color:#27ae60;font-weight:600;text-decoration:none;">+254759995245</a>
+</div>
+            <form id="tourBookingForm" style="display:none;max-width:420px;margin:1.5rem auto 0 auto;background:#fff;padding:2rem 1.2rem 1.5rem 1.2rem;border-radius:14px;box-shadow:0 4px 24px rgba(39,174,96,0.10);">
+                <h2 style="color:#27ae60;font-family:'UnifrakturCook','Arial',cursive,sans-serif;text-align:center;margin-bottom:0.5rem;font-size:2rem;">ATICAS Tours</h2>
+                <h3 style="color:#222;text-align:center;font-size:1.2rem;margin-bottom:1.2rem;">Booking Form</h3>
+                <div style="margin-bottom:1.1rem;"><input type="text" name="name" placeholder="Your Name" required class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;"></div>
+                <div style="margin-bottom:1.1rem;"><input type="tel" name="phone" placeholder="Phone Number" required class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;"></div>
+                <div style="margin-bottom:1.1rem;"><input type="email" name="email" placeholder="Email Address" required class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;"></div>
+                <div style="margin-bottom:1.1rem;"><input type="text" name="package" placeholder="Tour Package (e.g. Safari, City Tour)" required class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;"></div>
+                <div style="margin-bottom:1.1rem;"><input type="date" name="date" required class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;"></div>
+                <div style="margin-bottom:1.1rem;"><input type="number" name="people" placeholder="Number of People" required min="1" class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;"></div>
+                <div style="margin-bottom:1.1rem;"><input type="text" name="pickup" placeholder="Pickup Location" required class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;"></div>
+                <div style="margin-bottom:1.1rem;"><textarea name="notes" placeholder="Additional Notes" class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;min-height:60px;"></textarea></div>
+                <button type="submit" class="menu-btn" style="width:100%;margin-bottom:0.7rem;font-size:1.1rem;padding:0.7rem 0;">Submit Booking</button>
+                <button type="button" id="closeTourForm" style="width:100%;background:#eee;color:#333;border:none;padding:0.6rem 0;border-radius:5px;font-weight:600;font-size:1rem;">Close</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="social-icons">
+            <a href="#"><i class="fab fa-facebook"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-linkedin"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+        </div>
+        <p class="built-by">Proudly built by Delvin Opwoko A.</p>
+        <p class="contact-info">254714003218 | aleyladely5@gmail.com</p>
+        <p class="copyright">© Aticas Cafe' 2025 - All Rights Reserved</p>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script>
+        // Show/hide tour booking form
+        document.getElementById('bookTourBtn').onclick = function() {
+            document.getElementById('tourBookingForm').style.display = 'block';
+            window.scrollTo({top: document.getElementById('tourBookingForm').offsetTop - 80, behavior: 'smooth'});
+        };
+        document.getElementById('closeTourForm').onclick = function() {
+            document.getElementById('tourBookingForm').style.display = 'none';
+        };
+        document.getElementById('tourBookingForm').onsubmit = function(e) {
+            e.preventDefault();
+            alert('Thank you for your booking! We will contact you soon.');
+            document.getElementById('tourBookingForm').reset();
+            document.getElementById('tourBookingForm').style.display = 'none';
+        };
+    </script>
+</body>
+</html> 

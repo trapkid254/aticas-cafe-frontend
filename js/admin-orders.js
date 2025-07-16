@@ -60,7 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="font-weight:600;">${order.customerName || 'N/A'}</td>
                 <td style="color:#888;">${new Date(order.date).toLocaleDateString()}</td>
                 <td style="color:#27ae60;font-weight:bold;">Ksh ${order.total.toFixed(2)}</td>
-                <td style="color:#e67e22;font-weight:bold;">${order.orderType === 'delivery' && order.deliveryFee ? 'Ksh ' + Number(order.deliveryFee).toLocaleString() : '-'}</td>
                 <td style="color:#222;">${order.paymentMethod ? (order.paymentMethod === 'mpesa' ? 'M-Pesa' : 'Cash') : 'N/A'}</td>
                 <td style="color:#888;">${order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'N/A'}</td>
                 <td style="color:#888;">${order.customerPhone || 'N/A'}</td>
@@ -207,8 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ` : ''}
                     ${shareBtnHtml}
                     ${itemsHtml}
-                    ${(order.orderType === 'delivery' && order.deliveryFee) ? `<div style="margin-bottom:0.7rem;font-size:1.08rem;"><b>Delivery Fee:</b> <span style="color:#e67e22;">Ksh ${Number(order.deliveryFee).toLocaleString()}</span></div>` : ''}
-                    <div style="margin-top:1.3rem;font-size:1.15rem;"><b>Total:</b> <span style="color:#27ae60;">Ksh ${Number(order.total + (order.deliveryFee || 0)).toLocaleString()}</span></div>
+                    <div style="margin-top:1.3rem;font-size:1.15rem;"><b>Total:</b> <span style="color:#27ae60;">Ksh ${Number(order.total).toLocaleString()}</span></div>
                 </div>
                 <div class="receipt-footer" style="text-align:center;margin-top:2.2rem;font-size:1rem;color:#888;">
                     Thank you for your order!<br>We appreciate your business.

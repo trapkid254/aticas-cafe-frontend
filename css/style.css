@@ -1724,3 +1724,70 @@ body {
         font-size: 0.9rem;
     }
 }
+
+/* --- Professional Styles for Services Pages --- */
+.services-list h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.7rem;
+    letter-spacing: 0.5px;
+    text-align: center;
+    font-family: 'UnifrakturCook', 'Arial', cursive, sans-serif;
+}
+.services-list > div[style*='display:flex'] {
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+.services-list img {
+    box-shadow: 0 4px 16px rgba(39,174,96,0.10);
+    border-radius: 12px;
+    max-width: 420px;
+    width: 100%;
+    height: 260px;
+    object-fit: cover;
+    background: #fff;
+    transition: transform 0.2s;
+    margin-bottom: 1.2rem;
+}
+.services-list img:hover {
+    transform: scale(1.04);
+}
+.services-list p {
+    font-size: 1.15rem;
+    color: #222;
+    margin-bottom: 2rem;
+    text-align: center;
+    line-height: 1.7;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+@media (max-width: 900px) {
+    .services-list img {
+        max-width: 320px;
+        height: 180px;
+    }
+    .services-list h3 {
+        font-size: 1.4rem;
+    }
+}
+@media (max-width: 600px) {
+    .services-list img {
+        max-width: 98vw;
+        height: 120px;
+        min-width: 90px;
+    }
+    .services-list h3 {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+    }
+    .services-list p {
+        font-size: 1rem;
+        padding: 0 0.5rem;
+    }
+    .services-list > div[style*='display:flex'] {
+        gap: 0.5rem;
+    }
+}
