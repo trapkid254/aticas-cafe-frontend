@@ -59,6 +59,14 @@
                 </div>
                 <div class="cart-summary" id="cartSummary">
                     <h3>Order Summary</h3>
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span id="subtotal">$0.00</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total</span>
+                        <span id="total">$0.00</span>
+                    </div>
                     <form id="checkoutForm" class="checkout-form" style="display:none;">
                         <div class="form-group" id="guestFields" style="display:none;">
                             <label for="guestName">Full Name</label>
@@ -81,55 +89,61 @@
                                 </label>
                             </div>
                         </div>
+                        
                         <!-- Delivery Location Popup -->
-                        <div class="form-group delivery-location-popup smaller-delivery-form" id="deliveryLocationPopup" style="display: none; background: #f8f9fa; border-radius: 10px; padding: 0.5rem 0.5rem 0.3rem 0.5rem; margin-top: 0.5rem; border: 2px solid #27ae60; max-width: 340px; margin-left: auto; margin-right: auto;">
-                            <div style="text-align: center; margin-bottom: 1rem;">
-                                <i class="fas fa-map-marker-alt" style="font-size: 1.5rem; color: #27ae60; margin-bottom: 0.3rem;"></i>
-                                <h4 style="color: #27ae60; margin: 0; font-size: 1.1rem;">Delivery Location</h4>
-                                <p style="color: #666; margin: 0.3rem 0 0 0; font-size: 0.85rem;">Please provide your delivery details</p>
+                        <div class="form-group delivery-location-popup" id="deliveryLocationPopup" style="display: none; background: #f8f9fa; border-radius: 12px; padding: 1.5rem; margin-top: 1rem; border: 2px solid #27ae60;">
+                            <div style="text-align: center; margin-bottom: 1.5rem;">
+                                <i class="fas fa-map-marker-alt" style="font-size: 2rem; color: #27ae60; margin-bottom: 0.5rem;"></i>
+                                <h4 style="color: #27ae60; margin: 0;">Delivery Location</h4>
+                                <p style="color: #666; margin: 0.5rem 0 0 0; font-size: 0.9rem;">Please provide your delivery details</p>
                             </div>
-                            <div class="form-group" style="margin-bottom: 0.6rem;">
+                            
+                            <div class="form-group">
                                 <label for="buildingName">Building/Location Name</label>
-                                <input type="text" id="buildingName" placeholder="e.g., JKUAT Main Campus, Building A" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px; font-size: 0.95rem;">
+                                <input type="text" id="buildingName" placeholder="e.g., JKUAT Main Campus, Building A" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
                             </div>
-                            <div class="form-group" style="margin-bottom: 0.6rem;">
+                            
+                            <div class="form-group">
                                 <label for="streetAddress">Street Address</label>
-                                <input type="text" id="streetAddress" placeholder="e.g., Main Street, Juja" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px; font-size: 0.95rem;">
+                                <input type="text" id="streetAddress" placeholder="e.g., Main Street, Juja" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
                             </div>
-                            <div class="form-group" style="margin-bottom: 0.6rem;">
+                            
+                            <div class="form-group">
+                                <label for="additionalInfo">Additional Information</label>
+                                <textarea id="additionalInfo" placeholder="e.g., Near the main gate, 2nd floor, Room 201" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; min-height: 80px; resize: vertical;"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
                                 <label>Pin Your Location</label>
-                                <div style="text-align: center; margin-bottom: 0.5rem;">
-                                    <button type="button" id="getLocationBtn" style="background: #27ae60; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 0.5rem; font-size: 0.95rem;">
+                                <div style="text-align: center; margin-bottom: 1rem;">
+                                    <button type="button" id="getLocationBtn" style="background: #27ae60; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 1rem;">
                                         <i class="fas fa-crosshairs"></i> Use Current Location
                                     </button>
-                                    <p style="color: #666; font-size: 0.85rem; margin: 0;">Or manually enter coordinates below</p>
+                                    <p style="color: #666; font-size: 0.9rem; margin: 0;">Or manually enter coordinates below</p>
                                 </div>
-                                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                
+                                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
                                     <div style="flex: 1;">
                                         <label for="latitude">Latitude</label>
-                                        <input type="number" id="latitude" step="any" placeholder="e.g., -1.1011" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px; font-size: 0.95rem;">
+                                        <input type="number" id="latitude" step="any" placeholder="e.g., -1.1011" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
                                     </div>
                                     <div style="flex: 1;">
                                         <label for="longitude">Longitude</label>
-                                        <input type="number" id="longitude" step="any" placeholder="e.g., 37.0144" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px; font-size: 0.95rem;">
+                                        <input type="number" id="longitude" step="any" placeholder="e.g., 37.0144" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
                                     </div>
                                 </div>
-                                <div id="locationStatus" style="text-align: center; padding: 0.3rem; border-radius: 6px; margin-bottom: 0.5rem; display: none; font-size: 0.95rem;">
+                                
+                                <div id="locationStatus" style="text-align: center; padding: 0.5rem; border-radius: 6px; margin-bottom: 1rem; display: none;">
                                     <i class="fas fa-check-circle"></i> <span>Location captured successfully!</span>
                                 </div>
-                                <div id="mapContainer" style="height: 120px; border: 2px dashed #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; margin-bottom: 0.5rem;">
+                                
+                                <div id="mapContainer" style="height: 200px; border: 2px dashed #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; margin-bottom: 1rem;">
                                     <div style="text-align: center; color: #666;">
-                                        <i class="fas fa-map" style="font-size: 1.2rem; margin-bottom: 0.3rem;"></i>
-                                        <p style="font-size: 0.9rem;">Map will appear here when location is selected</p>
+                                        <i class="fas fa-map" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                                        <p>Map will appear here when location is selected</p>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <!-- Summary below delivery form, only for delivery -->
-                        <div id="summaryRowsBelow" style="display:none; margin-top:0.7rem;">
-                            <div id="subtotalRowBelow"><span>Subtotal:</span> <span id="subtotalBelow">$0.00</span></div>
-                            <div id="deliveryFeeRowBelow"><span>Delivery Fee:</span> <span id="deliveryFeeDisplayBelow">$0.00</span></div>
-                            <div id="totalRowBelow"><span>Total:</span> <span id="totalBelow">$0.00</span></div>
                         </div>
                         <div class="form-group">
                             <label>Payment Method</label>

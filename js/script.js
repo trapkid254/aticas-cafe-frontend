@@ -132,7 +132,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 guestCart.items.push({ menuItem, quantity, itemType });
             }
             localStorage.setItem('guestCart', JSON.stringify(guestCart));
-            if (window.updateCartCount) window.updateCartCount();
         }
     }
 

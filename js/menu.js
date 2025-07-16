@@ -84,7 +84,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 cart.items.push({ menuItem, quantity: 1, itemType });
             }
             localStorage.setItem('guestCart', JSON.stringify(cart));
-            if (window.updateCartCount) window.updateCartCount();
         }
     }
 
@@ -162,7 +161,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial fetch and display
     fetchMenuItems();
     if (window.updateCartCount) window.updateCartCount();
-    renderMealsOfDayHomepage();
 
     // Filter buttons
     filterButtons.forEach(button => {
@@ -208,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     // For meals of the day, treat as a menu item for cart logic
                     await addToCartApi(meal);
-                    if (window.updateCartCount) window.updateCartCount();
+                    await updateCartCount();
                     showToast(`${meal.name} added to cart!`);
                     fetchMenuItems();
                 });

@@ -172,10 +172,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         itemsHtml += '</tbody></table>';
-        let shareBtnHtml = '';
-        if (order.orderType === 'delivery' && order.deliveryLocation) {
-            shareBtnHtml = `<button id="shareLocationBtn" style="margin:1rem auto 0 auto;display:block;padding:0.6rem 1.5rem;background:#27ae60;color:#fff;border:none;border-radius:6px;font-size:1rem;cursor:pointer;"><i class='fas fa-share-alt'></i> Share Location</button>`;
-        }
         modalBody.innerHTML = `
             <div class="receipt" style="background:#fff;border-radius:14px;border:1.5px solid #e0e0e0;box-shadow:0 6px 24px rgba(39,174,96,0.08);padding:2.5rem 2rem 2rem 2rem;width:100%;max-width:540px;margin:0 auto;font-family:'Segoe UI',Arial,sans-serif;">
                 <div class="receipt-header" style="text-align:center;margin-bottom:2.2rem;">
@@ -183,8 +179,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="font-size:1.1rem;color:#888;margin-top:0.2rem;">Order Details</div>
                     <div style="margin-top:0.7rem;font-size:1rem;"><b>Date:</b> ${new Date(order.date).toLocaleString()}</div>
                     <div style="margin-top:0.2rem;font-size:1rem;"><b>Order ID:</b> ${order._id}</div>
-                    ${order.merchantRequestId ? `<div style=\"margin-top:0.2rem;font-size:1rem;\"><b>MerchantRequestID:</b> ${order.merchantRequestId}</div>` : ''}
-                    ${order.mpesaReceipt ? `<div style=\"margin-top:0.2rem;font-size:1rem;\"><b>M-Pesa Receipt:</b> ${order.mpesaReceipt}</div>` : ''}
                 </div>
                 <div class="receipt-body" style="padding:2.2rem 0 1.5rem 0;border-top:1px dashed #b2dfdb;border-bottom:1px dashed #b2dfdb;">
                     <div style="margin-bottom:1.1rem;"><b>Customer:</b> ${order.customerName} (${order.customerPhone})</div>
@@ -204,7 +198,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         </div>
                     ` : ''}
-                    ${shareBtnHtml}
                     ${itemsHtml}
                     <div style="margin-top:1.3rem;font-size:1.15rem;"><b>Total:</b> <span style="color:#27ae60;">Ksh ${Number(order.total).toLocaleString()}</span></div>
                 </div>
@@ -213,31 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
         `;
-        // Add share logic if button exists
-        setTimeout(() => {
-            const shareBtn = document.getElementById('shareLocationBtn');
-            if (shareBtn) {
-                shareBtn.onclick = function() {
-                    const loc = order.deliveryLocation;
-                    const shareText = `Delivery Location:%0ABuilding: ${loc.buildingName}%0AStreet: ${loc.streetAddress}%0AMap: https://www.google.com/maps?q=${loc.coordinates.latitude},${loc.coordinates.longitude}`;
-                    if (navigator.share) {
-                        navigator.share({
-                            title: 'Delivery Location',
-                            text: `Delivery Location:\nBuilding: ${loc.buildingName}\nStreet: ${loc.streetAddress}\nMap: https://www.google.com/maps?q=${loc.coordinates.latitude},${loc.coordinates.longitude}`
-                        });
-                    } else {
-                        // Fallback: copy to clipboard
-                        const temp = document.createElement('textarea');
-                        temp.value = decodeURIComponent(shareText.replace(/%0A/g, '\n'));
-                        document.body.appendChild(temp);
-                        temp.select();
-                        document.execCommand('copy');
-                        document.body.removeChild(temp);
-                        showToast('Location copied to clipboard!', 'success');
-                    }
-                };
-            }
-        }, 100);
         orderDetailsModal.style.display = 'flex';
     }
 
