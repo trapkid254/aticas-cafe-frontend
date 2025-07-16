@@ -125,12 +125,34 @@
         document.getElementById('closeTourForm').onclick = function() {
             document.getElementById('tourBookingForm').style.display = 'none';
         };
-        document.getElementById('tourBookingForm').onsubmit = function(e) {
-            e.preventDefault();
-            alert('Thank you for your booking! We will contact you soon.');
-            document.getElementById('tourBookingForm').reset();
-            document.getElementById('tourBookingForm').style.display = 'none';
-        };
+        document.getElementById('tourBookingForm').onsubmit = async function(e) {
+  e.preventDefault();
+  const form = e.target;
+  const data = {
+    type: 'tour',
+    name: form.name.value,
+    phone: form.phone.value,
+    email: form.email.value,
+    package: form.package.value,
+    date: form.date.value,
+    people: form.people.value,
+    pickup: form.pickup.value,
+    notes: form.notes.value
+  };
+  try {
+    const res = await fetch('https://aticas-backend.onrender.com/api/bookings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('Failed to submit booking');
+    alert('Thank you for your booking! We will contact you soon.');
+  } catch (err) {
+    alert('Failed to submit booking. Please try again later.');
+  }
+  form.reset();
+  form.style.display = 'none';
+};
     </script>
 </body>
 </html> 
