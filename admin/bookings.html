@@ -75,7 +75,7 @@
         const errorMsg = document.getElementById('errorMsg');
         loading.style.display = 'block';
         try {
-            const res = await fetch('/api/bookings', {
+            const res = await fetch('https://aticas-backend.onrender.com/api/bookings', {
                 headers: { 'Authorization': localStorage.getItem('adminToken') || '' }
             });
             const data = await res.json();
