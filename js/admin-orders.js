@@ -172,6 +172,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         itemsHtml += '</tbody></table>';
+        let deliveryFeeHtml = '';
+        if (order.orderType === 'delivery' && typeof order.deliveryFee === 'number' && order.deliveryFee > 0) {
+            deliveryFeeHtml = `<div style="margin-top:0.7rem;font-size:1.08rem;"><b>Delivery Fee:</b> <span style="color:#e67e22;">Ksh ${Number(order.deliveryFee).toLocaleString()}</span></div>`;
+        }
         modalBody.innerHTML = `
             <div class="receipt" style="background:#fff;border-radius:14px;border:1.5px solid #e0e0e0;box-shadow:0 6px 24px rgba(39,174,96,0.08);padding:2.5rem 2rem 2rem 2rem;width:100%;max-width:540px;margin:0 auto;font-family:'Segoe UI',Arial,sans-serif;">
                 <div class="receipt-header" style="text-align:center;margin-bottom:2.2rem;">
@@ -199,7 +203,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     ` : ''}
                     ${itemsHtml}
-                    <div style="margin-top:1.3rem;font-size:1.15rem;"><b>Total:</b> <span style="color:#27ae60;">Ksh ${Number(order.total).toLocaleString()}</span></div>
+                    ${deliveryFeeHtml}
+                    <div style="margin-top:1.3rem;font-size:1.15rem;"><b>Total (incl. delivery):</b> <span style="color:#27ae60;">Ksh ${Number(order.total).toLocaleString()}</span></div>
                 </div>
                 <div class="receipt-footer" style="text-align:center;margin-top:2.2rem;font-size:1rem;color:#888;">
                     Thank you for your order!<br>We appreciate your business.

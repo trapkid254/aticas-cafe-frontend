@@ -316,36 +316,34 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function updateCartSummary() {
+        if (!cartSummary || !document.getElementById('subtotal') || !document.getElementById('total')) return;
         const subtotal = cart.items.reduce((sum, item) => {
             const price = item.menuItem && typeof item.menuItem.price === 'number' ? item.menuItem.price : 0;
             return sum + (price * item.quantity);
         }, 0);
         subtotalElement.textContent = `Ksh ${subtotal.toLocaleString()}`;
-        // Calculate delivery fee if delivery is selected
         let deliveryFee = 0;
         const orderTypeRadio = document.querySelector('input[name="orderType"]:checked');
-        console.log('[updateCartSummary] orderTypeRadio:', orderTypeRadio ? orderTypeRadio.value : null);
+        const deliveryFeeRow = document.getElementById('deliveryFeeRow');
+        const deliveryFeeDisplay = document.getElementById('deliveryFeeDisplay');
         if (orderTypeRadio && orderTypeRadio.value === 'delivery') {
             const lat = parseFloat(document.getElementById('latitude').value);
             const lng = parseFloat(document.getElementById('longitude').value);
-            console.log('[updateCartSummary] lat:', lat, 'lng:', lng);
             if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
                 const distance = haversineDistance(CAFE_LAT, CAFE_LNG, lat, lng);
                 deliveryFee = calculateDeliveryFee(distance);
-                console.log('[updateCartSummary] distance:', distance, 'deliveryFee:', deliveryFee);
-                document.getElementById('deliveryFeeDisplay').textContent = `Ksh ${deliveryFee.toLocaleString()}`;
+                if (deliveryFeeDisplay) deliveryFeeDisplay.textContent = `Ksh ${deliveryFee.toLocaleString()}`;
+                if (deliveryFeeRow) deliveryFeeRow.style.display = 'flex';
             } else {
-                console.log('[updateCartSummary] Invalid coordinates, clearing deliveryFeeDisplay');
-                document.getElementById('deliveryFeeDisplay').textContent = '';
+                if (deliveryFeeDisplay) deliveryFeeDisplay.textContent = '';
+                if (deliveryFeeRow) deliveryFeeRow.style.display = 'none';
             }
         } else {
-            console.log('[updateCartSummary] Not delivery, clearing deliveryFeeDisplay');
-            document.getElementById('deliveryFeeDisplay').textContent = '';
+            if (deliveryFeeDisplay) deliveryFeeDisplay.textContent = '';
+            if (deliveryFeeRow) deliveryFeeRow.style.display = 'none';
         }
-        // Total = subtotal + delivery fee
         const total = subtotal + deliveryFee;
         totalElement.textContent = `Ksh ${total.toLocaleString()}`;
-        console.log('[updateCartSummary] subtotal:', subtotal, 'total:', total);
     }
     
     // Payment method toggle
@@ -527,9 +525,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
         }
+        let deliveryFee = 0;
+        if (orderType === 'delivery') {
+            const lat = parseFloat(document.getElementById('latitude').value);
+            const lng = parseFloat(document.getElementById('longitude').value);
+            if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+                const distance = haversineDistance(CAFE_LAT, CAFE_LNG, lat, lng);
+                deliveryFee = calculateDeliveryFee(distance);
+            }
+        }
         const order = {
             items: latestCart.items.map(item => ({ menuItem: item.menuItem._id, itemType: item.itemType, quantity: item.quantity })),
-            total: latestCart.items.reduce((sum, item) => sum + (item.menuItem.price * item.quantity), 0),
+            total: latestCart.items.reduce((sum, item) => sum + (item.menuItem.price * item.quantity), 0) + deliveryFee,
+            deliveryFee: deliveryFee,
             orderType: orderType,
             deliveryLocation: deliveryLocation,
             paymentMethod: paymentMethod,
@@ -596,251 +604,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     window.location.href = `order-confirmation.html?orderId=${data.order._id}`;
                 }, 400);
             } else {
-                showMpesaToast('Order failed: ' + (data.error || 'Unknown error'), '#e74c3c');
+                showMpesaToast('Failed to place order. Please try again.', '#e74c3c');
             }
         } catch (err) {
-            showMpesaToast('Order error: ' + err.message, '#e74c3c');
+            console.error('Error placing order:', err);
+            showMpesaToast('Failed to place order. Please try again.', '#e74c3c');
         }
-    });
-    
-    // Display initial cart
-    displayCartItems();
-    
-    // Close modal when clicking outside
-    window.addEventListener('click', function(event) {
-        if (event.target === checkoutModal) {
-            checkoutModal.style.display = 'none';
-            // Restore modal to body for next time
-            document.body.appendChild(checkoutModal);
-            checkoutModal.style.position = '';
-        }
-        if (event.target === confirmationModal) {
-            confirmationModal.style.display = 'none';
-        }
-    });
-
-    // Show guest fields if not logged in
-    const userId = getUserId();
-    const token = getUserToken();
-    const guestFields = document.getElementById('guestFields');
-    const guestPhoneField = document.getElementById('guestPhoneField');
-    if ((!userId || !token) && guestFields && guestPhoneField) {
-        guestFields.style.display = 'block';
-        guestPhoneField.style.display = 'block';
-    } else if (guestFields && guestPhoneField) {
-        guestFields.style.display = 'none';
-        guestPhoneField.style.display = 'none';
-    }
-
-    // Delivery Location Functionality
-    const deliveryLocationPopup = document.getElementById('deliveryLocationPopup');
-    const orderTypeRadios = document.querySelectorAll('input[name="orderType"]');
-    const getLocationBtn = document.getElementById('getLocationBtn');
-    const locationStatus = document.getElementById('locationStatus');
-    const mapContainer = document.getElementById('mapContainer');
-    let map, marker;
-
-    // Order type change listener
-    orderTypeRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            if (this.value === 'delivery') {
-                deliveryLocationPopup.style.display = 'block';
-                // Smooth scroll to delivery location popup
-                deliveryLocationPopup.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            } else {
-                deliveryLocationPopup.style.display = 'none';
-            }
-        });
-    });
-
-    // Get current location
-    getLocationBtn.addEventListener('click', function() {
-        if (navigator.geolocation) {
-            getLocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting Location...';
-            getLocationBtn.disabled = true;
-            
-            navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    
-                    // Update input fields
-                    document.getElementById('latitude').value = lat.toFixed(6);
-                    document.getElementById('longitude').value = lng.toFixed(6);
-                    
-                    // Show map
-                    showMap(lat, lng);
-                    
-                    // Update status
-                    locationStatus.style.display = 'block';
-                    locationStatus.style.background = '#d4edda';
-                    locationStatus.style.color = '#155724';
-                    locationStatus.style.border = '1px solid #c3e6cb';
-                    
-                    // Reset button
-                    getLocationBtn.innerHTML = '<i class="fas fa-crosshairs"></i> Use Current Location';
-                    getLocationBtn.disabled = false;
-                },
-                function(error) {
-                    console.error('Error getting location:', error);
-                    showMpesaToast('Unable to get your location. Please enter coordinates manually.', '#e74c3c');
-                    getLocationBtn.innerHTML = '<i class="fas fa-crosshairs"></i> Use Current Location';
-                    getLocationBtn.disabled = false;
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 300000
-                }
-            );
-        } else {
-            showMpesaToast('Geolocation is not supported by this browser.', '#e74c3c');
-        }
-    });
-
-    // Show map function
-    function showMap(lat, lng) {
-        mapContainer.innerHTML = '';
-        
-        const mapElement = document.createElement('div');
-        mapElement.style.width = '100%';
-        mapElement.style.height = '100%';
-        mapElement.style.borderRadius = '6px';
-        mapContainer.appendChild(mapElement);
-        
-        const location = { lat: parseFloat(lat), lng: parseFloat(lng) };
-        
-        map = new google.maps.Map(mapElement, {
-            zoom: 15,
-            center: location,
-            mapTypeId: google.maps.MapTypeId.ROADMAP,
-            styles: [
-                {
-                    featureType: 'poi',
-                    elementType: 'labels',
-                    stylers: [{ visibility: 'off' }]
-                }
-            ]
-        });
-        
-        marker = new google.maps.Marker({
-            position: location,
-            map: map,
-            title: 'Your Location',
-            draggable: true,
-            animation: google.maps.Animation.DROP
-        });
-        
-        // Add info window
-        const infoWindow = new google.maps.InfoWindow({
-            content: '<div style="text-align: center;"><strong>Your Delivery Location</strong><br>Drag marker to adjust</div>'
-        });
-        
-        marker.addListener('click', () => {
-            infoWindow.open(map, marker);
-        });
-        
-        // Update coordinates when marker is dragged
-        marker.addListener('dragend', function() {
-            const position = marker.getPosition();
-            document.getElementById('latitude').value = position.lat().toFixed(6);
-            document.getElementById('longitude').value = position.lng().toFixed(6);
-        });
-        
-        // Show info window initially
-        infoWindow.open(map, marker);
-    }
-
-    // Manual coordinate input listeners
-    document.getElementById('latitude').addEventListener('input', function() {
-        const lat = parseFloat(this.value);
-        const lng = parseFloat(document.getElementById('longitude').value);
-        if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
-            showMap(lat, lng);
-            locationStatus.style.display = 'block';
-            locationStatus.style.background = '#d4edda';
-            locationStatus.style.color = '#155724';
-            locationStatus.style.border = '1px solid #c3e6cb';
-        }
-    });
-
-    document.getElementById('longitude').addEventListener('input', function() {
-        const lat = parseFloat(document.getElementById('latitude').value);
-        const lng = parseFloat(this.value);
-        if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
-            showMap(lat, lng);
-            locationStatus.style.display = 'block';
-            locationStatus.style.background = '#d4edda';
-            locationStatus.style.color = '#155724';
-            locationStatus.style.border = '1px solid #c3e6cb';
-        }
-    });
-
-    // Cafe coordinates (Juja):
-    const CAFE_LAT = -1.10221; // Example: replace with actual decimal latitude
-    const CAFE_LNG = 37.01337; // Example: replace with actual decimal longitude
-
-    function haversineDistance(lat1, lng1, lat2, lng2) {
-        const toRad = deg => deg * Math.PI / 180;
-        const R = 6371; // Earth radius in km
-        const dLat = toRad(lat2 - lat1);
-        const dLng = toRad(lng2 - lng1);
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                  Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-                  Math.sin(dLng/2) * Math.sin(dLng/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        return R * c;
-    }
-
-    function calculateDeliveryFee(distanceKm) {
-        const baseFee = 50;
-        if (distanceKm <= 1) return baseFee;
-        const extra = distanceKm - 1;
-        if (extra <= 0.5) return baseFee;
-        const additionalFee = extra * 55.56;
-        const total = baseFee + additionalFee;
-        return Math.round(total / 10) * 10;
-    }
-
-    // After user pins location and enters building/street name:
-    // Calculate and display delivery fee
-    function updateDeliveryFeeDisplay() {
-        const lat = parseFloat(document.getElementById('latitude').value);
-        const lng = parseFloat(document.getElementById('longitude').value);
-        const feeElem = document.getElementById('deliveryFeeDisplay');
-        console.log('[updateDeliveryFeeDisplay] lat:', lat, 'lng:', lng);
-        if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
-            const distance = haversineDistance(CAFE_LAT, CAFE_LNG, lat, lng);
-            const fee = calculateDeliveryFee(distance);
-            console.log('[updateDeliveryFeeDisplay] distance:', distance, 'fee:', fee);
-            if (feeElem) feeElem.textContent = `Delivery Fee: KES ${fee}`;
-            return fee;
-        } else {
-            if (feeElem) feeElem.textContent = '';
-            console.log('[updateDeliveryFeeDisplay] Invalid coordinates, clearing feeElem');
-            return null;
-        }
-    }
-    // Call updateDeliveryFeeDisplay() whenever the pin is moved or coordinates change
-    document.getElementById('latitude').addEventListener('input', updateDeliveryFeeDisplay);
-    document.getElementById('longitude').addEventListener('input', updateDeliveryFeeDisplay);
-
-    // Also call updateCartSummary() when location or order type changes
-    document.getElementById('latitude').addEventListener('input', updateCartSummary);
-    document.getElementById('longitude').addEventListener('input', updateCartSummary);
-    document.querySelectorAll('input[name="orderType"]').forEach(radio => {
-        radio.addEventListener('change', updateCartSummary);
-    });
-
-    window.addEventListener('pageshow', function() {
-        // Always re-fetch and display cart items when returning to the cart page
-        if (typeof displayCartItems === 'function') displayCartItems();
     });
 });
-
-// This would be replaced with actual M-Pesa API integration
-function simulateMpesaPayment(orderId, phone, amount) {
-    console.log(`Simulating M-Pesa payment for order ${orderId}`);
-    // In a real implementation, you would call your backend API here
-    // which would then initiate the STK push using the M-Pesa API
-}
