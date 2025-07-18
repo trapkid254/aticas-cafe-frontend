@@ -19,13 +19,16 @@ function setGuestCart(cart) {
 async function fetchCart() {
     const userId = getUserId();
     const token = getUserToken();
+    console.log('[fetchCart] userId:', userId, 'token:', token);
     if (userId && token) {
         try {
             const res = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
                 headers: { 'Authorization': token }
             });
+            console.log('[fetchCart] Response status:', res.status);
             if (!res.ok) throw new Error('Failed to fetch cart');
             const cart = await res.json();
+            console.log('[fetchCart] Cart data from backend:', cart);
             return cart && cart.items ? cart : { items: [] };
         } catch (err) {
             console.error('Error fetching cart:', err);
@@ -156,6 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function displayCartItems() {
         cart = await fetchCart();
+        console.log('[displayCartItems] Cart after fetchCart:', cart);
         if (!cart || !cart.items || cart.items.length === 0) {
             cartContainer.innerHTML = `
                 <div class="empty-cart" style="text-align: center; padding: 3rem 0;">
@@ -170,7 +174,10 @@ document.addEventListener('DOMContentLoaded', function() {
         cartContainer.innerHTML = '';
         cartSummary.style.display = 'block';
         cart.items.forEach(item => {
-            if (!item.menuItem || !item.menuItem._id) return; // Skip invalid items
+            if (!item.menuItem || !item.menuItem._id) {
+                console.warn('[displayCartItems] Skipping invalid item:', item);
+                return;
+            }
             const menuItem = item.menuItem;
             const image = menuItem && menuItem.image ? menuItem.image : 'images/varied menu.jpeg';
             const name = menuItem && menuItem.name ? menuItem.name : 'Unknown Item';
