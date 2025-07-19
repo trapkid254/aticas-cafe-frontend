@@ -7,19 +7,25 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
+    <style>
+        html, body, h1, h2, h3, h4, h5, h6, p, label, input, textarea, button, .services-list, .service-container, .catering-intro-on-bg {
+            font-family: 'Segoe UI', Arial, sans-serif !important;
+            font-weight: 400;
+        }
+    </style>
 </head>
 <body>
     <!-- Navbar -->
     <nav class="navbar">
         <div class="navbar-left">
-            <img src="images/aticas.png" alt="Cafeteria Logo" class="logo">
+            <img src="images/1b.jpg" alt="Cafeteria Logo" class="logo">
             <span class="cafeteria-name">ATICAS CAFE'</span>
         </div>
         <div class="navbar-center">
             <div class="moving-text">Welcome to <b>Aticas Cafe'</b>. Your Hospitality Partner - Enjoy our freshly prepared meals at affordable prices! Open from Mon - Sat @ 6:00am - 12:00am</div>
         </div>
         <div class="navbar-right">
-            <a href="cart.html" class="cart-icon"><i class="fas fa-shopping-cart"></i></a>
+            <a href="cart.html" class="cart-icon"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cartCount">0</span></a>
             <button class="login-btn" id="loginBtn">Login</button>
             <div class="hamburger-menu" id="hamburgerMenu">
                 <div class="bar"></div>
@@ -41,53 +47,35 @@
 
     <!-- Outside Catering Content -->
     <section class="about-section">
-        <h2 class="about-heading">Outside Catering Services</h2>
-        <div style="max-width:800px;margin:0 auto 2rem auto;text-align:center;">
-            <p>ATICAS CAFE' offers professional outside catering for all your events. We bring our delicious meals and exceptional service to your location, ensuring your guests enjoy a memorable experience.</p>
+        <h2 class="about-heading typewriter-on-scroll">Outside Catering Services</h2>
+        <div class="catering-hero-bg-wrapper">
+            <div class="catering-slider-bg">
+                <img id="catering-slider-img" src="images/ruracio.png" alt="Catering Slide" />
+                <div class="catering-slider-overlay"></div>
+                <button class="slider-arrow slider-arrow-left" aria-label="Previous image">&#8592;</button>
+                <button class="slider-arrow slider-arrow-right" aria-label="Next image">&#8594;</button>
+            </div>
+            <div class="catering-intro-on-bg typewriter-on-scroll">
+                ATICAS CAFE' offers professional outside catering for all your events. We bring our delicious meals and exceptional service to your location, ensuring your guests enjoy a memorable experience.
+            </div>
         </div>
-        <div class="services-list" style="display:flex;flex-direction:column;gap:2.5rem;align-items:center;">
-            <!-- Corporate Events & Conferences -->
-            <h3 style="color:#27ae60;">Corporate Events & Conferences</h3>
-            <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:1rem;">
-                <img src="images/corp.jpeg" alt="Corporate Catering 1" style="width:300px;height:200px;object-fit:cover;border-radius:8px;box-shadow:0 2px 8px rgba(39,174,96,0.08);">
-                <img src="images/conf.jpeg" alt="Corporate Catering 2" style="width:300px;height:200px;object-fit:cover;border-radius:8px;box-shadow:0 2px 8px rgba(39,174,96,0.08);">
+        <div class="services-list">
+            <div class="service-container">
+                <h3 class="typewriter-on-scroll" style="color:#27ae60;font-family:'Segoe UI', Arial, sans-serif;">Wedding Ceremony</h3>
+                <p>Elegant catering and service for your special wedding day, tailored to your unique celebration.</p>
             </div>
-            <p style="max-width:600px;text-align:center;margin-bottom:2rem;">Professional catering for business meetings, conferences, and corporate events of all sizes.</p>
-            <!-- Weddings & Anniversaries -->
-            <h3 style="color:#27ae60;">Weddings & Anniversaries</h3>
-            <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:1rem;">
-                <img src="images/wed.jpeg" alt="Wedding Catering 1" style="width:300px;height:200px;object-fit:cover;border-radius:8px;box-shadow:0 2px 8px rgba(39,174,96,0.08);">
-                <img src="images/anni.jpeg" alt="Wedding Catering 2" style="width:300px;height:200px;object-fit:cover;border-radius:8px;box-shadow:0 2px 8px rgba(39,174,96,0.08);">
+            <div class="service-container">
+                <h3 class="typewriter-on-scroll" style="color:#27ae60;font-family:'Segoe UI', Arial, sans-serif;">Family Meeting</h3>
+                <p>Delicious meals and a warm atmosphere for family gatherings, reunions, and special moments together.</p>
             </div>
-            <p style="max-width:600px;text-align:center;margin-bottom:2rem;">Elegant catering for weddings, anniversaries, and special romantic celebrations.</p>
-            <!-- Birthday Parties & Family Gatherings -->
-            <h3 style="color:#27ae60;">Birthday Parties & Family Gatherings</h3>
-            <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:1rem;">
-                <img src="images/birth.jpeg" alt="Birthday Party Catering 1" style="width:300px;height:200px;object-fit:cover;border-radius:8px;box-shadow:0 2px 8px rgba(39,174,96,0.08);">
-                <img src="images/family.jpeg" alt="Birthday Party Catering 2" style="width:300px;height:200px;object-fit:cover;border-radius:8px;box-shadow:0 2px 8px rgba(39,174,96,0.08);">
+            <div class="service-container">
+                <h3 class="typewriter-on-scroll" style="color:#27ae60;font-family:'Segoe UI', Arial, sans-serif;">Graduation Ceremony</h3>
+                <p>Celebrate academic achievements with professional catering for graduates, families, and friends.</p>
             </div>
-            <p style="max-width:600px;text-align:center;margin-bottom:2rem;">Fun and festive catering for birthdays, reunions, and family get-togethers.</p>
-            <!-- Outdoor Picnics & Retreats -->
-            <h3 style="color:#27ae60;">Outdoor Picnics & Retreats</h3>
-            <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:1rem;">
-                <img src="images/picnic.jpeg" alt="Outdoor Picnic Catering 1" style="width:300px;height:200px;object-fit:cover;border-radius:8px;box-shadow:0 2px 8px rgba(39,174,96,0.08);">
-                <img src="images/retreat.jpeg" alt="Outdoor Picnic Catering 2" style="width:300px;height:200px;object-fit:cover;border-radius:8px;box-shadow:0 2px 8px rgba(39,174,96,0.08);">
+            <div class="service-container">
+                <h3 class="typewriter-on-scroll" style="color:#27ae60;font-family:'Segoe UI', Arial, sans-serif;">Ruracio</h3>
+                <p>Authentic and memorable catering for traditional Ruracio ceremonies and cultural celebrations.</p>
             </div>
-            <p style="max-width:600px;text-align:center;margin-bottom:2rem;">Delicious food for outdoor picnics, company retreats, and nature events.</p>
-            <!-- School & College Functions -->
-            <h3 style="color:#27ae60;">School & College Functions</h3>
-            <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:1rem;">
-                <img src="images/school.jpeg" alt="School Event Catering 1" style="width:300px;height:200px;object-fit:cover;border-radius:8px;box-shadow:0 2px 8px rgba(39,174,96,0.08);">
-                <img src="images/coll.jpeg" alt="School Event Catering 2" style="width:300px;height:200px;object-fit:cover;border-radius:8px;box-shadow:0 2px 8px rgba(39,174,96,0.08);">
-            </div>
-            <p style="max-width:600px;text-align:center;margin-bottom:2rem;">Nutritious and fun catering for school events, graduations, and college functions.</p>
-            <!-- Community Events & Festivals -->
-            <h3 style="color:#27ae60;">Community Events & Festivals</h3>
-            <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:1rem;">
-                <img src="images/comm.jpeg" alt="Community Festival Catering 1" style="width:300px;height:200px;object-fit:cover;border-radius:8px;box-shadow:0 2px 8px rgba(39,174,96,0.08);">
-                <img src="images/fest.jpeg" alt="Community Festival Catering 2" style="width:300px;height:200px;object-fit:cover;border-radius:8px;box-shadow:0 2px 8px rgba(39,174,96,0.08);">
-            </div>
-            <p style="max-width:600px;text-align:center;margin-bottom:2rem;">Catering for large community events, food festivals, and public celebrations.</p>
         </div>
         <div style="text-align:center;">
             <button id="bookCateringBtn" class="menu-btn" style="margin-bottom:1rem;">Book Now</button>
@@ -122,9 +110,12 @@
             <a href="#"><i class="fab fa-linkedin"></i></a>
             <a href="#"><i class="fab fa-youtube"></i></a>
         </div>
-        <p class="built-by">Proudly built by Delvin Opwoko A.</p>
-        <p class="contact-info">254714003218 | aleyladely5@gmail.com</p>
-        <p class="copyright">© Aticas Cafe' 2025 - All Rights Reserved</p>
+        <p class="built-by">
+            Proudly built with <i class="fas fa-heart" style="color:red"></i>
+        </p>
+        <p class="copyright">
+            &copy; 2025 Aticas Cafe. All rights reserved.
+        </p>
     </footer>
 
     <script src="js/script.js"></script>
@@ -165,6 +156,142 @@ document.getElementById('cateringBookingForm').onsubmit = async function(e) {
   form.reset();
   form.style.display = 'none';
 };
+</script>
+<style>
+.catering-hero-bg-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto 2.5rem auto;
+    height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.catering-slider-bg {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 18px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+}
+.catering-slider-bg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 18px;
+    position: absolute;
+    left: 0; top: 0;
+    transition: opacity 0.6s cubic-bezier(0.4,0.2,0.2,1);
+    z-index: 1;
+    background: #fff;
+}
+.catering-slider-overlay {
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.35);
+    border-radius: 18px;
+    z-index: 2;
+}
+.catering-intro-on-bg {
+    position: absolute;
+    z-index: 3;
+    color: #fff;
+    font-size: 1.25rem;
+    text-align: center;
+    max-width: 60%;
+    left: 50%;
+    bottom: 1.2rem;
+    top: unset;
+    transform: translateX(-50%);
+    margin: 0;
+    padding: 0.7rem 2rem 0.7rem 2rem;
+    font-weight: 400;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.32);
+    background: transparent;
+    border-radius: 10px;
+    box-shadow: none;
+    letter-spacing: 0.01em;
+    line-height: 1.3;
+}
+@media (max-width: 900px) {
+    .catering-hero-bg-wrapper { max-width: 98vw; height: 320px; }
+    .catering-intro-on-bg { font-size: 1rem; padding: 0.4rem 0.8rem; left: 50%; bottom: 0.5rem; max-width: 90%; transform: translateX(-50%); }
+    .slider-arrow { width: 36px; height: 36px; font-size: 1.3rem; }
+}
+.slider-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #27ae60cc;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    font-size: 2rem;
+    cursor: pointer;
+    z-index: 10;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+.slider-arrow-left { left: 18px; }
+.slider-arrow-right { right: 18px; }
+.slider-arrow:hover { background: #ff9800cc; }
+</style>
+<script>
+(function() {
+    const images = [
+        'images/ruracio.png', 'images/out.jpeg', 'images/outside.jpeg', 'images/wed.jpeg', 'images/grad.jpeg'
+    ];
+    let current = 0;
+    let autoSlideInterval;
+    const imgEl = document.getElementById('catering-slider-img');
+    const leftArrow = document.querySelector('.slider-arrow-left');
+    const rightArrow = document.querySelector('.slider-arrow-right');
+
+    function showImage(idx) {
+        imgEl.style.opacity = 0;
+        setTimeout(() => {
+            imgEl.src = images[idx];
+            imgEl.style.opacity = 1;
+        }, 350);
+    }
+
+    function nextImage() {
+        current = (current + 1) % images.length;
+        showImage(current);
+    }
+    function prevImage() {
+        current = (current - 1 + images.length) % images.length;
+        showImage(current);
+    }
+    function startAutoSlide() {
+        autoSlideInterval = setInterval(nextImage, 10000);
+    }
+    function stopAutoSlide() {
+        clearInterval(autoSlideInterval);
+    }
+    leftArrow.addEventListener('click', () => {
+        stopAutoSlide();
+        prevImage();
+        startAutoSlide();
+    });
+    rightArrow.addEventListener('click', () => {
+        stopAutoSlide();
+        nextImage();
+        startAutoSlide();
+    });
+    // Initialize
+    imgEl.src = images[0];
+    startAutoSlide();
+})();
 </script>
 </body>
 </html> 

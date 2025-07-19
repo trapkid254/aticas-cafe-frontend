@@ -3,7 +3,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Arial', sans-serif;
+    font-family: 'Segoe UI', Arial, sans-serif;
 }
 
 body {
@@ -14,8 +14,8 @@ body {
 
 /* Navbar Styles */
 .navbar {
-    min-height: 80px;
-    /* Ensures enough height for the larger logo */
+    height: 100px;
+    min-height: 100px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -34,13 +34,14 @@ body {
 }
 
 .logo {
-    width: 72px;
-    height: 72px;
+    height: 100%;
+    width: auto;
+    max-height: 100px;
     margin-right: 1rem;
-    border-radius: 50%;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    background: white;
 }
 
 .cafeteria-name {

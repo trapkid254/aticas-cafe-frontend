@@ -235,6 +235,40 @@ function showToast(message) {
     }, 2000);
 }
 
+// Typewriter on scroll effect
+(function() {
+    function typewriterEffect(element, speed = 22) {
+        const text = element.textContent;
+        element.textContent = '';
+        let i = 0;
+        function type() {
+            if (i < text.length) {
+                element.textContent += text.charAt(i);
+                i++;
+                setTimeout(type, speed);
+            }
+        }
+        type();
+    }
+    const observer = new window.IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const el = entry.target;
+                if (!el.dataset.typed) {
+                    el.dataset.typed = 'true';
+                    typewriterEffect(el);
+                }
+                obs.unobserve(el);
+            }
+        });
+    }, { threshold: 0.2 });
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.typewriter-on-scroll').forEach(el => {
+            observer.observe(el);
+        });
+    });
+})();
+
 // Remove all localStorage usage for cart
 // Refactor all cart operations to use backend API endpoints
 // Remove cart initialization in localStorage

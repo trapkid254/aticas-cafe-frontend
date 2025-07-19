@@ -138,14 +138,14 @@
     <!-- Navbar -->
     <nav class="navbar">
         <div class="navbar-left">
-            <img src="images/aticas.png" alt="Cafeteria Logo" class="logo">
+            <img src="images/1b.jpg" alt="Cafeteria Logo" class="logo">
             <span class="cafeteria-name">ATICAS CAFE'</span>
         </div>
         <div class="navbar-center">
             <div class="moving-text">Welcome to <b>Aticas Cafe'</b>. Your Hospitality Partner - Enjoy our freshly prepared meals at affordable prices! Open from Mon - Sat @ 6:00am - 12:00am</div>
         </div>
         <div class="navbar-right">
-            <a href="cart.html" class="cart-icon"><i class="fas fa-shopping-cart"></i></a>
+            <a href="cart.html" class="cart-icon"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cartCount">0</span></a>
             <button class="login-btn" id="loginBtn">Login</button>
             <div class="hamburger-menu" id="hamburgerMenu">
                 <div class="bar"></div>
@@ -170,8 +170,8 @@
         <div style="width:100%;max-width:800px;">
             <!-- Order Categories Header -->
             <div style="text-align:center;margin-bottom:3rem;">
-                <h1 style="font-size:2.5rem;color:#27ae60;margin-bottom:1rem;font-family:'UnifrakturCook',cursive;">My Orders</h1>
-                <p style="color:#666;font-size:1.1rem;">Track your orders and their current status</p>
+                <h1 class="typewriter-on-scroll" style="font-size:2.5rem;color:#27ae60;margin-bottom:1rem;font-family:'UnifrakturCook',cursive;">My Orders</h1>
+                <p class="typewriter-on-scroll" style="color:#666;font-size:1.1rem;">Track your orders and their current status</p>
             </div>
 
             <!-- Order Category Tabs -->
@@ -201,9 +201,12 @@
             <a href="#"><i class="fab fa-linkedin"></i></a>
             <a href="#"><i class="fab fa-youtube"></i></a>
         </div>
-        <p class="built-by">Proudly built by Delvin Opwoko A.</p>
-        <p class="contact-info">254714003218 | aleyladely5@gmail.com</p>
-        <p class="copyright">© Aticas Cafe' 2025 - All Rights Reserved</p>
+        <p class="built-by">
+            Proudly built with <i class="fas fa-heart" style="color:red"></i>
+        </p>
+        <p class="copyright">
+            &copy; 2025 Aticas Cafe. All rights reserved.
+        </p>
     </footer>
 
     <script src="js/script.js"></script>
@@ -311,7 +314,7 @@
                     ordersContainer.innerHTML = `
                         <div class="empty-category">
                             <i class="fas fa-receipt"></i>
-                            <h3>No Orders Yet</h3>
+                            <h3 class="typewriter-on-scroll">No Orders Yet</h3>
                             <p>You haven't placed any orders yet.</p>
                             <a href="menu.html" style="display:inline-block;margin-top:1rem;padding:0.8rem 1.5rem;background-color:#27ae60;color:white;border:none;border-radius:5px;font-weight:bold;cursor:pointer;text-decoration:none;">Order Now</a>
                         </div>
@@ -330,7 +333,7 @@
                     html += `
                         <div class="order-category">
                             <div class="category-header">
-                                <h2><i class="fas fa-check-circle"></i> Completed Orders</h2>
+                                <h2 class="typewriter-on-scroll"><i class="fas fa-check-circle"></i> Completed Orders</h2>
                                 <p>${completedOrders.length} order${completedOrders.length !== 1 ? 's' : ''} completed</p>
                             </div>
                     `;
@@ -339,7 +342,7 @@
                         html += `
                             <div class="empty-category">
                                 <i class="fas fa-check-circle"></i>
-                                <h3>No Completed Orders</h3>
+                                <h3 class="typewriter-on-scroll">No Completed Orders</h3>
                                 <p>You don't have any completed orders yet.</p>
                             </div>
                         `;
@@ -351,7 +354,7 @@
                     html += `
                         <div class="order-category">
                             <div class="category-header">
-                                <h2><i class="fas fa-clock"></i> Active Orders</h2>
+                                <h2 class="typewriter-on-scroll"><i class="fas fa-clock"></i> Active Orders</h2>
                                 <p>${activeOrders.length} order${activeOrders.length !== 1 ? 's' : ''} in progress</p>
                             </div>
                     `;
@@ -360,7 +363,7 @@
                         html += `
                             <div class="empty-category">
                                 <i class="fas fa-clock"></i>
-                                <h3>No Active Orders</h3>
+                                <h3 class="typewriter-on-scroll">No Active Orders</h3>
                                 <p>You don't have any pending or verifying orders.</p>
                             </div>
                         `;
@@ -385,7 +388,7 @@
                 ordersContainer.innerHTML = `
                     <div class="empty-category">
                         <i class="fas fa-receipt"></i>
-                        <h3>No Orders Yet</h3>
+                        <h3 class="typewriter-on-scroll">No Orders Yet</h3>
                         <p>You haven't placed any orders yet.</p>
                         <a href="menu.html" style="display:inline-block;margin-top:1rem;padding:0.8rem 1.5rem;background-color:#27ae60;color:white;border:none;border-radius:5px;font-weight:bold;cursor:pointer;text-decoration:none;">Order Now</a>
                     </div>
