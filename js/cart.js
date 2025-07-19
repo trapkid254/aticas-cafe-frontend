@@ -618,4 +618,6 @@ document.addEventListener('DOMContentLoaded', function() {
             showMpesaToast('Failed to place order. Please try again.', '#e74c3c');
         }
     });
+    // At the end of the DOMContentLoaded handler, call displayCartItems
+    displayCartItems();
 });
