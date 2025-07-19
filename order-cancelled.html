@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Cancelled</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f8f8f8 60%, #ffe0e0 100%);
+            min-height: 100vh;
+        }
+        .cancelled-container {
+            max-width: 480px;
+            margin: 100px auto 0 auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(231,76,60,0.13);
+            padding: 2.5rem 2rem 2.5rem 2rem;
+            text-align: center;
+            border: 1.5px solid #e0e0e0;
+        }
+        .cancelled-container h2 {
+            color: #e74c3c;
+            font-size: 2.1rem;
+            margin-bottom: 0.7rem;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        .cancelled-message {
+            font-size: 1.15rem;
+            color: #c0392b;
+            margin-bottom: 1.5rem;
+        }
+        .back-btn {
+            margin-top: 2.2rem;
+            padding: 0.9rem 2.2rem;
+            background: linear-gradient(90deg, #e74c3c 60%, #f9d423 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(231,76,60,0.08);
+            transition: background 0.3s, transform 0.2s;
+        }
+        .back-btn:hover {
+            background: linear-gradient(90deg, #c0392b 60%, #f9d423 100%);
+            transform: scale(1.04);
+        }
+    </style>
+</head>
+<body>
+    <div class="cancelled-container">
+        <h2>Order Cancelled</h2>
+        <div class="cancelled-message">
+            Your order was cancelled before payment was made.<br>
+            No payment was processed and your order was not saved.<br>
+            If this was a mistake, please place your order again.
+        </div>
+        <button class="back-btn" onclick="window.location.href='menu.html'">Back to Menu</button>
+    </div>
+</body>
+</html> 
