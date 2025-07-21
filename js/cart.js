@@ -360,6 +360,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const orderTypeRadio = document.querySelector('input[name="orderType"]:checked');
         const deliveryFeeRow = document.getElementById('deliveryFeeRow');
         const deliveryFeeDisplay = document.getElementById('deliveryFeeDisplay');
+        // Checkout summary fields
+        const checkoutSubtotal = document.getElementById('checkoutSubtotal');
+        const checkoutDeliveryFee = document.getElementById('checkoutDeliveryFee');
+        const checkoutTotal = document.getElementById('checkoutTotal');
+        const checkoutDeliveryFeeRow = document.getElementById('checkoutDeliveryFeeRow');
         if (orderTypeRadio && orderTypeRadio.value === 'delivery') {
             const lat = parseFloat(document.getElementById('latitude').value);
             const lng = parseFloat(document.getElementById('longitude').value);
@@ -368,16 +373,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 deliveryFee = calculateDeliveryFee(distance);
                 if (deliveryFeeDisplay) deliveryFeeDisplay.textContent = `Ksh ${deliveryFee.toLocaleString()}`;
                 if (deliveryFeeRow) deliveryFeeRow.style.display = 'flex';
+                if (checkoutDeliveryFee) checkoutDeliveryFee.textContent = `Ksh ${deliveryFee.toLocaleString()}`;
+                if (checkoutDeliveryFeeRow) checkoutDeliveryFeeRow.style.display = 'flex';
             } else {
                 if (deliveryFeeDisplay) deliveryFeeDisplay.textContent = '';
                 if (deliveryFeeRow) deliveryFeeRow.style.display = 'none';
+                if (checkoutDeliveryFee) checkoutDeliveryFee.textContent = '';
+                if (checkoutDeliveryFeeRow) checkoutDeliveryFeeRow.style.display = 'none';
             }
         } else {
             if (deliveryFeeDisplay) deliveryFeeDisplay.textContent = '';
             if (deliveryFeeRow) deliveryFeeRow.style.display = 'none';
+            if (checkoutDeliveryFee) checkoutDeliveryFee.textContent = '';
+            if (checkoutDeliveryFeeRow) checkoutDeliveryFeeRow.style.display = 'none';
         }
         const total = subtotal + deliveryFee;
         totalElement.textContent = `Ksh ${total.toLocaleString()}`;
+        if (checkoutSubtotal) checkoutSubtotal.textContent = `Ksh ${subtotal.toLocaleString()}`;
+        if (checkoutTotal) checkoutTotal.textContent = `Ksh ${total.toLocaleString()}`;
     }
     
     // Payment method toggle
@@ -454,6 +467,18 @@ document.addEventListener('DOMContentLoaded', function() {
         checkoutForm.style.display = checkoutForm.style.display === 'block' ? 'none' : 'block';
         if (checkoutForm.style.display === 'block') {
             checkoutBtn.textContent = 'Cancel';
+            // Show guest fields if not logged in
+            const userId = getUserId();
+            const token = getUserToken();
+            const guestFields = document.getElementById('guestFields');
+            const guestPhoneField = document.getElementById('guestPhoneField');
+            if (!userId || !token) {
+                if (guestFields) guestFields.style.display = 'block';
+                if (guestPhoneField) guestPhoneField.style.display = 'block';
+            } else {
+                if (guestFields) guestFields.style.display = 'none';
+                if (guestPhoneField) guestPhoneField.style.display = 'none';
+            }
         } else {
             checkoutBtn.textContent = 'Proceed to Checkout';
         }

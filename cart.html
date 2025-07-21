@@ -180,6 +180,20 @@
                             </div>
                             <p class="note">You will receive an STK push to complete payment</p>
                         </div>
+                        <div id="checkoutPriceSummary" style="margin:1.2rem 0 1.2rem 0;padding:1rem;background:#f8f9fa;border-radius:8px;border:1.5px solid #e0e0e0;">
+                            <div style="display:flex;justify-content:space-between;font-size:1.08rem;margin-bottom:0.5rem;">
+                                <span>Subtotal</span>
+                                <span id="checkoutSubtotal">Ksh 0.00</span>
+                            </div>
+                            <div style="display:none;justify-content:space-between;font-size:1.08rem;margin-bottom:0.5rem;" id="checkoutDeliveryFeeRow">
+                                <span>Delivery Fee</span>
+                                <span id="checkoutDeliveryFee">Ksh 0</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;font-size:1.15rem;font-weight:bold;">
+                                <span>Total</span>
+                                <span id="checkoutTotal">Ksh 0.00</span>
+                            </div>
+                        </div>
                         <button type="submit" class="submit-order-btn">Place Order</button>
                     </form>
                     <button class="checkout-btn" id="checkoutBtn">Proceed to Checkout</button>
