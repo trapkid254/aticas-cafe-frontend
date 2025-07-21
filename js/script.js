@@ -111,6 +111,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     quantity: itemOrId.quantity ?? 10,
                     category: itemOrId.category // may be undefined for meals of the day
                 };
+                if (!menuItem._id) {
+                    console.warn('Attempted to add item to cart without _id:', menuItem);
+                    return;
+                }
                 itemType = menuItem.category ? 'Menu' : 'MealOfDay';
             } else {
                 // Fetch menu item details from backend
