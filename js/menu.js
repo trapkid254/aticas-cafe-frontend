@@ -59,6 +59,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     quantity: menuItemOrId.quantity ?? 10,
                     category: menuItemOrId.category // may be undefined for meals of the day
                 };
+                if (!menuItem._id) {
+                    console.warn('Attempted to add item to cart without _id:', menuItem);
+                    return;
+                }
                 itemType = menuItem.category ? 'Menu' : 'MealOfDay';
             } else {
                 // Fallback: fetch menu item details from backend
