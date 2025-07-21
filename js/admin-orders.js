@@ -164,17 +164,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         let itemsHtml = '<table style="width:100%;margin:1.2rem 0;text-align:left;border-collapse:collapse;">';
-        itemsHtml += '<thead><tr style="background:#f8f8f8;"><th style="padding:8px 0;">Item</th><th>Qty</th><th>Price</th></tr></thead><tbody>';
+        itemsHtml += '<thead><tr style="background:#f8f8f8;"><th style="padding:8px 0;">Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Price</th></tr></thead><tbody>';
         order.items.forEach(item => {
             const menuItem = item.menuItem;
             if(menuItem) {
-                itemsHtml += `<tr><td style="padding:6px 0;">${menuItem.name}</td><td>${item.quantity}</td><td>Ksh ${menuItem.price.toFixed(2)}</td></tr>`;
+                itemsHtml += `<tr><td style="padding:6px 0;"><b>${menuItem.name}</b></td><td style="text-align:center;">${item.quantity}</td><td style="text-align:right;"><b>Ksh ${(menuItem.price * item.quantity).toFixed(2)}</b></td></tr>`;
             }
         });
         itemsHtml += '</tbody></table>';
         let deliveryFeeHtml = '';
-        if (order.orderType === 'delivery' && typeof order.deliveryFee === 'number' && order.deliveryFee > 0) {
-            deliveryFeeHtml = `<div style="margin-top:0.7rem;font-size:1.08rem;"><b>Delivery Fee:</b> <span style="color:#e67e22;">Ksh ${Number(order.deliveryFee).toLocaleString()}</span></div>`;
+        if (order.orderType === 'delivery' && typeof order.deliveryFee === 'number') {
+            deliveryFeeHtml = `<div style="text-align:right;margin-top:0.7rem;font-size:1.08rem;"><b>Delivery Fee:</b> <span style="color:#e67e22;">Ksh ${Number(order.deliveryFee).toLocaleString()}</span></div>`;
         }
         modalBody.innerHTML = `
             <div class="receipt" style="background:#fff;border-radius:14px;border:1.5px solid #e0e0e0;box-shadow:0 6px 24px rgba(39,174,96,0.08);padding:2.5rem 2rem 2rem 2rem;width:100%;max-width:540px;margin:0 auto;font-family:'Segoe UI',Arial,sans-serif;">
@@ -204,10 +204,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     ` : ''}
                     ${itemsHtml}
                     ${deliveryFeeHtml}
-                    <div style="margin-top:1.3rem;font-size:1.15rem;"><b>Total (incl. delivery):</b> <span style="color:#27ae60;">Ksh ${Number(order.total).toLocaleString()}</span></div>
+                    <div style="text-align:right;margin-top:1.3rem;font-size:1.15rem;"><b>Total (incl. delivery):</b> <span style="color:#27ae60;">Ksh ${Number(order.total).toLocaleString()}</span></div>
                 </div>
                 <div class="receipt-footer" style="text-align:center;margin-top:2.2rem;font-size:1rem;color:#888;">
-                    Thank you for your order!<br>We appreciate your business.
+                    Thank you for your order!<br>We appreciate your business.<br>
+                    <b>Contact Us: +254 712 345 678</b>
                 </div>
             </div>
         `;
