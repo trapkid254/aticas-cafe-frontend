@@ -6,6 +6,33 @@ function getUserToken() {
     return localStorage.getItem('userToken');
 }
 
+// Cafe coordinates (JKUAT area)
+const CAFE_LAT = -1.1027070230055493;
+const CAFE_LNG = 37.01466835231921;
+
+// Calculate distance between two points using Haversine formula
+function haversineDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Earth's radius in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // Distance in kilometers
+}
+
+// Calculate delivery fee based on distance
+function calculateDeliveryFee(distance) {
+    if (distance <= 0.5) return 50; // Base fee: Ksh 50 for up to 0.5km
+    if (distance <= 1.0) return 50; // No extra fee up to 1km
+    
+    // For distances beyond 1km, add Ksh 30 for every additional 0.5km
+    const extraDistance = distance - 1.0;
+    const extraCharges = Math.ceil(extraDistance / 0.5) * 30;
+    return 50 + extraCharges;
+}
+
 // Guest cart helpers
 function getGuestCart() {
     return JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
@@ -363,7 +390,65 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
+
+    // Order type change listeners
+    document.querySelectorAll('input[name="orderType"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const deliveryLocationPopup = document.getElementById('deliveryLocationPopup');
+            if (this.value === 'delivery') {
+                deliveryLocationPopup.style.display = 'block';
+            } else {
+                deliveryLocationPopup.style.display = 'none';
+            }
+            updateCartSummary(); // Recalculate summary after order type change
+        });
+    });
+
+    // Location functionality
+    const getLocationBtn = document.getElementById('getLocationBtn');
+    if (getLocationBtn) {
+        getLocationBtn.addEventListener('click', function() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        document.getElementById('latitude').value = lat;
+                        document.getElementById('longitude').value = lng;
+                        document.getElementById('locationStatus').innerHTML = '<i class="fas fa-check-circle"></i> <span>Location captured successfully!</span>';
+                        document.getElementById('locationStatus').style.display = 'block';
+                        document.getElementById('locationStatus').style.background = '#d4edda';
+                        document.getElementById('locationStatus').style.color = '#155724';
+                        updateCartSummary();
+                    },
+                    function(error) {
+                        document.getElementById('locationStatus').innerHTML = '<i class="fas fa-exclamation-triangle"></i> <span>Could not get location. Please enter manually.</span>';
+                        document.getElementById('locationStatus').style.display = 'block';
+                        document.getElementById('locationStatus').style.background = '#f8d7da';
+                        document.getElementById('locationStatus').style.color = '#721c24';
+                    }
+                );
+            } else {
+                alert('Geolocation is not supported by this browser.');
+            }
+        });
+    }
+
+    // Manual coordinate input listeners
+    const latitudeInput = document.getElementById('latitude');
+    const longitudeInput = document.getElementById('longitude');
+    if (latitudeInput && longitudeInput) {
+        [latitudeInput, longitudeInput].forEach(input => {
+            input.addEventListener('input', function() {
+                const lat = parseFloat(latitudeInput.value);
+                const lng = parseFloat(longitudeInput.value);
+                if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+                    updateCartSummary();
+                }
+            });
+        });
+    }
+
     // Checkout button
     checkoutBtn.addEventListener('click', function() {
         checkoutForm.style.display = checkoutForm.style.display === 'block' ? 'none' : 'block';
