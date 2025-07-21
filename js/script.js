@@ -82,7 +82,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function addToCart(itemOrId, quantity = 1) {
         const userId = getUserIdFromToken();
-        if (userId) {
+        const userToken = localStorage.getItem('userToken'); // Get token
+        if (userId && userToken) { // Check for both userId and token
             // Logged in: send to backend
             const menuItem = typeof itemOrId === 'object' ? itemOrId : null;
             const menuItemId = menuItem ? menuItem._id : itemOrId;
@@ -90,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('userToken') || '' },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': userToken || '' },
                     body: JSON.stringify({ menuItemId, quantity, itemType })
                 });
             } catch (err) {
