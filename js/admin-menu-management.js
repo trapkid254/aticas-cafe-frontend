@@ -17,6 +17,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const mealQuantity = document.getElementById('mealQuantity');
     const modQuantityGroup = document.getElementById('modQuantityGroup');
     const modMealQuantity = document.getElementById('modMealQuantity');
+    const addPriceOptionBtn = document.getElementById('add-price-option-btn');
+    const priceOptionsWrapper = document.getElementById('price-options-wrapper');
 
     let addType = 'menu'; // 'menu' or 'mod'
     let editId = null; // id of meal being edited
@@ -56,16 +58,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         mealsOfDayList.innerHTML = '<div class="recent-orders"><table><thead><tr><th>Image</th><th>Name</th><th>Price</th><th>Quantity</th><th>Action</th></tr></thead><tbody>' +
             mealsOfDay.map(meal => {
-                const imageSrc = meal.image && meal.image.trim() ? meal.image : 'https://via.placeholder.com/120x90?text=No+Image';
+                const item = meal.menuItem || meal; // Use menuItem if it exists, otherwise use meal
+                const imageSrc = item.image && item.image.trim() ? item.image : 'https://via.placeholder.com/120x90?text=No+Image';
+                
+                let priceDisplay = `Ksh ${Number(item.price).toLocaleString()}`;
+                if (item.priceOptions && item.priceOptions.length > 0) {
+                    priceDisplay = item.priceOptions.map(p => `Ksh ${Number(p.price).toLocaleString()}`).join(' / ');
+                }
+
                 return `
-                <tr style="background: #ffe600;">
-                    <td><img src="${imageSrc}" alt="${meal.name}" style="width:44px;height:44px;object-fit:cover;border-radius:7px;"></td>
-                    <td><b>${meal.name}</b></td>
-                    <td>Ksh ${Number(meal.price).toLocaleString()}</td>
+                <tr style="background: #ffffff;">
+                    <td><img src="${imageSrc}" alt="${item.name}" style="width:44px;height:44px;object-fit:cover;border-radius:7px;"></td>
+                    <td><b>${item.name}</b></td>
+                    <td>${priceDisplay}</td>
                     <td>${meal.quantity ?? 10}</td>
                     <td>
-                        <button class="action-btn" title="Edit" style="background:#27ae60;color:#fff;margin-right:8px;" onclick="editMealOfDay('${meal._id}')"><i class='fas fa-pen'></i></button>
-                        <button class="action-btn" title="Delete" style="background:#e74c3c;color:#fff;" onclick="removeMealOfDay('${meal._id}')"><i class='fas fa-trash'></i></button>
+                        <button class="action-btn" title="Edit" style="background:#27ae60;color:#fff;margin-right:8px;" onclick="editMealOfDay('${meal._id}')"><i class="fas fa-pen"></i></button>
+                        <button class="action-btn" title="Delete" style="background:#e74c3c;color:#fff;" onclick="removeMealOfDay('${meal._id}')"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
                 `;
@@ -77,20 +86,29 @@ document.addEventListener('DOMContentLoaded', function() {
             menuMealsList.innerHTML = '<p style="color:#888;">No menu meals added yet.</p>';
             return;
         }
-        menuMealsList.innerHTML = '<div class="recent-orders"><table><thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Quantity</th><th>Action</th></tr></thead><tbody>' +
-            menuItems.map(meal => `
-                <tr style="background: #ffe600;">
+
+        const menuMealsListHTML = '<div class="recent-orders"><table><thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Quantity</th><th>Action</th></tr></thead><tbody>' +
+            menuItems.map(meal => {
+                let priceDisplay = `Ksh ${Number(meal.price).toLocaleString()}`;
+                if (meal.priceOptions && meal.priceOptions.length > 0) {
+                    priceDisplay = meal.priceOptions.map(p => `${p.size}: Ksh ${Number(p.price).toLocaleString()}`).join('<br>');
+                }
+
+                return `
+                <tr style="background: #ffffff;">
                     <td><img src="${meal.image}" alt="${meal.name}" style="width:44px;height:44px;object-fit:cover;border-radius:7px;"></td>
                     <td><b>${meal.name}</b></td>
                     <td>${meal.category}</td>
-                    <td>Ksh ${Number(meal.price).toLocaleString()}</td>
+                    <td>${priceDisplay}</td>
                     <td>${meal.quantity ?? 10}</td>
                     <td>
-                        <button class="action-btn" title="Edit" style="background:#27ae60;color:#fff;margin-right:8px;" onclick="editMenuMeal('${meal._id}')"><i class='fas fa-pen'></i></button>
-                        <button class="action-btn" title="Delete" style="background:#e74c3c;color:#fff;" onclick="removeMenuMeal('${meal._id}')"><i class='fas fa-trash'></i></button>
+                        <button class="action-btn" title="Edit" style="background:#27ae60;color:#fff;margin-right:8px;" onclick="editMenuMeal('${meal._id}')"><i class="fas fa-pen"></i></button>
+                        <button class="action-btn" title="Delete" style="background:#e74c3c;color:#fff;" onclick="removeMenuMeal('${meal._id}')"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
-            `).join('') + '</tbody></table></div>';
+                `
+            }).join('') + '</tbody></table></div>';
+        menuMealsList.innerHTML = menuMealsListHTML;
     }
     // Remove meal from Meals of the Day (by id)
     window.removeMealOfDay = async function(id) {
@@ -144,13 +162,52 @@ document.addEventListener('DOMContentLoaded', function() {
     closeModal.onclick = function() {
         addMealModal.style.display = 'none';
         addMealForm.reset();
+        priceOptionsWrapper.innerHTML = ''; // Clear price options on modal close
     };
     window.onclick = function(e) {
         if (e.target === addMealModal) {
             addMealModal.style.display = 'none';
             addMealForm.reset();
+            priceOptionsWrapper.innerHTML = ''; // Clear price options on modal close
         }
     };
+
+    // Function to render price options in the modal
+    function renderPriceOptions(priceOptions = []) {
+        priceOptionsWrapper.innerHTML = '';
+        if (priceOptions.length === 0) {
+            // Add a default empty option if none exist
+            addPriceOption();
+        } else {
+            priceOptions.forEach(option => addPriceOption(option));
+        }
+    }
+
+    // Function to add a new price option field
+    function addPriceOption(option = {}) {
+        const div = document.createElement('div');
+        div.className = 'price-option-item';
+        div.style.cssText = 'display: flex; gap: 0.5rem; align-items: center;';
+        div.innerHTML = `
+            <input type="text" class="price-option-size" placeholder="e.g., Small" value="${option.size || ''}" style="flex: 1; padding: 0.6rem; border: 1px solid #ddd; border-radius: 4px;">
+            <input type="number" class="price-option-price" placeholder="Price" value="${option.price || ''}" style="flex: 1; padding: 0.6rem; border: 1px solid #ddd; border-radius: 4px;">
+            <button type="button" class="remove-price-option-btn" style="padding: 0.6rem; background: #e74c3c; color: #fff; border: none; border-radius: 4px; cursor: pointer;">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        priceOptionsWrapper.appendChild(div);
+    }
+
+    // Event listener for adding a new price option
+    addPriceOptionBtn.addEventListener('click', () => addPriceOption());
+
+    // Event listener for removing a price option
+    priceOptionsWrapper.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-price-option-btn')) {
+            e.target.closest('.price-option-item').remove();
+        }
+    });
+
     // Edit meal function
     window.editMenuMeal = function(id) {
         const meal = menuItems.find(m => m._id === id);
@@ -169,6 +226,9 @@ document.addEventListener('DOMContentLoaded', function() {
         mealQuantity.value = meal.quantity || 10;
         document.getElementById('mealImage').value = '';
         document.getElementById('mealImage').setAttribute('data-existing', meal.image || '');
+        
+        renderPriceOptions(meal.priceOptions); // Render existing price options
+
         addMealModal.style.display = 'flex';
         addMealModal.querySelector('.modal-content').style.background = 'yellow';
     };
@@ -182,10 +242,10 @@ document.addEventListener('DOMContentLoaded', function() {
         categoryGroup.style.display = 'none';
         quantityGroup.style.display = 'none';
         modQuantityGroup.style.display = 'flex';
-        document.getElementById('mealName').value = meal.menuItem?.name || '';
+        document.getElementById('mealName').value = meal.menuItem?.name || meal.name ||'';
         modMealQuantity.value = meal.quantity ?? 10;
         document.getElementById('mealImage').value = '';
-        document.getElementById('mealImage').setAttribute('data-existing', meal.menuItem?.image || '');
+        document.getElementById('mealImage').setAttribute('data-existing', meal.menuItem?.image || meal.image || '');
         addMealModal.style.display = 'flex';
         addMealModal.querySelector('.modal-content').style.background = 'yellow';
     };
@@ -197,6 +257,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const imageInput = document.getElementById('mealImage');
         const file = imageInput.files && imageInput.files[0];
         const useExistingImage = imageInput.getAttribute('data-existing') || '';
+        
+        // Collect price options
+        const priceOptions = [];
+        const priceOptionItems = priceOptionsWrapper.querySelectorAll('.price-option-item');
+        priceOptionItems.forEach(item => {
+            const size = item.querySelector('.price-option-size').value.trim();
+            const price = parseFloat(item.querySelector('.price-option-price').value);
+            if (size && !isNaN(price)) {
+                priceOptions.push({ size, price });
+            }
+        });
+
         const processMeal = async (imageData) => {
             if (addType === 'menu') {
                 // Add new menu meal
@@ -206,7 +278,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     price: parseFloat(document.getElementById('mealPrice').value),
                     image: imageData,
                     category: mealCategory ? mealCategory.value : '',
-                    quantity: parseInt(mealQuantity.value, 10) || 0
+                    quantity: parseInt(mealQuantity.value, 10) || 0,
+                    priceOptions: priceOptions
                 };
                 await fetch('https://aticas-backend.onrender.com/api/menu', {
                     method: 'POST',
@@ -230,7 +303,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     price: parseFloat(document.getElementById('mealPrice').value),
                     image: imageData,
                     category: mealCategory ? mealCategory.value : '',
-                    quantity: parseInt(mealQuantity.value, 10) || 0
+                    quantity: parseInt(mealQuantity.value, 10) || 0,
+                    priceOptions: priceOptions
                 };
                 await fetch('https://aticas-backend.onrender.com/api/menu/' + editId, {
                     method: 'PUT',
@@ -274,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 isSubmitting = false;
             } else if (addType === 'mod-edit') {
                 // Edit meal of the day
-                const meal = {
+                const mealData = {
                     quantity: parseInt(modMealQuantity.value, 10) || 0
                 };
                 await fetch('https://aticas-backend.onrender.com/api/meals/' + editId, {
@@ -283,7 +357,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         'Content-Type': 'application/json',
                         'Authorization': localStorage.getItem('adminToken') || ''
                     },
-                    body: JSON.stringify(meal)
+                    body: JSON.stringify(mealData)
                 });
                 fetchMealsOfDay();
                 addMealModal.style.display = 'none';

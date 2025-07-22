@@ -3,6 +3,11 @@ document.addEventListener('DOMContentLoaded', function() {
     let menuItems = [];
     const menuContainer = document.getElementById('menuItems');
     const filterButtons = document.querySelectorAll('.filter-btn');
+    const priceOptionsModal = document.getElementById('price-options-modal');
+    const modalItemName = document.getElementById('modal-item-name');
+    const modalPriceOptions = document.getElementById('modal-price-options');
+    const modalAddToCartBtn = document.getElementById('modal-add-to-cart-btn');
+    const closeModalBtn = priceOptionsModal.querySelector('.close-modal');
 
     async function fetchMenuItems() {
         try {
@@ -28,18 +33,26 @@ document.addEventListener('DOMContentLoaded', function() {
         return await res.json();
     }
 
-    async function addToCartApi(menuItemOrId) {
+    async function addToCartApi(menuItem, selectedSize = null) {
         const userId = getUserIdFromToken();
         const userToken = localStorage.getItem('userToken');
+
         if (userId && userToken) {
-            const menuItem = typeof menuItemOrId === 'object' ? menuItemOrId : null;
-            const menuItemId = menuItem ? menuItem._id : menuItemOrId;
-            const itemType = menuItem ? (menuItem.category ? 'Menu' : 'MealOfDay') : 'Menu';
+            const menuItemId = menuItem._id;
+            const itemType = menuItem.category ? 'Menu' : 'MealOfDay';
             try {
                 await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': userToken },
-                    body: JSON.stringify({ menuItemId: menuItemId, quantity: 1, itemType })
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': userToken
+                    },
+                    body: JSON.stringify({
+                        menuItemId: menuItemId,
+                        quantity: 1,
+                        itemType,
+                        selectedSize
+                    })
                 });
             } catch (err) {
                 console.error('Error adding to cart:', err);
@@ -47,45 +60,23 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             // Guest: add to localStorage cart
             let cart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
-            let menuItem;
-            let itemType;
-            if (typeof menuItemOrId === 'object') {
-                // Normalize for meals of the day or menu
-                menuItem = {
-                    _id: menuItemOrId._id,
-                    name: menuItemOrId.name,
-                    price: menuItemOrId.price,
-                    image: menuItemOrId.image,
-                    quantity: menuItemOrId.quantity ?? 10,
-                    category: menuItemOrId.category // may be undefined for meals of the day
-                };
-                if (!menuItem._id) {
-                    console.warn('Attempted to add item to cart without _id:', menuItem);
-                    return;
-                }
-                itemType = menuItem.category ? 'Menu' : 'MealOfDay';
+            const itemType = menuItem.category ? 'Menu' : 'MealOfDay';
+
+            const existingItemIndex = cart.items.findIndex(i =>
+                i.menuItem._id === menuItem._id &&
+                i.itemType === itemType &&
+                (selectedSize ? i.selectedSize && i.selectedSize.size === selectedSize.size : !i.selectedSize)
+            );
+
+            if (existingItemIndex > -1) {
+                cart.items[existingItemIndex].quantity += 1;
             } else {
-                // Fallback: fetch menu item details from backend
-                try {
-                    const res = await fetch(`https://aticas-backend.onrender.com/api/menu/${menuItemOrId}`);
-                    if (!res.ok) {
-                        alert('Failed to fetch menu item details.');
-                        return;
-                    }
-                    menuItem = await res.json();
-                    itemType = menuItem.category ? 'Menu' : 'MealOfDay';
-                } catch (err) {
-                    console.error('Error fetching menu item for guest cart:', err);
-                    alert('Error fetching menu item.');
-                    return;
-                }
-            }
-            // Check if item already in cart
-            const idx = cart.items.findIndex(i => i.menuItem && i.menuItem._id === menuItem._id && i.itemType === itemType);
-            if (idx > -1) {
-                cart.items[idx].quantity += 1;
-            } else {
-                cart.items.push({ menuItem, quantity: 1, itemType });
+                cart.items.push({
+                    menuItem: menuItem,
+                    quantity: 1,
+                    itemType,
+                    selectedSize
+                });
             }
             localStorage.setItem('guestCart', JSON.stringify(cart));
         }
@@ -117,7 +108,14 @@ document.addEventListener('DOMContentLoaded', function() {
             menuItem.dataset.category = item.category;
             const outOfStock = item.quantity === 0;
             const lowStock = item.quantity > 0 && item.quantity <= 3;
-            
+            const hasPriceOptions = item.priceOptions && item.priceOptions.length > 0;
+
+            let priceDisplay = `Ksh ${Number(item.price).toLocaleString()}`;
+            if (hasPriceOptions) {
+                const prices = item.priceOptions.map(p => Number(p.price));
+                priceDisplay = `From Ksh ${Number(Math.min(...prices)).toLocaleString()}`;
+            }
+
             // Determine quantity display styling
             let quantityClass = '';
             let quantityText = `Available: ${item.quantity ?? 0}`;
@@ -135,8 +133,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="menu-item-details">
                     <h3>${item.name}</h3>
                     <p class="menu-qty ${quantityClass}">${quantityText}</p>
-                    <span class="price">Ksh ${Number(item.price).toLocaleString()}</span>
-                    <button class="add-to-cart" data-id="${item._id}" ${outOfStock ? 'disabled style="background:#ccc;cursor:not-allowed;"' : ''}>${outOfStock ? 'Out of Stock' : 'Add to Cart'}</button>
+                    <span class="price">${priceDisplay}</span>
+                    <button class="add-to-cart" data-id="${item._id}" ${outOfStock ? 'disabled style="background:#ccc;cursor:not-allowed;"' : ''}>
+                        ${outOfStock ? 'Out of Stock' : (hasPriceOptions ? 'Select Option' : 'Add to Cart')}
+                    </button>
                 </div>
             `;
             menuContainer.appendChild(menuItem);
@@ -150,13 +150,66 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert('Sorry, this item is out of stock!');
                     return;
                 }
-                await addToCartApi(item);
-                if (window.updateCartCount) window.updateCartCount();
-                showToast(`${item.name} added to cart!`);
-                fetchMenuItems();
+
+                if (item.priceOptions && item.priceOptions.length > 0) {
+                    openPriceOptionsModal(item);
+                } else {
+                    await addToCartApi(item);
+                    if (window.updateCartCount) window.updateCartCount();
+                    showToast(`${item.name} added to cart!`);
+                    fetchMenuItems();
+                }
             });
         });
     }
+
+    function openPriceOptionsModal(item) {
+        modalItemName.textContent = item.name;
+        modalPriceOptions.innerHTML = '';
+
+        item.priceOptions.forEach(option => {
+            const optionEl = document.createElement('div');
+            optionEl.className = 'price-option';
+            optionEl.innerHTML = `
+                <label>
+                    <input type="radio" name="price-option" value="${option.size}">
+                    ${option.size} - <strong>Ksh ${Number(option.price).toLocaleString()}</strong>
+                </label>
+            `;
+            modalPriceOptions.appendChild(optionEl);
+        });
+
+        // Check the first option by default
+        if (modalPriceOptions.querySelector('input')) {
+            modalPriceOptions.querySelector('input').checked = true;
+        }
+
+        modalAddToCartBtn.onclick = async () => {
+            const selectedOptionEl = modalPriceOptions.querySelector('input[name="price-option"]:checked');
+            if (selectedOptionEl) {
+                const selectedSizeValue = selectedOptionEl.value;
+                const selectedOption = item.priceOptions.find(p => p.size === selectedSizeValue);
+
+                await addToCartApi(item, selectedOption);
+                if (window.updateCartCount) window.updateCartCount();
+                showToast(`${item.name} (${selectedOption.size}) added to cart!`);
+                priceOptionsModal.style.display = 'none';
+                fetchMenuItems();
+            }
+        };
+
+        priceOptionsModal.style.display = 'flex';
+    }
+
+    closeModalBtn.addEventListener('click', () => {
+        priceOptionsModal.style.display = 'none';
+    });
+
+    window.addEventListener('click', (event) => {
+        if (event.target === priceOptionsModal) {
+            priceOptionsModal.style.display = 'none';
+        }
+    });
 
     menuSearch.addEventListener('input', function() {
         displayMenuItems(document.querySelector('.filter-btn.active')?.dataset.category || 'all', menuSearch.value);

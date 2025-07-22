@@ -74,7 +74,7 @@ async function fetchCart() {
 }
 
 // Update or add item in cart
-async function updateCartItem(menuItemId, quantity, itemType) {
+async function updateCartItem(menuItemId, quantity, itemType, selectedSize = null) {
     const userId = getUserId();
     const token = getUserToken();
     if (userId && token) {
@@ -82,7 +82,7 @@ async function updateCartItem(menuItemId, quantity, itemType) {
             await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': token },
-                body: JSON.stringify({ menuItemId, quantity, itemType })
+                body: JSON.stringify({ menuItemId, quantity, itemType, selectedSize })
             });
         } catch (err) {
             console.error('Error updating cart item:', err);
@@ -90,7 +90,11 @@ async function updateCartItem(menuItemId, quantity, itemType) {
     } else {
         // Guest: update localStorage cart
         let cart = getGuestCart();
-        const idx = cart.items.findIndex(i => i.menuItem._id === menuItemId && i.itemType === itemType);
+        const idx = cart.items.findIndex(i => 
+            i.menuItem._id === menuItemId && 
+            i.itemType === itemType &&
+            (selectedSize ? i.selectedSize && i.selectedSize.size === selectedSize.size : !i.selectedSize)
+        );
         if (idx > -1) {
             if (quantity < 1) {
                 cart.items.splice(idx, 1);
@@ -103,21 +107,30 @@ async function updateCartItem(menuItemId, quantity, itemType) {
 }
 
 // Remove item from cart
-async function removeCartItem(menuItemId, itemType) {
+async function removeCartItem(menuItemId, itemType, selectedSize = null) {
     const userId = getUserId();
     const token = getUserToken();
+    const sizeIdentifier = selectedSize ? selectedSize.size : 'default';
+
     if (userId && token) {
         try {
+            // NOTE: Backend needs to support deletion by size. Assuming it does for now.
+            // This might need a custom route like /api/cart/:userId/items/:itemType/:menuItemId/:size
             await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items/${itemType}/${menuItemId}`, {
                 method: 'DELETE',
-                headers: { 'Authorization': token }
+                headers: { 'Content-Type': 'application/json', 'Authorization': token },
+                body: JSON.stringify({ selectedSize }) // Send size info in the body
             });
         } catch (err) {
             console.error('Error removing cart item:', err);
         }
     } else {
         let cart = getGuestCart();
-        cart.items = cart.items.filter(i => !(i.menuItem._id === menuItemId && i.itemType === itemType));
+        cart.items = cart.items.filter(i => 
+            !(i.menuItem._id === menuItemId && 
+              i.itemType === itemType &&
+              (selectedSize ? i.selectedSize && i.selectedSize.size === selectedSize.size : !i.selectedSize))
+        );
         setGuestCart(cart);
     }
 }
@@ -206,11 +219,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             const menuItem = item.menuItem;
-            const image = menuItem && menuItem.image ? menuItem.image : 'images/varied menu.jpeg';
-            const name = menuItem && menuItem.name ? menuItem.name : 'Unknown Item';
-            const price = menuItem && menuItem.price ? menuItem.price : 0;
-            const id = menuItem && menuItem._id ? menuItem._id : '';
-            const itemType = item.itemType || (menuItem && menuItem.category ? 'Menu' : 'MealOfDay');
+            const selectedSize = item.selectedSize;
+            const image = menuItem.image || 'images/varied menu.jpeg';
+            const name = selectedSize ? `${menuItem.name} (${selectedSize.size})` : menuItem.name;
+            const price = selectedSize ? selectedSize.price : menuItem.price;
+            const id = menuItem._id;
+            const itemType = item.itemType || (menuItem.category ? 'Menu' : 'MealOfDay');
+
             const cartItem = document.createElement('div');
             cartItem.className = 'cart-item';
             cartItem.innerHTML = `
@@ -219,12 +234,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h3>${name}</h3>
                     <span class="price">Ksh ${(price * item.quantity).toLocaleString()}</span>
                     <div class="quantity-controls">
-                        <button class="quantity-btn minus" data-id="${id}" data-type="${itemType}">-</button>
+                        <button class="quantity-btn minus" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? selectedSize.size : ''}'>-</button>
                         <span class="quantity">${item.quantity}</span>
-                        <button class="quantity-btn plus" data-id="${id}" data-type="${itemType}">+</button>
+                        <button class="quantity-btn plus" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? selectedSize.size : ''}'>+</button>
                     </div>
                 </div>
-                <button class="remove-btn" data-id="${id}" data-type="${itemType}"><i class="fas fa-trash"></i></button>
+                <button class="remove-btn" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? selectedSize.size : ''}'><i class="fas fa-trash"></i></button>
             `;
             cartContainer.appendChild(cartItem);
         });
@@ -233,7 +248,14 @@ document.addEventListener('DOMContentLoaded', function() {
             button.addEventListener('click', async function() {
                 const itemId = this.dataset.id;
                 const itemType = this.dataset.type;
-                const item = cart.items.find(i => String(i.menuItem._id) === String(itemId) && i.itemType === itemType);
+                const itemSize = this.dataset.size;
+
+                const item = cart.items.find(i => 
+                    String(i.menuItem._id) === String(itemId) && 
+                    i.itemType === itemType &&
+                    (itemSize ? i.selectedSize && i.selectedSize.size === itemSize : !i.selectedSize)
+                );
+
                 if (!item) return;
                 let newQty = item.quantity;
                 // Disable all quantity and remove buttons while waiting
@@ -241,25 +263,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 showLoading();
                 let prevCart = JSON.parse(JSON.stringify(cart)); // deep copy for revert
                 let optimisticCart = JSON.parse(JSON.stringify(cart));
+                const itemIndex = optimisticCart.items.findIndex(i => 
+                    String(i.menuItem._id) === String(itemId) && 
+                    i.itemType === itemType &&
+                    (itemSize ? i.selectedSize && i.selectedSize.size === itemSize : !i.selectedSize)
+                );
+
                 if (this.classList.contains('minus')) {
                     newQty = item.quantity - 1;
                     if (newQty < 1) {
-                        optimisticCart.items = optimisticCart.items.filter(i => String(i.menuItem._id) !== String(itemId) || i.itemType !== itemType);
+                        optimisticCart.items.splice(itemIndex, 1);
                     } else {
-                        optimisticCart.items.find(i => String(i.menuItem._id) === String(itemId) && i.itemType === itemType).quantity = newQty;
+                        optimisticCart.items[itemIndex].quantity = newQty;
                     }
                 } else if (this.classList.contains('plus')) {
                     newQty = item.quantity + 1;
-                    optimisticCart.items.find(i => String(i.menuItem._id) === String(itemId) && i.itemType === itemType).quantity = newQty;
+                    optimisticCart.items[itemIndex].quantity = newQty;
                 }
                 // Optimistically update UI
                 cart = optimisticCart;
                 renderCartUI();
                 try {
+                    const selectedSize = item.selectedSize || null;
                     if (newQty < 1) {
-                        await removeCartItem(itemId, itemType);
+                        await removeCartItem(itemId, itemType, selectedSize);
                     } else {
-                        await updateCartItem(itemId, newQty, itemType);
+                        await updateCartItem(itemId, newQty, itemType, selectedSize);
                     }
                 } catch (err) {
                     cart = prevCart;
@@ -277,21 +306,35 @@ document.addEventListener('DOMContentLoaded', function() {
             button.addEventListener('click', async function() {
                 const itemId = this.dataset.id;
                 const itemType = this.dataset.type;
+                const itemSize = this.dataset.size;
+
                 if (!itemId || !itemType) {
                     showMpesaToast('Invalid item. Cannot remove.', '#e74c3c');
                     return;
                 }
-                console.log('Attempting to remove menuItemId:', itemId, 'type:', itemType); // Debug log
+                // Find the item to get selectedSize info before removing
+                const itemToRemove = cart.items.find(i => 
+                    i.menuItem._id === itemId && 
+                    i.itemType === itemType &&
+                    (itemSize ? i.selectedSize && i.selectedSize.size === itemSize : !i.selectedSize)
+                );
+                const selectedSize = itemToRemove ? itemToRemove.selectedSize : null;
+
+                console.log('Attempting to remove menuItemId:', itemId, 'type:', itemType, 'size:', itemSize); // Debug log
                 // Disable all quantity and remove buttons while waiting
                 document.querySelectorAll('.quantity-btn, .remove-btn').forEach(btn => btn.disabled = true);
                 showLoading();
                 let prevCart = JSON.parse(JSON.stringify(cart));
                 let optimisticCart = JSON.parse(JSON.stringify(cart));
-                optimisticCart.items = optimisticCart.items.filter(i => i.menuItem && i.menuItem._id && i.itemType && !(i.menuItem._id === itemId && i.itemType === itemType));
+                optimisticCart.items = optimisticCart.items.filter(i => 
+                    !(i.menuItem && i.menuItem._id === itemId && 
+                      i.itemType === itemType &&
+                      (itemSize ? i.selectedSize && i.selectedSize.size === itemSize : !i.selectedSize))
+                );
                 cart = optimisticCart;
                 renderCartUI();
                 try {
-                    await removeCartItem(itemId, itemType);
+                    await removeCartItem(itemId, itemType, selectedSize);
                 } catch (err) {
                     cart = prevCart;
                     renderCartUI();
@@ -324,11 +367,13 @@ document.addEventListener('DOMContentLoaded', function() {
         cart.items.forEach(item => {
             if (!item.menuItem || !item.menuItem._id) return; // Skip invalid items
             const menuItem = item.menuItem;
-            const image = menuItem && menuItem.image ? menuItem.image : 'images/varied menu.jpeg';
-            const name = menuItem && menuItem.name ? menuItem.name : 'Unknown Item';
-            const price = menuItem && menuItem.price ? menuItem.price : 0;
-            const id = menuItem && menuItem._id ? menuItem._id : '';
-            const itemType = item.itemType || (menuItem && menuItem.category ? 'Menu' : 'MealOfDay');
+            const selectedSize = item.selectedSize;
+            const image = menuItem.image || 'images/varied menu.jpeg';
+            const name = selectedSize ? `${menuItem.name} (${selectedSize.size})` : menuItem.name;
+            const price = selectedSize ? selectedSize.price : menuItem.price;
+            const id = menuItem._id;
+            const itemType = item.itemType || (menuItem.category ? 'Menu' : 'MealOfDay');
+
             const cartItem = document.createElement('div');
             cartItem.className = 'cart-item';
             cartItem.innerHTML = `
@@ -337,12 +382,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h3>${name}</h3>
                     <span class="price">Ksh ${(price * item.quantity).toLocaleString()}</span>
                     <div class="quantity-controls">
-                        <button class="quantity-btn minus" data-id="${id}" data-type="${itemType}">-</button>
+                        <button class="quantity-btn minus" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? selectedSize.size : ''}'>-</button>
                         <span class="quantity">${item.quantity}</span>
-                        <button class="quantity-btn plus" data-id="${id}" data-type="${itemType}">+</button>
+                        <button class="quantity-btn plus" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? selectedSize.size : ''}'>+</button>
                     </div>
                 </div>
-                <button class="remove-btn" data-id="${id}" data-type="${itemType}"><i class="fas fa-trash"></i></button>
+                <button class="remove-btn" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? selectedSize.size : ''}'><i class="fas fa-trash"></i></button>
             `;
             cartContainer.appendChild(cartItem);
         });
@@ -352,7 +397,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateCartSummary() {
         if (!cartSummary || !document.getElementById('subtotal') || !document.getElementById('total')) return;
         const subtotal = cart.items.reduce((sum, item) => {
-            const price = item.menuItem && typeof item.menuItem.price === 'number' ? item.menuItem.price : 0;
+            const price = item.selectedSize ? item.selectedSize.price : (item.menuItem ? item.menuItem.price : 0);
             return sum + (price * item.quantity);
         }, 0);
         subtotalElement.textContent = `Ksh ${subtotal.toLocaleString()}`;
@@ -651,9 +696,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 deliveryFee = calculateDeliveryFee(distance);
             }
         }
+        const subtotal = latestCart.items.reduce((sum, item) => {
+            const price = item.selectedSize ? item.selectedSize.price : (item.menuItem ? item.menuItem.price : 0);
+            return sum + (price * item.quantity);
+        }, 0);
+
         const order = {
-            items: latestCart.items.map(item => ({ menuItem: item.menuItem._id, itemType: item.itemType, quantity: item.quantity })),
-            total: latestCart.items.reduce((sum, item) => sum + (item.menuItem.price * item.quantity), 0) + deliveryFee,
+            items: latestCart.items.map(item => ({ 
+                menuItem: item.menuItem._id, 
+                itemType: item.itemType, 
+                quantity: item.quantity,
+                selectedSize: item.selectedSize 
+            })),
+            total: subtotal + deliveryFee,
             deliveryFee: deliveryFee,
             orderType: orderType,
             deliveryLocation: deliveryLocation,

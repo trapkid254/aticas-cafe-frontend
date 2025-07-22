@@ -148,7 +148,9 @@
                 let itemsHtml = '<ul>';
                 order.items.forEach(item => {
                     if (item.menuItem) {
-                        itemsHtml += `<li>${item.quantity} x ${item.menuItem.name} - Ksh ${(item.quantity * item.menuItem.price).toFixed(2)}</li>`;
+                        const price = item.selectedSize ? item.selectedSize.price : item.menuItem.price;
+                        const name = item.selectedSize ? `${item.menuItem.name} (${item.selectedSize.size})` : item.menuItem.name;
+                        itemsHtml += `<li>${item.quantity} x ${name} - Ksh ${(item.quantity * price).toFixed(2)}</li>`;
                     }
                 });
                 itemsHtml += '</ul>';
@@ -170,13 +172,17 @@
                             <table style="width:100%;margin:1.2rem 0;text-align:left;border-collapse:collapse;">
                                 <thead><tr style="background:#f8f8f8;"><th style="padding:8px 0;">Item</th><th>Qty</th><th>Price</th></tr></thead>
                                 <tbody>
-                                    ${order.items.map(i => `
-                                        <tr>
-                                            <td style="padding:6px 0;">${i.menuItem ? i.menuItem.name : 'Item'}</td>
-                                            <td>${i.quantity}</td>
-                                            <td>Ksh ${i.menuItem ? Number(i.menuItem.price).toLocaleString() : '-'}</td>
-                                        </tr>
-                                    `).join('')}
+                                    ${order.items.map(i => {
+                                        const price = i.selectedSize ? i.selectedSize.price : (i.menuItem ? i.menuItem.price : 0);
+                                        const name = i.selectedSize ? `${i.menuItem.name} (${i.selectedSize.size})` : (i.menuItem ? i.menuItem.name : 'Item');
+                                        return `
+                                            <tr>
+                                                <td style="padding:6px 0;">${name}</td>
+                                                <td>${i.quantity}</td>
+                                                <td>Ksh ${Number(price).toLocaleString()}</td>
+                                            </tr>
+                                        `
+                                    }).join('')}
                                 </tbody>
                             </table>
                             <div style="margin-top:1.3rem;font-size:1.15rem;"><b>Total:</b> <span style="color:#27ae60;">Ksh ${Number(order.total).toLocaleString()}</span></div>
