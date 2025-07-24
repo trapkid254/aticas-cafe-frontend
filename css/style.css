@@ -1792,3 +1792,60 @@ body {
         gap: 0.5rem;
     }
 }
+/* ===== Modal Styles ===== */
+.modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: none; /* JS will change this to flex */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    text-align: center;
+}
+
+.close-modal {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #333;
+}
+
+#modal-price-options {
+    margin: 20px 0;
+    text-align: left;
+}
+
+.price-option {
+    margin-bottom: 15px;
+}
+
+.price-option label {
+    margin-left: 8px;
+    font-size: 16px;
+}
+
+#modal-add-to-cart-btn {
+    padding: 10px 20px;
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#modal-add-to-cart-btn:hover {
+    background-color: #219150;
+}
