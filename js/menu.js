@@ -58,10 +58,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Error adding to cart:', err);
             }
         } else {
-            // Guest: add to localStorage cart
             let cart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
             const itemType = menuItem.category ? 'Menu' : 'MealOfDay';
-
             const existingItemIndex = cart.items.findIndex(i =>
                 i.menuItem._id === menuItem._id &&
                 i.itemType === itemType &&
@@ -82,7 +80,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Add search input
     const menuSection = document.querySelector('.menu-section');
     const searchDiv = document.createElement('div');
     searchDiv.style = 'margin-bottom:1.5rem;text-align:center;';
@@ -116,10 +113,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 priceDisplay = `From Ksh ${Number(Math.min(...prices)).toLocaleString()}`;
             }
 
-            // Determine quantity display styling
             let quantityClass = '';
             let quantityText = `Available: ${item.quantity ?? 0}`;
-            
+
             if (outOfStock) {
                 quantityClass = 'out-of-stock';
                 quantityText = 'Out of Stock';
@@ -127,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 quantityClass = 'low-stock';
                 quantityText = `Low Stock: ${item.quantity}`;
             }
-            
+
             menuItem.innerHTML = `
                 <img src="${item.image}" alt="${item.name}">
                 <div class="menu-item-details">
@@ -141,7 +137,6 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             menuContainer.appendChild(menuItem);
         });
-        // Add event listeners to new add to cart buttons
         document.querySelectorAll('.add-to-cart').forEach(button => {
             button.addEventListener('click', async function() {
                 const itemId = this.dataset.id;
@@ -150,7 +145,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert('Sorry, this item is out of stock!');
                     return;
                 }
-
                 if (item.priceOptions && item.priceOptions.length > 0) {
                     openPriceOptionsModal(item);
                 } else {
@@ -172,14 +166,13 @@ document.addEventListener('DOMContentLoaded', function() {
             optionEl.className = 'price-option';
             optionEl.innerHTML = `
                 <label>
-                    <input type="radio" name="price-option" value="${option.size}">
+                    <input type="radio" name="price-option" value="${option.size}" data-price="${option.price}">
                     ${option.size} - <strong>Ksh ${Number(option.price).toLocaleString()}</strong>
                 </label>
             `;
             modalPriceOptions.appendChild(optionEl);
         });
 
-        // Check the first option by default
         if (modalPriceOptions.querySelector('input')) {
             modalPriceOptions.querySelector('input').checked = true;
         }
@@ -189,8 +182,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (selectedOptionEl) {
                 const selectedSizeValue = selectedOptionEl.value;
                 const selectedOption = item.priceOptions.find(p => p.size === selectedSizeValue);
-
-                await addToCartApi(item, selectedOption);
+                const updatedItem = { ...item, price: selectedOption.price };
+                await addToCartApi(updatedItem, selectedOption);
                 if (window.updateCartCount) window.updateCartCount();
                 showToast(`${item.name} (${selectedOption.size}) added to cart!`);
                 priceOptionsModal.style.display = 'none';
@@ -215,11 +208,9 @@ document.addEventListener('DOMContentLoaded', function() {
         displayMenuItems(document.querySelector('.filter-btn.active')?.dataset.category || 'all', menuSearch.value);
     });
 
-    // Initial fetch and display
     fetchMenuItems();
     if (window.updateCartCount) window.updateCartCount();
 
-    // Filter buttons
     filterButtons.forEach(button => {
         button.addEventListener('click', function() {
             filterButtons.forEach(btn => btn.classList.remove('active'));
@@ -227,51 +218,6 @@ document.addEventListener('DOMContentLoaded', function() {
             displayMenuItems(this.dataset.category);
         });
     });
-
-    async function renderMealsOfDayHomepage() {
-        const container = document.getElementById('mealsOfDayContainer');
-        if (!container) return;
-        try {
-            const res = await fetch('https://aticas-backend.onrender.com/api/meals');
-            const mealsOfDay = await res.json();
-            if (!mealsOfDay.length) {
-                container.innerHTML = '<p style="color:#888;">No meals of the day available.</p>';
-                return;
-            }
-            container.innerHTML = mealsOfDay.map(meal => {
-                const outOfStock = meal.quantity === 0;
-                const imageSrc = meal.image && meal.image.trim() ? meal.image : 'https://via.placeholder.com/120x90?text=No+Image';
-                return `
-                <div class="meal-card">
-                    <img src="${imageSrc}" alt="${meal.name}">
-                    <h3>${meal.name}</h3>
-                    <p>Available: <span class="meal-qty">${meal.quantity ?? 10}</span></p>
-                    <span class="price">Ksh ${Number(meal.price).toLocaleString()}</span>
-                    <button class="add-to-cart" data-id="${meal._id}" ${outOfStock ? 'disabled style=\"background:#ccc;cursor:not-allowed;\"' : ''}>${outOfStock ? 'Out of Stock' : 'Add to Cart'}</button>
-                </div>
-                `;
-            }).join('');
-            // Attach event listeners
-            const addToCartButtons = container.querySelectorAll('.add-to-cart');
-            addToCartButtons.forEach(button => {
-                button.addEventListener('click', async function() {
-                    const itemId = this.dataset.id;
-                    const meal = mealsOfDay.find(m => m._id === itemId);
-                    if (!meal || meal.quantity === 0) {
-                        alert('Sorry, this item is out of stock!');
-                        return;
-                    }
-                    // For meals of the day, treat as a menu item for cart logic
-                    await addToCartApi(meal);
-                    await updateCartCount();
-                    showToast(`${meal.name} added to cart!`);
-                    fetchMenuItems();
-                });
-            });
-        } catch (err) {
-            container.innerHTML = '<p style="color:#888;">Failed to load meals of the day.</p>';
-        }
-    }
 });
 
 function showToast(message) {
