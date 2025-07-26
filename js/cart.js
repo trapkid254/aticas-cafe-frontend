@@ -237,129 +237,135 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    async function displayCartItems() {
-        cart = await fetchCart();
-        console.log('Full cart data:', JSON.parse(JSON.stringify(cart)));
-        
-        if (!cart || !cart.items || cart.items.length === 0) {
-            cartContainer.innerHTML = `
-                <div class="empty-cart" style="text-align: center; padding: 3rem 0;">
-                    <i class="fas fa-shopping-cart" style="font-size: 4rem; color: #ccc; margin-bottom: 1.5rem;"></i>
-                    <p style="font-size: 1.2rem; color: #555; margin-bottom: 2rem;">Your cart is empty</p>
-                    <a href="menu.html" class="menu-btn">View Menu</a>
-                </div>
-            `;
-            cartSummary.style.display = 'none';
+// [Previous helper functions remain the same until the displayCartItems function]
+
+async function displayCartItems() {
+    cart = await fetchCart();
+    console.log('Full cart data:', JSON.parse(JSON.stringify(cart)));
+    
+    if (!cart || !cart.items || cart.items.length === 0) {
+        cartContainer.innerHTML = `
+            <div class="empty-cart" style="text-align: center; padding: 3rem 0;">
+                <i class="fas fa-shopping-cart" style="font-size: 4rem; color: #ccc; margin-bottom: 1.5rem;"></i>
+                <p style="font-size: 1.2rem; color: #555; margin-bottom: 2rem;">Your cart is empty</p>
+                <a href="menu.html" class="menu-btn">View Menu</a>
+            </div>
+        `;
+        cartSummary.style.display = 'none';
+        return;
+    }
+
+    // Create a new container to replace the old one (helps with event listeners)
+    const newContainer = document.createElement('div');
+    newContainer.id = 'cartContainer';
+    newContainer.className = cartContainer.className;
+    cartContainer.parentNode.replaceChild(newContainer, cartContainer);
+    cartContainer = newContainer;
+
+    cart.items.forEach(item => {
+        const menuItem = item.menuItem?._doc || item.menuItem;
+        if (!menuItem || !menuItem._id) {
+            console.warn('Invalid menu item:', item);
             return;
         }
 
-        // Create a new container to replace the old one (helps with event listeners)
-        const newContainer = document.createElement('div');
-        newContainer.id = 'cartContainer';
-        newContainer.className = cartContainer.className;
-        cartContainer.parentNode.replaceChild(newContainer, cartContainer);
-        cartContainer = newContainer;
+        const selectedSize = item.selectedSize?._doc || item.selectedSize;
+        const image = menuItem.image || 'images/varied menu.jpeg';
+        const name = selectedSize ? `${menuItem.name} (${selectedSize.size})` : menuItem.name;
+        const price = item.effectivePrice || 
+                     (selectedSize ? selectedSize.price : menuItem.price) || 0;
+        const id = menuItem._id;
+        const itemType = item.itemType || (menuItem.category ? 'Menu' : 'MealOfDay');
+        const sizeKey = selectedSize ? selectedSize.size : 'default';
 
-        cart.items.forEach(item => {
-            const menuItem = item.menuItem?._doc || item.menuItem;
-            if (!menuItem || !menuItem._id) {
-                console.warn('Invalid menu item:', item);
+        const cartItem = document.createElement('div');
+        cartItem.className = 'cart-item';
+        cartItem.innerHTML = `
+            <img src="${image}" alt="${name}">
+            <div class="cart-item-details">
+                <h3>${name}</h3>
+                <span class="price">Ksh ${(price * item.quantity).toLocaleString()}</span>
+                <div class="quantity-controls">
+                    <button class="quantity-btn minus" data-id="${id}" data-type="${itemType}" 
+                        data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>-</button>
+                    <span class="quantity">${item.quantity}</span>
+                    <button class="quantity-btn plus" data-id="${id}" data-type="${itemType}" 
+                        data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>+</button>
+                </div>
+            </div>
+            <button class="remove-btn" data-id="${id}" data-type="${itemType}" 
+                data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        cartContainer.appendChild(cartItem);
+    });
+
+    // Initialize button handlers after cart is rendered
+    initButtonHandlers();
+    updateCartSummary();
+}
+
+// Initialize button handlers
+function initButtonHandlers() {
+    // Handle quantity and remove buttons
+    cartContainer.addEventListener('click', async function(e) {
+        const target = e.target;
+        const button = target.closest('.quantity-btn') || target.closest('.remove-btn');
+        
+        if (!button) return;
+
+        const itemId = button.dataset.id;
+        const itemType = button.dataset.type;
+        const itemSize = button.dataset.size ? JSON.parse(button.dataset.size) : null;
+
+        // Show loading overlay immediately
+        showLoadingOverlay();
+
+        try {
+            // Find the exact item in the cart
+            const item = cart.items.find(i => 
+                String(i.menuItem._id) === String(itemId) && 
+                i.itemType === itemType &&
+                ((itemSize && i.selectedSize && i.selectedSize.size === itemSize) || 
+                 (!itemSize && !i.selectedSize))
+            );
+
+            if (!item) {
+                showMpesaToast('Item not found in cart', '#e74c3c');
                 return;
             }
 
-            const selectedSize = item.selectedSize?._doc || item.selectedSize;
-            const image = menuItem.image || 'images/varied menu.jpeg';
-            const name = selectedSize ? `${menuItem.name} (${selectedSize.size})` : menuItem.name;
-            const price = item.effectivePrice || 
-                         (selectedSize ? selectedSize.price : menuItem.price) || 0;
-            const id = menuItem._id;
-            const itemType = item.itemType || (menuItem.category ? 'Menu' : 'MealOfDay');
-
-            const cartItem = document.createElement('div');
-            cartItem.className = 'cart-item';
-            cartItem.innerHTML = `
-                <img src="${image}" alt="${name}">
-                <div class="cart-item-details">
-                    <h3>${name}</h3>
-                    <span class="price">Ksh ${(price * item.quantity).toLocaleString()}</span>
-                    <div class="quantity-controls">
-                        <button class="quantity-btn minus" data-id="${id}" data-type="${itemType}" 
-                            data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>-</button>
-                        <span class="quantity">${item.quantity}</span>
-                        <button class="quantity-btn plus" data-id="${id}" data-type="${itemType}" 
-                            data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>+</button>
-                    </div>
-                </div>
-                <button class="remove-btn" data-id="${id}" data-type="${itemType}" 
-                    data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>
-                    <i class="fas fa-trash"></i>
-                </button>
-            `;
-            cartContainer.appendChild(cartItem);
-        });
-
-        // Initialize button handlers after cart is rendered
-        initButtonHandlers();
-        updateCartSummary();
-    }
-
-    // Initialize button handlers
-    function initButtonHandlers() {
-        // Handle quantity and remove buttons
-        cartContainer.addEventListener('click', async function(e) {
-            const target = e.target;
-            const button = target.closest('.quantity-btn') || target.closest('.remove-btn');
-            
-            if (!button) return;
-
-            const itemId = button.dataset.id;
-            const itemType = button.dataset.type;
-            const itemSize = button.dataset.size ? JSON.parse(button.dataset.size) : null;
-
-            // Show loading overlay immediately
-            showLoadingOverlay();
-
-            try {
-                if (button.classList.contains('remove-btn')) {
-                    // Remove item completely
-                    await removeCartItem(itemId, itemType, itemSize);
-                } 
-                else if (button.classList.contains('minus')) {
-                    // Decrease quantity
-                    const item = cart.items.find(i => 
-                        String(i.menuItem._id) === String(itemId) && 
-                        i.itemType === itemType &&
-                        (itemSize ? i.selectedSize && i.selectedSize.size === itemSize : !i.selectedSize)
-                    );
-                    
-                    if (item) {
-                        const newQty = item.quantity - 1;
-                        if (newQty > 0) {
-                            await updateCartItem(itemId, newQty, itemType, itemSize);
-                        } else {
-                            await removeCartItem(itemId, itemType, itemSize);
-                        }
-                    }
-                } 
-                else if (button.classList.contains('plus')) {
-                    // Increase quantity
-                    await updateCartItem(itemId, 
-                        parseInt(button.previousElementSibling.textContent) + 1, 
-                        itemType, 
-                        itemSize
-                    );
+            if (button.classList.contains('remove-btn')) {
+                // Remove item completely
+                await removeCartItem(itemId, itemType, item.selectedSize || null);
+            } 
+            else if (button.classList.contains('minus')) {
+                // Decrease quantity
+                const newQty = item.quantity - 1;
+                if (newQty > 0) {
+                    await updateCartItem(itemId, newQty, itemType, item.selectedSize || null);
+                } else {
+                    await removeCartItem(itemId, itemType, item.selectedSize || null);
                 }
-                
-                // Refresh cart display
-                await displayCartItems();
-            } catch (error) {
-                console.error('Error handling button click:', error);
-                showMpesaToast('Failed to update cart. Please try again.', '#e74c3c');
-            } finally {
-                hideLoadingOverlay();
+            } 
+            else if (button.classList.contains('plus')) {
+                // Increase quantity
+                await updateCartItem(itemId, item.quantity + 1, itemType, item.selectedSize || null);
             }
-        });
-    }
+            
+            // Refresh cart display
+            await displayCartItems();
+        } catch (error) {
+            console.error('Error handling button click:', error);
+            showMpesaToast('Failed to update cart. Please try again.', '#e74c3c');
+        } finally {
+            hideLoadingOverlay();
+        }
+    });
+}
+
+// [Rest of the code remains the same]
 
     function updateCartSummary() {
         if (!cartSummary || !document.getElementById('subtotal') || !document.getElementById('total')) return;
