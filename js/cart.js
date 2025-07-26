@@ -268,11 +268,10 @@ async function displayCartItems() {
         cartContainer.appendChild(cartItem);
     });
 
-    // Rest of your event listeners...
-}
-        
-        // Add event listeners to quantity buttons
-        document.querySelectorAll('.quantity-btn').forEach(button => {
+// Rest of your event listeners...
+
+// Add event listeners to quantity buttons
+document.querySelectorAll('.quantity-btn').forEach(button => {
             button.addEventListener('click', async function() {
                 const itemId = this.dataset.id;
                 const itemType = this.dataset.type;
@@ -380,10 +379,9 @@ async function displayCartItems() {
         });
         
         updateCartSummary();
-    }
+        updateCartSummary();
 
     function renderCartUI() {
-        if (!cart || !cart.items || cart.items.length === 0) {
             cartContainer.innerHTML = `
                 <div class="empty-cart" style="text-align: center; padding: 3rem 0;">
                     <i class="fas fa-shopping-cart" style="font-size: 4rem; color: #ccc; margin-bottom: 1.5rem;"></i>
