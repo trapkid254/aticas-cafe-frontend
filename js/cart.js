@@ -165,7 +165,7 @@ async function clearCart() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    const cartContainer = document.getElementById('cartContainer');
+    let cartContainer = document.getElementById('cartContainer');
     const cartSummary = document.getElementById('cartSummary');
     const subtotalElement = document.getElementById('subtotal');
     const taxElement = document.getElementById('tax');
@@ -181,33 +181,65 @@ document.addEventListener('DOMContentLoaded', function() {
     
     let cart = { items: [] };
     
-    // Helper to show/hide loading overlay
-    function showLoading() {
-        let overlay = document.getElementById('cartLoadingOverlay');
-        if (!overlay) {
-            overlay = document.createElement('div');
-            overlay.id = 'cartLoadingOverlay';
-            overlay.style.position = 'fixed';
-            overlay.style.top = 0;
-            overlay.style.left = 0;
-            overlay.style.width = '100vw';
-            overlay.style.height = '100vh';
-            overlay.style.background = 'rgba(255,255,255,0.4)';
-            overlay.style.zIndex = 9998;
-            overlay.innerHTML = '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2rem;color:#27ae60;"><i class="fas fa-spinner fa-spin"></i> Updating...</div>';
-            document.body.appendChild(overlay);
-        }
-        overlay.style.display = 'block';
+    // Improved loading overlay function
+    function showLoadingOverlay(message = "Updating...") {
+        // Remove existing overlay if present
+        hideLoadingOverlay();
+        
+        const overlay = document.createElement('div');
+        overlay.id = 'cartLoadingOverlay';
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+        overlay.style.zIndex = '9999';
+        overlay.style.display = 'flex';
+        overlay.style.justifyContent = 'center';
+        overlay.style.alignItems = 'center';
+        
+        const spinner = document.createElement('div');
+        spinner.style.display = 'flex';
+        spinner.style.flexDirection = 'column';
+        spinner.style.alignItems = 'center';
+        spinner.style.justifyContent = 'center';
+        spinner.style.backgroundColor = 'white';
+        spinner.style.padding = '2rem';
+        spinner.style.borderRadius = '8px';
+        spinner.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+        
+        const spinnerIcon = document.createElement('div');
+        spinnerIcon.className = 'fas fa-spinner fa-spin';
+        spinnerIcon.style.fontSize = '2rem';
+        spinnerIcon.style.marginBottom = '1rem';
+        spinnerIcon.style.color = '#27ae60';
+        
+        const spinnerText = document.createElement('div');
+        spinnerText.textContent = message;
+        spinnerText.style.fontSize = '1.2rem';
+        
+        spinner.appendChild(spinnerIcon);
+        spinner.appendChild(spinnerText);
+        overlay.appendChild(spinner);
+        
+        document.body.appendChild(overlay);
+        document.body.style.overflow = 'hidden';
+        
+        return overlay;
     }
-    
-    function hideLoading() {
+
+    function hideLoadingOverlay() {
         const overlay = document.getElementById('cartLoadingOverlay');
-        if (overlay) overlay.style.display = 'none';
+        if (overlay) {
+            document.body.removeChild(overlay);
+            document.body.style.overflow = '';
+        }
     }
 
     async function displayCartItems() {
         cart = await fetchCart();
-        console.log('Full cart data:', JSON.parse(JSON.stringify(cart))); // Debug log
+        console.log('Full cart data:', JSON.parse(JSON.stringify(cart)));
         
         if (!cart || !cart.items || cart.items.length === 0) {
             cartContainer.innerHTML = `
@@ -221,8 +253,12 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        cartContainer.innerHTML = '';
-        cartSummary.style.display = 'block';
+        // Create a new container to replace the old one (helps with event listeners)
+        const newContainer = document.createElement('div');
+        newContainer.id = 'cartContainer';
+        newContainer.className = cartContainer.className;
+        cartContainer.parentNode.replaceChild(newContainer, cartContainer);
+        cartContainer = newContainer;
 
         cart.items.forEach(item => {
             const menuItem = item.menuItem?._doc || item.menuItem;
@@ -262,117 +298,73 @@ document.addEventListener('DOMContentLoaded', function() {
             cartContainer.appendChild(cartItem);
         });
 
+        // Initialize button handlers after cart is rendered
+        initButtonHandlers();
         updateCartSummary();
     }
 
-    // Event delegation for quantity and remove buttons
-    cartContainer.addEventListener('click', async function(e) {
-        const target = e.target;
-        const button = target.closest('.quantity-btn') || target.closest('.remove-btn');
-        
-        if (!button) return;
-
-        const itemId = button.dataset.id;
-        const itemType = button.dataset.type;
-        const itemSize = button.dataset.size ? JSON.parse(button.dataset.size) : null;
-
-        if (button.classList.contains('remove-btn') || 
-            (button.classList.contains('quantity-btn') && button.classList.contains('minus'))) {
-            // Handle remove or decrease quantity
-            const item = cart.items.find(i => 
-                String(i.menuItem._id) === String(itemId) && 
-                i.itemType === itemType &&
-                (itemSize ? i.selectedSize && i.selectedSize.size === itemSize : !i.selectedSize)
-            );
-
-            if (!item) return;
-
-            document.querySelectorAll('.quantity-btn, .remove-btn').forEach(btn => btn.disabled = true);
-            showLoading();
+    // Initialize button handlers
+    function initButtonHandlers() {
+        // Handle quantity and remove buttons
+        cartContainer.addEventListener('click', async function(e) {
+            const target = e.target;
+            const button = target.closest('.quantity-btn') || target.closest('.remove-btn');
             
-            let prevCart = JSON.parse(JSON.stringify(cart));
-            let optimisticCart = JSON.parse(JSON.stringify(cart));
-            const itemIndex = optimisticCart.items.findIndex(i => 
-                String(i.menuItem._id) === String(itemId) && 
-                i.itemType === itemType &&
-                (itemSize ? i.selectedSize && i.selectedSize.size === itemSize : !i.selectedSize)
-            );
+            if (!button) return;
 
-            if (button.classList.contains('remove-btn')) {
-                // Remove item completely
-                optimisticCart.items.splice(itemIndex, 1);
-            } else {
-                // Decrease quantity
-                const newQty = item.quantity - 1;
-                if (newQty < 1) {
-                    optimisticCart.items.splice(itemIndex, 1);
-                } else {
-                    optimisticCart.items[itemIndex].quantity = newQty;
-                }
-            }
-            
-            cart = optimisticCart;
-            await displayCartItems();
-            
+            const itemId = button.dataset.id;
+            const itemType = button.dataset.type;
+            const itemSize = button.dataset.size ? JSON.parse(button.dataset.size) : null;
+
+            // Show loading overlay immediately
+            showLoadingOverlay();
+
             try {
-                const selectedSize = item.selectedSize || null;
-                if (button.classList.contains('remove-btn') || item.quantity <= 1) {
-                    await removeCartItem(itemId, itemType, selectedSize);
-                } else {
-                    await updateCartItem(itemId, item.quantity - 1, itemType, selectedSize);
+                if (button.classList.contains('remove-btn')) {
+                    // Remove item completely
+                    await removeCartItem(itemId, itemType, itemSize);
+                } 
+                else if (button.classList.contains('minus')) {
+                    // Decrease quantity
+                    const item = cart.items.find(i => 
+                        String(i.menuItem._id) === String(itemId) && 
+                        i.itemType === itemType &&
+                        (itemSize ? i.selectedSize && i.selectedSize.size === itemSize : !i.selectedSize)
+                    );
+                    
+                    if (item) {
+                        const newQty = item.quantity - 1;
+                        if (newQty > 0) {
+                            await updateCartItem(itemId, newQty, itemType, itemSize);
+                        } else {
+                            await removeCartItem(itemId, itemType, itemSize);
+                        }
+                    }
+                } 
+                else if (button.classList.contains('plus')) {
+                    // Increase quantity
+                    await updateCartItem(itemId, 
+                        parseInt(button.previousElementSibling.textContent) + 1, 
+                        itemType, 
+                        itemSize
+                    );
                 }
-            } catch (err) {
-                cart = prevCart;
+                
+                // Refresh cart display
                 await displayCartItems();
+            } catch (error) {
+                console.error('Error handling button click:', error);
                 showMpesaToast('Failed to update cart. Please try again.', '#e74c3c');
+            } finally {
+                hideLoadingOverlay();
             }
-        } else if (button.classList.contains('quantity-btn') && button.classList.contains('plus')) {
-            // Handle increase quantity
-            const item = cart.items.find(i => 
-                String(i.menuItem._id) === String(itemId) && 
-                i.itemType === itemType &&
-                (itemSize ? i.selectedSize && i.selectedSize.size === itemSize : !i.selectedSize)
-            );
-
-            if (!item) return;
-
-            document.querySelectorAll('.quantity-btn, .remove-btn').forEach(btn => btn.disabled = true);
-            showLoading();
-            
-            let prevCart = JSON.parse(JSON.stringify(cart));
-            let optimisticCart = JSON.parse(JSON.stringify(cart));
-            const itemIndex = optimisticCart.items.findIndex(i => 
-                String(i.menuItem._id) === String(itemId) && 
-                i.itemType === itemType &&
-                (itemSize ? i.selectedSize && i.selectedSize.size === itemSize : !i.selectedSize)
-            );
-
-            const newQty = item.quantity + 1;
-            optimisticCart.items[itemIndex].quantity = newQty;
-            
-            cart = optimisticCart;
-            await displayCartItems();
-            
-            try {
-                const selectedSize = item.selectedSize || null;
-                await updateCartItem(itemId, newQty, itemType, selectedSize);
-            } catch (err) {
-                cart = prevCart;
-                await displayCartItems();
-                showMpesaToast('Failed to update cart. Please try again.', '#e74c3c');
-            }
-        }
-        
-        hideLoading();
-        document.querySelectorAll('.quantity-btn, .remove-btn').forEach(btn => btn.disabled = false);
-        updateCartSummary();
-    });
+        });
+    }
 
     function updateCartSummary() {
         if (!cartSummary || !document.getElementById('subtotal') || !document.getElementById('total')) return;
         
         const subtotal = cart.items.reduce((sum, item) => {
-            // Always use selectedSize.price if available, otherwise fall back to menuItem.price
             const price = item.selectedSize?.price || item.menuItem?.price || 0;
             return sum + (price * item.quantity);
         }, 0);
@@ -679,7 +671,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const subtotal = latestCart.items.reduce((sum, item) => {
-            // Always use selectedSize.price if available, otherwise fall back to menuItem.price
             const price = item.selectedSize?.price || item.menuItem?.price || 0;
             return sum + (price * item.quantity);
         }, 0);
