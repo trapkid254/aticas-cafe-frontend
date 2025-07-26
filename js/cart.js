@@ -205,183 +205,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (overlay) overlay.style.display = 'none';
     }
 
-  // In your cart.js, update the displayCartItems function:
-
-async function displayCartItems() {
-    cart = await fetchCart();
-    console.log('Full cart data:', JSON.parse(JSON.stringify(cart))); // Debug log
-    
-    if (!cart || !cart.items || cart.items.length === 0) {
-        cartContainer.innerHTML = `
-            <div class="empty-cart" style="text-align: center; padding: 3rem 0;">
-                <i class="fas fa-shopping-cart" style="font-size: 4rem; color: #ccc; margin-bottom: 1.5rem;"></i>
-                <p style="font-size: 1.2rem; color: #555; margin-bottom: 2rem;">Your cart is empty</p>
-                <a href="menu.html" class="menu-btn">View Menu</a>
-            </div>
-        `;
-        cartSummary.style.display = 'none';
-        return;
-    }
-
-    cartContainer.innerHTML = '';
-    cartSummary.style.display = 'block';
-
-    cart.items.forEach(item => {
-        // Properly access the menuItem data
-        const menuItem = item.menuItem?._doc || item.menuItem;
-        if (!menuItem || !menuItem._id) {
-            console.warn('Invalid menu item:', item);
-            return;
-        }
-
-        const selectedSize = item.selectedSize?._doc || item.selectedSize;
-        const image = menuItem.image || 'images/varied menu.jpeg';
-        const name = selectedSize ? `${menuItem.name} (${selectedSize.size})` : menuItem.name;
+    async function displayCartItems() {
+        cart = await fetchCart();
+        console.log('Full cart data:', JSON.parse(JSON.stringify(cart))); // Debug log
         
-        // Use effectivePrice if available, otherwise calculate
-        const price = item.effectivePrice || 
-                     (selectedSize ? selectedSize.price : menuItem.price) || 0;
-        
-        const id = menuItem._id;
-        const itemType = item.itemType || (menuItem.category ? 'Menu' : 'MealOfDay');
-
-        const cartItem = document.createElement('div');
-        cartItem.className = 'cart-item';
-        cartItem.innerHTML = `
-            <img src="${image}" alt="${name}">
-            <div class="cart-item-details">
-                <h3>${name}</h3>
-                <span class="price">Ksh ${(price * item.quantity).toLocaleString()}</span>
-                <div class="quantity-controls">
-                    <button class="quantity-btn minus" data-id="${id}" data-type="${itemType}" 
-                        data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>-</button>
-                    <span class="quantity">${item.quantity}</span>
-                    <button class="quantity-btn plus" data-id="${id}" data-type="${itemType}" 
-                        data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>+</button>
-                </div>
-            </div>
-            <button class="remove-btn" data-id="${id}" data-type="${itemType}" 
-                data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>
-                <i class="fas fa-trash"></i>
-            </button>
-        `;
-        cartContainer.appendChild(cartItem);
-    });
-
-// Rest of your event listeners...
-
-// Add event listeners to quantity buttons
-document.querySelectorAll('.quantity-btn').forEach(button => {
-            button.addEventListener('click', async function() {
-                const itemId = this.dataset.id;
-                const itemType = this.dataset.type;
-                const itemSize = this.dataset.size ? JSON.parse(this.dataset.size) : null;
-
-                const item = cart.items.find(i => 
-                    String(i.menuItem._id) === String(itemId) && 
-                    i.itemType === itemType &&
-                    (itemSize ? i.selectedSize && i.selectedSize.size === itemSize : !i.selectedSize)
-                );
-
-                if (!item) return;
-                
-                let newQty = item.quantity;
-                document.querySelectorAll('.quantity-btn, .remove-btn').forEach(btn => btn.disabled = true);
-                showLoading();
-                
-                let prevCart = JSON.parse(JSON.stringify(cart));
-                let optimisticCart = JSON.parse(JSON.stringify(cart));
-                const itemIndex = optimisticCart.items.findIndex(i => 
-                    String(i.menuItem._id) === String(itemId) && 
-                    i.itemType === itemType &&
-                    (itemSize ? i.selectedSize && i.selectedSize.size === itemSize : !i.selectedSize)
-                );
-
-                if (this.classList.contains('minus')) {
-                    newQty = item.quantity - 1;
-                    if (newQty < 1) {
-                        optimisticCart.items.splice(itemIndex, 1);
-                    } else {
-                        optimisticCart.items[itemIndex].quantity = newQty;
-                    }
-                } else if (this.classList.contains('plus')) {
-                    newQty = item.quantity + 1;
-                    optimisticCart.items[itemIndex].quantity = newQty;
-                }
-                
-                cart = optimisticCart;
-                renderCartUI();
-                
-                try {
-                    const selectedSize = item.selectedSize || null;
-                    if (newQty < 1) {
-                        await removeCartItem(itemId, itemType, selectedSize);
-                    } else {
-                        await updateCartItem(itemId, newQty, itemType, selectedSize);
-                    }
-                } catch (err) {
-                    cart = prevCart;
-                    renderCartUI();
-                    showMpesaToast('Failed to update cart. Please try again.', '#e74c3c');
-                }
-                
-                hideLoading();
-                document.querySelectorAll('.quantity-btn, .remove-btn').forEach(btn => btn.disabled = false);
-                await displayCartItems();
-            });
-        });
-        
-        // Add event listeners to remove buttons
-        document.querySelectorAll('.remove-btn').forEach(button => {
-            button.addEventListener('click', async function() {
-                const itemId = this.dataset.id;
-                const itemType = this.dataset.type;
-                const itemSize = this.dataset.size ? JSON.parse(this.dataset.size) : null;
-
-                if (!itemId || !itemType) {
-                    showMpesaToast('Invalid item. Cannot remove.', '#e74c3c');
-                    return;
-                }
-                
-                const itemToRemove = cart.items.find(i => 
-                    i.menuItem._id === itemId && 
-                    i.itemType === itemType &&
-                    (itemSize ? i.selectedSize && i.selectedSize.size === itemSize : !i.selectedSize)
-                );
-                const selectedSize = itemToRemove ? itemToRemove.selectedSize : null;
-
-                document.querySelectorAll('.quantity-btn, .remove-btn').forEach(btn => btn.disabled = true);
-                showLoading();
-                
-                let prevCart = JSON.parse(JSON.stringify(cart));
-                let optimisticCart = JSON.parse(JSON.stringify(cart));
-                optimisticCart.items = optimisticCart.items.filter(i => 
-                    !(i.menuItem && i.menuItem._id === itemId && 
-                      i.itemType === itemType &&
-                      (itemSize ? i.selectedSize && i.selectedSize.size === itemSize : !i.selectedSize))
-                );
-                
-                cart = optimisticCart;
-                renderCartUI();
-                
-                try {
-                    await removeCartItem(itemId, itemType, selectedSize);
-                } catch (err) {
-                    cart = prevCart;
-                    renderCartUI();
-                    showMpesaToast('Failed to remove item. Please try again.', '#e74c3c');
-                }
-                
-                hideLoading();
-                document.querySelectorAll('.quantity-btn, .remove-btn').forEach(btn => btn.disabled = false);
-                await displayCartItems();
-            });
-        });
-        
-        updateCartSummary();
-        updateCartSummary();
-
-    function renderCartUI() {
+        if (!cart || !cart.items || cart.items.length === 0) {
             cartContainer.innerHTML = `
                 <div class="empty-cart" style="text-align: center; padding: 3rem 0;">
                     <i class="fas fa-shopping-cart" style="font-size: 4rem; color: #ccc; margin-bottom: 1.5rem;"></i>
@@ -392,21 +220,22 @@ document.querySelectorAll('.quantity-btn').forEach(button => {
             cartSummary.style.display = 'none';
             return;
         }
-        
+
         cartContainer.innerHTML = '';
         cartSummary.style.display = 'block';
-        
+
         cart.items.forEach(item => {
-            if (!item.menuItem || !item.menuItem._id) return;
-            
-            const menuItem = item.menuItem;
-            const selectedSize = item.selectedSize;
+            const menuItem = item.menuItem?._doc || item.menuItem;
+            if (!menuItem || !menuItem._id) {
+                console.warn('Invalid menu item:', item);
+                return;
+            }
+
+            const selectedSize = item.selectedSize?._doc || item.selectedSize;
             const image = menuItem.image || 'images/varied menu.jpeg';
             const name = selectedSize ? `${menuItem.name} (${selectedSize.size})` : menuItem.name;
-            
-            // Always use selectedSize.price if available, otherwise fall back to menuItem.price
-            const price = selectedSize?.price || menuItem.price;
-            
+            const price = item.effectivePrice || 
+                         (selectedSize ? selectedSize.price : menuItem.price) || 0;
             const id = menuItem._id;
             const itemType = item.itemType || (menuItem.category ? 'Menu' : 'MealOfDay');
 
@@ -418,19 +247,127 @@ document.querySelectorAll('.quantity-btn').forEach(button => {
                     <h3>${name}</h3>
                     <span class="price">Ksh ${(price * item.quantity).toLocaleString()}</span>
                     <div class="quantity-controls">
-                        <button class="quantity-btn minus" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>-</button>
+                        <button class="quantity-btn minus" data-id="${id}" data-type="${itemType}" 
+                            data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>-</button>
                         <span class="quantity">${item.quantity}</span>
-                        <button class="quantity-btn plus" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>+</button>
+                        <button class="quantity-btn plus" data-id="${id}" data-type="${itemType}" 
+                            data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>+</button>
                     </div>
                 </div>
-                <button class="remove-btn" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'><i class="fas fa-trash"></i></button>
+                <button class="remove-btn" data-id="${id}" data-type="${itemType}" 
+                    data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>
+                    <i class="fas fa-trash"></i>
+                </button>
             `;
             cartContainer.appendChild(cartItem);
         });
-        
+
         updateCartSummary();
     }
-    
+
+    // Event delegation for quantity and remove buttons
+    cartContainer.addEventListener('click', async function(e) {
+        const target = e.target;
+        const button = target.closest('.quantity-btn') || target.closest('.remove-btn');
+        
+        if (!button) return;
+
+        const itemId = button.dataset.id;
+        const itemType = button.dataset.type;
+        const itemSize = button.dataset.size ? JSON.parse(button.dataset.size) : null;
+
+        if (button.classList.contains('remove-btn') || 
+            (button.classList.contains('quantity-btn') && button.classList.contains('minus'))) {
+            // Handle remove or decrease quantity
+            const item = cart.items.find(i => 
+                String(i.menuItem._id) === String(itemId) && 
+                i.itemType === itemType &&
+                (itemSize ? i.selectedSize && i.selectedSize.size === itemSize : !i.selectedSize)
+            );
+
+            if (!item) return;
+
+            document.querySelectorAll('.quantity-btn, .remove-btn').forEach(btn => btn.disabled = true);
+            showLoading();
+            
+            let prevCart = JSON.parse(JSON.stringify(cart));
+            let optimisticCart = JSON.parse(JSON.stringify(cart));
+            const itemIndex = optimisticCart.items.findIndex(i => 
+                String(i.menuItem._id) === String(itemId) && 
+                i.itemType === itemType &&
+                (itemSize ? i.selectedSize && i.selectedSize.size === itemSize : !i.selectedSize)
+            );
+
+            if (button.classList.contains('remove-btn')) {
+                // Remove item completely
+                optimisticCart.items.splice(itemIndex, 1);
+            } else {
+                // Decrease quantity
+                const newQty = item.quantity - 1;
+                if (newQty < 1) {
+                    optimisticCart.items.splice(itemIndex, 1);
+                } else {
+                    optimisticCart.items[itemIndex].quantity = newQty;
+                }
+            }
+            
+            cart = optimisticCart;
+            await displayCartItems();
+            
+            try {
+                const selectedSize = item.selectedSize || null;
+                if (button.classList.contains('remove-btn') || item.quantity <= 1) {
+                    await removeCartItem(itemId, itemType, selectedSize);
+                } else {
+                    await updateCartItem(itemId, item.quantity - 1, itemType, selectedSize);
+                }
+            } catch (err) {
+                cart = prevCart;
+                await displayCartItems();
+                showMpesaToast('Failed to update cart. Please try again.', '#e74c3c');
+            }
+        } else if (button.classList.contains('quantity-btn') && button.classList.contains('plus')) {
+            // Handle increase quantity
+            const item = cart.items.find(i => 
+                String(i.menuItem._id) === String(itemId) && 
+                i.itemType === itemType &&
+                (itemSize ? i.selectedSize && i.selectedSize.size === itemSize : !i.selectedSize)
+            );
+
+            if (!item) return;
+
+            document.querySelectorAll('.quantity-btn, .remove-btn').forEach(btn => btn.disabled = true);
+            showLoading();
+            
+            let prevCart = JSON.parse(JSON.stringify(cart));
+            let optimisticCart = JSON.parse(JSON.stringify(cart));
+            const itemIndex = optimisticCart.items.findIndex(i => 
+                String(i.menuItem._id) === String(itemId) && 
+                i.itemType === itemType &&
+                (itemSize ? i.selectedSize && i.selectedSize.size === itemSize : !i.selectedSize)
+            );
+
+            const newQty = item.quantity + 1;
+            optimisticCart.items[itemIndex].quantity = newQty;
+            
+            cart = optimisticCart;
+            await displayCartItems();
+            
+            try {
+                const selectedSize = item.selectedSize || null;
+                await updateCartItem(itemId, newQty, itemType, selectedSize);
+            } catch (err) {
+                cart = prevCart;
+                await displayCartItems();
+                showMpesaToast('Failed to update cart. Please try again.', '#e74c3c');
+            }
+        }
+        
+        hideLoading();
+        document.querySelectorAll('.quantity-btn, .remove-btn').forEach(btn => btn.disabled = false);
+        updateCartSummary();
+    });
+
     function updateCartSummary() {
         if (!cartSummary || !document.getElementById('subtotal') || !document.getElementById('total')) return;
         
