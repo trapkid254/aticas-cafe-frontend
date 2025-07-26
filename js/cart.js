@@ -49,22 +49,29 @@ async function fetchCart() {
     const userId = getUserId();
     const token = getUserToken();
     console.log('[fetchCart] userId:', userId, 'token:', token);
+    
     if (userId && token) {
         try {
-            const res = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
-                headers: { 'Authorization': token }
-            });
-            console.log('[fetchCart] Response status:', res.status);
+            const res = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`);
             if (!res.ok) throw new Error('Failed to fetch cart');
             const cart = await res.json();
-            console.log('[fetchCart] Cart data from backend:', cart);
-            return cart && cart.items ? cart : { items: [] };
+            
+            // Normalize the cart items structure
+            if (cart && cart.items) {
+                cart.items = cart.items.map(item => ({
+                    ...item,
+                    menuItem: item.menuItem?._doc || item.menuItem,
+                    selectedSize: item.selectedSize?._doc || item.selectedSize
+                }));
+            }
+            
+            console.log('[fetchCart] Normalized cart data:', cart);
+            return cart || { items: [] };
         } catch (err) {
             console.error('Error fetching cart:', err);
             return { items: [] };
         }
     } else {
-        // Guest: ensure structure is always { items: [...] }
         let guestCart = getGuestCart();
         if (!guestCart || !Array.isArray(guestCart.items)) {
             guestCart = { items: [] };
@@ -198,58 +205,71 @@ document.addEventListener('DOMContentLoaded', function() {
         if (overlay) overlay.style.display = 'none';
     }
 
-    async function displayCartItems() {
-        cart = await fetchCart();
-        console.log('[displayCartItems] Cart after fetchCart:', cart);
-        if (!cart || !cart.items || cart.items.length === 0) {
-            cartContainer.innerHTML = `
-                <div class="empty-cart" style="text-align: center; padding: 3rem 0;">
-                    <i class="fas fa-shopping-cart" style="font-size: 4rem; color: #ccc; margin-bottom: 1.5rem;"></i>
-                    <p style="font-size: 1.2rem; color: #555; margin-bottom: 2rem;">Your cart is empty</p>
-                    <a href="menu.html" class="menu-btn">View Menu</a>
-                </div>
-            `;
-            cartSummary.style.display = 'none';
+  // In your cart.js, update the displayCartItems function:
+
+async function displayCartItems() {
+    cart = await fetchCart();
+    console.log('Full cart data:', JSON.parse(JSON.stringify(cart))); // Debug log
+    
+    if (!cart || !cart.items || cart.items.length === 0) {
+        cartContainer.innerHTML = `
+            <div class="empty-cart" style="text-align: center; padding: 3rem 0;">
+                <i class="fas fa-shopping-cart" style="font-size: 4rem; color: #ccc; margin-bottom: 1.5rem;"></i>
+                <p style="font-size: 1.2rem; color: #555; margin-bottom: 2rem;">Your cart is empty</p>
+                <a href="menu.html" class="menu-btn">View Menu</a>
+            </div>
+        `;
+        cartSummary.style.display = 'none';
+        return;
+    }
+
+    cartContainer.innerHTML = '';
+    cartSummary.style.display = 'block';
+
+    cart.items.forEach(item => {
+        // Properly access the menuItem data
+        const menuItem = item.menuItem?._doc || item.menuItem;
+        if (!menuItem || !menuItem._id) {
+            console.warn('Invalid menu item:', item);
             return;
         }
-        
-        cartContainer.innerHTML = '';
-        cartSummary.style.display = 'block';
-        
-        cart.items.forEach(item => {
-            if (!item.menuItem || !item.menuItem._id) {
-                console.warn('[displayCartItems] Skipping invalid item:', item);
-                return;
-            }
-            
-            const menuItem = item.menuItem;
-            const selectedSize = item.selectedSize;
-            const image = menuItem.image || 'images/varied menu.jpeg';
-            const name = selectedSize ? `${menuItem.name} (${selectedSize.size})` : menuItem.name;
-            
-            // Always use selectedSize.price if available, otherwise fall back to menuItem.price
-            const price = selectedSize?.price || menuItem.price;
-            
-            const id = menuItem._id;
-            const itemType = item.itemType || (menuItem.category ? 'Menu' : 'MealOfDay');
 
-            const cartItem = document.createElement('div');
-            cartItem.className = 'cart-item';
-            cartItem.innerHTML = `
-                <img src="${image}" alt="${name}">
-                <div class="cart-item-details">
-                    <h3>${name}</h3>
-                    <span class="price">Ksh ${(price * item.quantity).toLocaleString()}</span>
-                    <div class="quantity-controls">
-                        <button class="quantity-btn minus" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>-</button>
-                        <span class="quantity">${item.quantity}</span>
-                        <button class="quantity-btn plus" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>+</button>
-                    </div>
+        const selectedSize = item.selectedSize?._doc || item.selectedSize;
+        const image = menuItem.image || 'images/varied menu.jpeg';
+        const name = selectedSize ? `${menuItem.name} (${selectedSize.size})` : menuItem.name;
+        
+        // Use effectivePrice if available, otherwise calculate
+        const price = item.effectivePrice || 
+                     (selectedSize ? selectedSize.price : menuItem.price) || 0;
+        
+        const id = menuItem._id;
+        const itemType = item.itemType || (menuItem.category ? 'Menu' : 'MealOfDay');
+
+        const cartItem = document.createElement('div');
+        cartItem.className = 'cart-item';
+        cartItem.innerHTML = `
+            <img src="${image}" alt="${name}">
+            <div class="cart-item-details">
+                <h3>${name}</h3>
+                <span class="price">Ksh ${(price * item.quantity).toLocaleString()}</span>
+                <div class="quantity-controls">
+                    <button class="quantity-btn minus" data-id="${id}" data-type="${itemType}" 
+                        data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>-</button>
+                    <span class="quantity">${item.quantity}</span>
+                    <button class="quantity-btn plus" data-id="${id}" data-type="${itemType}" 
+                        data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>+</button>
                 </div>
-                <button class="remove-btn" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'><i class="fas fa-trash"></i></button>
-            `;
-            cartContainer.appendChild(cartItem);
-        });
+            </div>
+            <button class="remove-btn" data-id="${id}" data-type="${itemType}" 
+                data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        cartContainer.appendChild(cartItem);
+    });
+
+    // Rest of your event listeners...
+}
         
         // Add event listeners to quantity buttons
         document.querySelectorAll('.quantity-btn').forEach(button => {
