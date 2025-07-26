@@ -2,6 +2,7 @@
 function getUserId() {
     return localStorage.getItem('userId');
 }
+
 function getUserToken() {
     return localStorage.getItem('userToken');
 }
@@ -37,6 +38,7 @@ function calculateDeliveryFee(distance) {
 function getGuestCart() {
     return JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
 }
+
 function setGuestCart(cart) {
     console.log('[guestCart] setGuestCart called. New value:', cart);
     localStorage.setItem('guestCart', JSON.stringify(cart));
@@ -68,7 +70,7 @@ async function fetchCart() {
             guestCart = { items: [] };
             setGuestCart(guestCart);
         }
-        console.log('Guest cart loaded:', guestCart); // Debug log
+        console.log('Guest cart loaded:', guestCart);
         return guestCart;
     }
 }
@@ -114,12 +116,10 @@ async function removeCartItem(menuItemId, itemType, selectedSize = null) {
 
     if (userId && token) {
         try {
-            // NOTE: Backend needs to support deletion by size. Assuming it does for now.
-            // This might need a custom route like /api/cart/:userId/items/:itemType/:menuItemId/:size
             await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items/${itemType}/${menuItemId}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json', 'Authorization': token },
-                body: JSON.stringify({ selectedSize }) // Send size info in the body
+                body: JSON.stringify({ selectedSize })
             });
         } catch (err) {
             console.error('Error removing cart item:', err);
@@ -192,6 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         overlay.style.display = 'block';
     }
+    
     function hideLoading() {
         const overlay = document.getElementById('cartLoadingOverlay');
         if (overlay) overlay.style.display = 'none';
@@ -211,18 +212,24 @@ document.addEventListener('DOMContentLoaded', function() {
             cartSummary.style.display = 'none';
             return;
         }
+        
         cartContainer.innerHTML = '';
         cartSummary.style.display = 'block';
+        
         cart.items.forEach(item => {
             if (!item.menuItem || !item.menuItem._id) {
                 console.warn('[displayCartItems] Skipping invalid item:', item);
                 return;
             }
+            
             const menuItem = item.menuItem;
             const selectedSize = item.selectedSize;
             const image = menuItem.image || 'images/varied menu.jpeg';
             const name = selectedSize ? `${menuItem.name} (${selectedSize.size})` : menuItem.name;
-            const price = selectedSize ? selectedSize.price : menuItem.price;
+            
+            // Always use selectedSize.price if available, otherwise fall back to menuItem.price
+            const price = selectedSize?.price || menuItem.price;
+            
             const id = menuItem._id;
             const itemType = item.itemType || (menuItem.category ? 'Menu' : 'MealOfDay');
 
@@ -234,21 +241,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h3>${name}</h3>
                     <span class="price">Ksh ${(price * item.quantity).toLocaleString()}</span>
                     <div class="quantity-controls">
-                        <button class="quantity-btn minus" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? selectedSize.size : ''}'>-</button>
+                        <button class="quantity-btn minus" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>-</button>
                         <span class="quantity">${item.quantity}</span>
-                        <button class="quantity-btn plus" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? selectedSize.size : ''}'>+</button>
+                        <button class="quantity-btn plus" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>+</button>
                     </div>
                 </div>
-                <button class="remove-btn" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? selectedSize.size : ''}'><i class="fas fa-trash"></i></button>
+                <button class="remove-btn" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'><i class="fas fa-trash"></i></button>
             `;
             cartContainer.appendChild(cartItem);
         });
+        
         // Add event listeners to quantity buttons
         document.querySelectorAll('.quantity-btn').forEach(button => {
             button.addEventListener('click', async function() {
                 const itemId = this.dataset.id;
                 const itemType = this.dataset.type;
-                const itemSize = this.dataset.size;
+                const itemSize = this.dataset.size ? JSON.parse(this.dataset.size) : null;
 
                 const item = cart.items.find(i => 
                     String(i.menuItem._id) === String(itemId) && 
@@ -257,11 +265,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 );
 
                 if (!item) return;
+                
                 let newQty = item.quantity;
-                // Disable all quantity and remove buttons while waiting
                 document.querySelectorAll('.quantity-btn, .remove-btn').forEach(btn => btn.disabled = true);
                 showLoading();
-                let prevCart = JSON.parse(JSON.stringify(cart)); // deep copy for revert
+                
+                let prevCart = JSON.parse(JSON.stringify(cart));
                 let optimisticCart = JSON.parse(JSON.stringify(cart));
                 const itemIndex = optimisticCart.items.findIndex(i => 
                     String(i.menuItem._id) === String(itemId) && 
@@ -280,9 +289,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     newQty = item.quantity + 1;
                     optimisticCart.items[itemIndex].quantity = newQty;
                 }
-                // Optimistically update UI
+                
                 cart = optimisticCart;
                 renderCartUI();
+                
                 try {
                     const selectedSize = item.selectedSize || null;
                     if (newQty < 1) {
@@ -295,24 +305,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     renderCartUI();
                     showMpesaToast('Failed to update cart. Please try again.', '#e74c3c');
                 }
+                
                 hideLoading();
                 document.querySelectorAll('.quantity-btn, .remove-btn').forEach(btn => btn.disabled = false);
-                // Always re-fetch to ensure sync
                 await displayCartItems();
             });
         });
+        
         // Add event listeners to remove buttons
         document.querySelectorAll('.remove-btn').forEach(button => {
             button.addEventListener('click', async function() {
                 const itemId = this.dataset.id;
                 const itemType = this.dataset.type;
-                const itemSize = this.dataset.size;
+                const itemSize = this.dataset.size ? JSON.parse(this.dataset.size) : null;
 
                 if (!itemId || !itemType) {
                     showMpesaToast('Invalid item. Cannot remove.', '#e74c3c');
                     return;
                 }
-                // Find the item to get selectedSize info before removing
+                
                 const itemToRemove = cart.items.find(i => 
                     i.menuItem._id === itemId && 
                     i.itemType === itemType &&
@@ -320,10 +331,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 );
                 const selectedSize = itemToRemove ? itemToRemove.selectedSize : null;
 
-                console.log('Attempting to remove menuItemId:', itemId, 'type:', itemType, 'size:', itemSize); // Debug log
-                // Disable all quantity and remove buttons while waiting
                 document.querySelectorAll('.quantity-btn, .remove-btn').forEach(btn => btn.disabled = true);
                 showLoading();
+                
                 let prevCart = JSON.parse(JSON.stringify(cart));
                 let optimisticCart = JSON.parse(JSON.stringify(cart));
                 optimisticCart.items = optimisticCart.items.filter(i => 
@@ -331,8 +341,10 @@ document.addEventListener('DOMContentLoaded', function() {
                       i.itemType === itemType &&
                       (itemSize ? i.selectedSize && i.selectedSize.size === itemSize : !i.selectedSize))
                 );
+                
                 cart = optimisticCart;
                 renderCartUI();
+                
                 try {
                     await removeCartItem(itemId, itemType, selectedSize);
                 } catch (err) {
@@ -340,16 +352,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     renderCartUI();
                     showMpesaToast('Failed to remove item. Please try again.', '#e74c3c');
                 }
+                
                 hideLoading();
                 document.querySelectorAll('.quantity-btn, .remove-btn').forEach(btn => btn.disabled = false);
-                // Always re-fetch to ensure sync
                 await displayCartItems();
             });
         });
+        
         updateCartSummary();
     }
 
-    // Helper to render cart UI from current cart object (for optimistic update)
     function renderCartUI() {
         if (!cart || !cart.items || cart.items.length === 0) {
             cartContainer.innerHTML = `
@@ -362,15 +374,21 @@ document.addEventListener('DOMContentLoaded', function() {
             cartSummary.style.display = 'none';
             return;
         }
+        
         cartContainer.innerHTML = '';
         cartSummary.style.display = 'block';
+        
         cart.items.forEach(item => {
-            if (!item.menuItem || !item.menuItem._id) return; // Skip invalid items
+            if (!item.menuItem || !item.menuItem._id) return;
+            
             const menuItem = item.menuItem;
             const selectedSize = item.selectedSize;
             const image = menuItem.image || 'images/varied menu.jpeg';
             const name = selectedSize ? `${menuItem.name} (${selectedSize.size})` : menuItem.name;
-            const price = selectedSize ? selectedSize.price : menuItem.price;
+            
+            // Always use selectedSize.price if available, otherwise fall back to menuItem.price
+            const price = selectedSize?.price || menuItem.price;
+            
             const id = menuItem._id;
             const itemType = item.itemType || (menuItem.category ? 'Menu' : 'MealOfDay');
 
@@ -382,34 +400,40 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h3>${name}</h3>
                     <span class="price">Ksh ${(price * item.quantity).toLocaleString()}</span>
                     <div class="quantity-controls">
-                        <button class="quantity-btn minus" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? selectedSize.size : ''}'>-</button>
+                        <button class="quantity-btn minus" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>-</button>
                         <span class="quantity">${item.quantity}</span>
-                        <button class="quantity-btn plus" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? selectedSize.size : ''}'>+</button>
+                        <button class="quantity-btn plus" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>+</button>
                     </div>
                 </div>
-                <button class="remove-btn" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? selectedSize.size : ''}'><i class="fas fa-trash"></i></button>
+                <button class="remove-btn" data-id="${id}" data-type="${itemType}" data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'><i class="fas fa-trash"></i></button>
             `;
             cartContainer.appendChild(cartItem);
         });
+        
         updateCartSummary();
     }
     
     function updateCartSummary() {
         if (!cartSummary || !document.getElementById('subtotal') || !document.getElementById('total')) return;
+        
         const subtotal = cart.items.reduce((sum, item) => {
-            const price = item.selectedSize ? item.selectedSize.price : (item.menuItem ? item.menuItem.price : 0);
+            // Always use selectedSize.price if available, otherwise fall back to menuItem.price
+            const price = item.selectedSize?.price || item.menuItem?.price || 0;
             return sum + (price * item.quantity);
         }, 0);
+        
         subtotalElement.textContent = `Ksh ${subtotal.toLocaleString()}`;
+        
         let deliveryFee = 0;
         const orderTypeRadio = document.querySelector('input[name="orderType"]:checked');
         const deliveryFeeRow = document.getElementById('deliveryFeeRow');
         const deliveryFeeDisplay = document.getElementById('deliveryFeeDisplay');
-        // Checkout summary fields
+        
         const checkoutSubtotal = document.getElementById('checkoutSubtotal');
         const checkoutDeliveryFee = document.getElementById('checkoutDeliveryFee');
         const checkoutTotal = document.getElementById('checkoutTotal');
         const checkoutDeliveryFeeRow = document.getElementById('checkoutDeliveryFeeRow');
+        
         if (orderTypeRadio && orderTypeRadio.value === 'delivery') {
             const lat = parseFloat(document.getElementById('latitude').value);
             const lng = parseFloat(document.getElementById('longitude').value);
@@ -432,6 +456,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (checkoutDeliveryFee) checkoutDeliveryFee.textContent = '';
             if (checkoutDeliveryFeeRow) checkoutDeliveryFeeRow.style.display = 'none';
         }
+        
         const total = subtotal + deliveryFee;
         totalElement.textContent = `Ksh ${total.toLocaleString()}`;
         if (checkoutSubtotal) checkoutSubtotal.textContent = `Ksh ${subtotal.toLocaleString()}`;
@@ -458,7 +483,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 deliveryLocationPopup.style.display = 'none';
             }
-            updateCartSummary(); // Recalculate summary after order type change
+            updateCartSummary();
         });
     });
 
@@ -512,7 +537,6 @@ document.addEventListener('DOMContentLoaded', function() {
         checkoutForm.style.display = checkoutForm.style.display === 'block' ? 'none' : 'block';
         if (checkoutForm.style.display === 'block') {
             checkoutBtn.textContent = 'Cancel';
-            // Show guest fields if not logged in
             const userId = getUserId();
             const token = getUserToken();
             const guestFields = document.getElementById('guestFields');
@@ -534,7 +558,6 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function() {
             checkoutModal.style.display = 'none';
             confirmationModal.style.display = 'none';
-            // Restore modal to body for next time
             document.body.appendChild(checkoutModal);
             checkoutModal.style.position = '';
         });
@@ -669,11 +692,13 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             latestCart = getGuestCart();
         }
+        
         if (!latestCart.items || latestCart.items.length === 0) {
             showMpesaToast('Your cart is empty.', '#e74c3c');
             return;
         }
-        // Get user info from token/localStorage or require for guest
+        
+        // Get user info
         let customerName, customerPhone;
         if (userId && token) {
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
@@ -687,6 +712,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
         }
+        
         let deliveryFee = 0;
         if (orderType === 'delivery') {
             const lat = parseFloat(document.getElementById('latitude').value);
@@ -696,8 +722,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 deliveryFee = calculateDeliveryFee(distance);
             }
         }
+        
         const subtotal = latestCart.items.reduce((sum, item) => {
-            const price = item.selectedSize ? item.selectedSize.price : (item.menuItem ? item.menuItem.price : 0);
+            // Always use selectedSize.price if available, otherwise fall back to menuItem.price
+            const price = item.selectedSize?.price || item.menuItem?.price || 0;
             return sum + (price * item.quantity);
         }, 0);
 
@@ -719,25 +747,26 @@ document.addEventListener('DOMContentLoaded', function() {
             customerName: customerName,
             customerPhone: customerPhone
         };
+        
         if (paymentMethod === 'mpesa') {
-            // Send order details to backend for STK Push, do not save order yet
             showMpesaToast('Initiating M-Pesa payment...');
             const response = await fetch('https://aticas-backend.onrender.com/api/mpesa/payment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     phone: mpesaNumber,
-                    amount: order.total, // Use order.total for amount
-                    orderDetails: order // send the full order object
+                    amount: order.total,
+                    orderDetails: order
                 })
             });
+            
             const data = await response.json();
             if (data.errorMessage || data.error) {
                 showMpesaToast('M-Pesa push failed: ' + (data.errorMessage || data.error), '#e74c3c');
                 return;
             }
+            
             showMpesaToast('M-Pesa push sent. Complete payment on your phone.');
-            // Save a pending merchantRequestId (if available) for polling
             let merchantRequestId = data.MerchantRequestID || data.merchantRequestId || null;
             if (merchantRequestId) {
                 localStorage.setItem('pendingMerchantRequestId', merchantRequestId);
@@ -747,31 +776,25 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             return;
         }
-        // Only for non-M-Pesa payments, send order to /api/orders
+        
         try {
             const response = await fetch('https://aticas-backend.onrender.com/api/orders', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': token } : {}) },
                 body: JSON.stringify(order)
             });
+            
             const data = await response.json();
             if (data.success) {
                 await clearCart();
-                console.log('[order] Called clearCart after order. Cart should be empty now.');
-                // Reset in-memory cart and localStorage for guests
                 cart = { items: [] };
                 if (!getUserId() || !getUserToken()) {
                     setGuestCart({ items: [] });
                 }
                 if (window.updateCartCount) await window.updateCartCount();
                 await displayCartItems();
-                // Double-check guest cart is cleared
-                if (!getUserId() || !getUserToken()) {
-                    const guestCart = localStorage.getItem('guestCart');
-                    console.log('[order] guestCart after clear:', guestCart);
-                }
+                
                 localStorage.setItem('lastOrderId', data.order._id);
-                // Add a small delay to ensure UI updates before redirect
                 setTimeout(() => {
                     window.location.href = `order-confirmation.html?orderId=${data.order._id}`;
                 }, 400);
@@ -783,6 +806,6 @@ document.addEventListener('DOMContentLoaded', function() {
             showMpesaToast('Failed to place order. Please try again.', '#e74c3c');
         }
     });
-    // At the end of the DOMContentLoaded handler, call displayCartItems
+    
     displayCartItems();
 });
