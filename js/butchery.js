@@ -1,0 +1,231 @@
+document.addEventListener('DOMContentLoaded', function() {
+    // Load menu items from API
+    let menuItems = [];
+    const menuContainer = document.getElementById('butcheryItems');
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const priceOptionsModal = document.getElementById('price-options-modal');
+    const modalItemName = document.getElementById('modal-item-name');
+    const modalPriceOptions = document.getElementById('modal-price-options');
+    const modalAddToCartBtn = document.getElementById('modal-add-to-cart-btn');
+    const closeModalBtn = priceOptionsModal.querySelector('.close-modal');
+
+    async function fetchMenuItems() {
+        try {
+            const res = await fetch('https://aticas-backend.onrender.com/api/menu');
+            menuItems = await res.json();
+            displayMenuItems();
+        } catch (err) {
+            menuContainer.innerHTML = '<div class="empty-menu-message">Failed to load menu items.</div>';
+        }
+    }
+
+    function getUserIdFromToken() {
+        return localStorage.getItem('userId');
+    }
+
+    async function fetchCart() {
+        const userId = getUserIdFromToken();
+        if (!userId) return [];
+        const res = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
+            headers: { 'Authorization': localStorage.getItem('userToken') || '' }
+        });
+        if (!res.ok) return [];
+        return await res.json();
+    }
+
+    async function addToCartApi(menuItem, selectedSize = null) {
+        const userId = getUserIdFromToken();
+        const userToken = localStorage.getItem('userToken');
+
+        if (userId && userToken) {
+            const menuItemId = menuItem._id;
+            const itemType = menuItem.category ? 'Menu' : 'MealOfDay';
+            try {
+                await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': userToken
+                    },
+                    body: JSON.stringify({
+                        butcheryItemId: butcheryItemId,
+                        quantity: 1,
+                        itemType,
+                        selectedSize
+                    })
+                });
+            } catch (err) {
+                console.error('Error adding to cart:', err);
+            }
+        } else {
+            let cart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
+            const itemType = butcheryItem.category ? 'Menu' : 'MealOfDay';
+            const existingItemIndex = cart.items.findIndex(i =>
+                i.menuItem._id === butcheryItem._id &&
+                i.itemType === itemType &&
+                (selectedSize ? i.selectedSize && i.selectedSize.size === selectedSize.size : !i.selectedSize)
+            );
+
+            if (existingItemIndex > -1) {
+                cart.items[existingItemIndex].quantity += 1;
+            } else {
+                cart.items.push({
+                    butcheryItem: butcheryItem,
+                    quantity: 1,
+                    itemType,
+                    selectedSize
+                });
+            }
+            localStorage.setItem('guestCart', JSON.stringify(cart));
+        }
+    }
+
+    const menuSection = document.querySelector('.menu-section');
+    const searchDiv = document.createElement('div');
+    searchDiv.style = 'margin-bottom:1.5rem;text-align:center;';
+    searchDiv.innerHTML = '<input type="text" id="menuSearch" placeholder="Search meat..." style="width:60%;max-width:340px;padding:0.7rem 1rem;border-radius:6px;border:1.5px solid #27ae60;font-size:1.1rem;">';
+    menuSection.insertBefore(searchDiv, menuSection.children[1]);
+    const menuSearch = document.getElementById('meatSearch');
+
+    function displayMenuItems(category = 'all', search = '') {
+        menuContainer.innerHTML = '';
+        if (!menuItems || menuItems.length === 0) {
+            menuContainer.innerHTML = '<div class="empty-menu-message">No meat available for now. Please check back later.</div>';
+            return;
+        }
+        let filteredItems = category === 'all' 
+            ? butcheryItems 
+            : butcheryItems.filter(item => item.category === category);
+        if (search) {
+            filteredItems = filteredItems.filter(item => item.name.toLowerCase().includes(search.toLowerCase()));
+        }
+        filteredItems.forEach(item => {
+            const butcheryItem = document.createElement('div');
+            butcheryItem.className = 'butchery-item';
+            butcheryItem.dataset.category = item.category;
+            const outOfStock = item.quantity === 0;
+            const lowStock = item.quantity > 0 && item.quantity <= 3;
+            const hasPriceOptions = item.priceOptions && item.priceOptions.length > 0;
+
+            let priceDisplay = `Ksh ${Number(item.price).toLocaleString()}`;
+            if (hasPriceOptions) {
+                const prices = item.priceOptions.map(p => Number(p.price));
+                priceDisplay = `From Ksh ${Number(Math.min(...prices)).toLocaleString()}`;
+            }
+
+            let quantityClass = '';
+            let quantityText = `Available: ${item.quantity ?? 0}`;
+
+            if (outOfStock) {
+                quantityClass = 'out-of-stock';
+                quantityText = 'Out of Stock';
+            } else if (lowStock) {
+                quantityClass = 'low-stock';
+                quantityText = `Low Stock: ${item.quantity}`;
+            }
+
+            butcheryItem.innerHTML = `
+                <img src="${item.image}" alt="${item.name}">
+                <div class="menu-item-details">
+                    <h3>${item.name}</h3>
+                    <p class="menu-qty ${quantityClass}">${quantityText}</p>
+                    <span class="price">${priceDisplay}</span>
+                    <button class="add-to-cart" data-id="${item._id}" ${outOfStock ? 'disabled style="background:#ccc;cursor:not-allowed;"' : ''}>
+                        ${outOfStock ? 'Out of Stock' : (hasPriceOptions ? 'Select Option' : 'Add to Cart')}
+                    </button>
+                </div>
+            `;
+            menuContainer.appendChild(butcheryItem);
+        });
+        document.querySelectorAll('.add-to-cart').forEach(button => {
+            button.addEventListener('click', async function() {
+                const itemId = this.dataset.id;
+                const item = butcheryItems.find(i => i._id === itemId);
+                if (!item || item.quantity === 0) {
+                    alert('Sorry, this item is out of stock!');
+                    return;
+                }
+                if (item.priceOptions && item.priceOptions.length > 0) {
+                    openPriceOptionsModal(item);
+                } else {
+                    await addToCartApi(item);
+                    if (window.updateCartCount) window.updateCartCount();
+                    showToast(`${item.name} added to cart!`);
+                    fetchbutcheryItems();
+                }
+            });
+        });
+    }
+
+    function openPriceOptionsModal(item) {
+        modalItemName.textContent = item.name;
+        modalPriceOptions.innerHTML = '';
+
+        item.priceOptions.forEach(option => {
+            const optionEl = document.createElement('div');
+            optionEl.className = 'price-option';
+            optionEl.innerHTML = `
+                <label>
+                    <input type="radio" name="price-option" value="${option.size}" data-price="${option.price}">
+                    ${option.size} - <strong>Ksh ${Number(option.price).toLocaleString()}</strong>
+                </label>
+            `;
+            modalPriceOptions.appendChild(optionEl);
+        });
+
+        if (modalPriceOptions.querySelector('input')) {
+            modalPriceOptions.querySelector('input').checked = true;
+        }
+
+        modalAddToCartBtn.onclick = async () => {
+            const selectedOptionEl = modalPriceOptions.querySelector('input[name="price-option"]:checked');
+            if (selectedOptionEl) {
+                const selectedSizeValue = selectedOptionEl.value;
+                const selectedOption = item.priceOptions.find(p => p.size === selectedSizeValue);
+                const updatedItem = { ...item, price: selectedOption.price };
+                await addToCartApi(updatedItem, selectedOption);
+                if (window.updateCartCount) window.updateCartCount();
+                showToast(`${item.name} (${selectedOption.size}) added to cart!`);
+                priceOptionsModal.style.display = 'none';
+                fetchButcheryItems();
+            }
+        };
+
+        priceOptionsModal.style.display = 'flex';
+    }
+
+    closeModalBtn.addEventListener('click', () => {
+        priceOptionsModal.style.display = 'none';
+    });
+
+    window.addEventListener('click', (event) => {
+        if (event.target === priceOptionsModal) {
+            priceOptionsModal.style.display = 'none';
+        }
+    });
+
+    menuSearch.addEventListener('input', function() {
+        displayButcheryItems(document.querySelector('.filter-btn.active')?.dataset.category || 'all', menuSearch.value);
+    });
+
+    fetchButcheryItems();
+    if (window.updateCartCount) window.updateCartCount();
+
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            displayButcheryItems(this.dataset.category);
+        });
+    });
+});
+
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.className = 'toast show';
+    setTimeout(() => {
+        toast.className = 'toast';
+    }, 2000);
+}
