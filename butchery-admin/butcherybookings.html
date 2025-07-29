@@ -73,7 +73,7 @@
         loading.style.display = 'block';
         try {
             const res = await fetch('https://aticas-backend.onrender.com/api/bookings', {
-                headers: { 'Authorization': localStorage.getItem('adminToken') || '' }
+                headers: { 'Authorization': localStorage.getItem('butcheryAdminToken') || '' }
             });
             const data = await res.json();
             loading.style.display = 'none';

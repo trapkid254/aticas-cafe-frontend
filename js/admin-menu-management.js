@@ -26,11 +26,19 @@ document.addEventListener('DOMContentLoaded', function() {
     let menuItems = [];
     let mealsOfDay = [];
 
+    // Helper to get correct admin token
+    function getCurrentAdminToken() {
+        if (window.location.pathname.includes('butchery-admin')) {
+            return localStorage.getItem('butcheryAdminToken') || '';
+        }
+        return localStorage.getItem('adminToken') || '';
+    }
+
     // Fetch menu items from API
     async function fetchMenuItems() {
         try {
             const res = await fetch('https://aticas-backend.onrender.com/api/menu', {
-                headers: { 'Authorization': localStorage.getItem('adminToken') || '' }
+                headers: { 'Authorization': getCurrentAdminToken() }
             });
             menuItems = await res.json();
             renderMenuMeals();
@@ -42,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function fetchMealsOfDay() {
         try {
             const res = await fetch('https://aticas-backend.onrender.com/api/meals', {
-                headers: { 'Authorization': localStorage.getItem('adminToken') || '' }
+                headers: { 'Authorization': getCurrentAdminToken() }
             });
             mealsOfDay = await res.json();
             renderMealsOfDay();
@@ -118,7 +126,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             await fetch('https://aticas-backend.onrender.com/api/meals/' + id, {
                 method: 'DELETE',
-                headers: { 'Authorization': localStorage.getItem('adminToken') || '' }
+                headers: { 'Authorization': getCurrentAdminToken() }
             });
             fetchMealsOfDay();
         } catch (err) {
@@ -130,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             await fetch('https://aticas-backend.onrender.com/api/menu/' + id, {
                 method: 'DELETE',
-                headers: { 'Authorization': localStorage.getItem('adminToken') || '' }
+                headers: { 'Authorization': getCurrentAdminToken() }
             });
             fetchMenuItems();
             fetchMealsOfDay(); // In case it was also a meal of the day
@@ -289,7 +297,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': localStorage.getItem('adminToken') || ''
+                        'Authorization': getCurrentAdminToken()
                     },
                     body: JSON.stringify(meal)
                 });
@@ -315,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': localStorage.getItem('adminToken') || ''
+                        'Authorization': getCurrentAdminToken()
                     },
                     body: JSON.stringify(meal)
                 });
@@ -341,7 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': localStorage.getItem('adminToken') || ''
+                        'Authorization': getCurrentAdminToken()
                     },
                     body: JSON.stringify(meal)
                 });
@@ -360,7 +368,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': localStorage.getItem('adminToken') || ''
+                        'Authorization': getCurrentAdminToken()
                     },
                     body: JSON.stringify(mealData)
                 });

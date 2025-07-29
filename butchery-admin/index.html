@@ -239,7 +239,7 @@
             // It was causing a TypeError. All menu management is handled elsewhere.
             /*
             // Fetch menu items for the meals of the day dropdown
-            const menuRes = await fetch('https://aticas-backend.onrender.com/api/menu', { headers: { 'Authorization': localStorage.getItem('adminToken') || '' } });
+            const menuRes = await fetch('https://aticas-backend.onrender.com/api/menu', { headers: { 'Authorization': localStorage.getItem('butcheryAdminToken') || '' } });
             const menuItems = await menuRes.json();
             const mealSelect = document.getElementById('meal-menu-item');
             menuItems.forEach(item => {
