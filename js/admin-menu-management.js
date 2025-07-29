@@ -56,8 +56,10 @@ document.addEventListener('DOMContentLoaded', function() {
             mealsOfDayList.innerHTML = '<p style="color:#888;">No meals of the day set.</p>';
             return;
         }
+        // Only show butchery items
+        const filteredMealsOfDay = mealsOfDay.filter(meal => meal.type === 'butchery');
         mealsOfDayList.innerHTML = '<div class="recent-orders"><table><thead><tr><th>Image</th><th>Name</th><th>Price</th><th>Quantity</th><th>Action</th></tr></thead><tbody>' +
-            mealsOfDay.map(meal => {
+            filteredMealsOfDay.map(meal => {
                 const item = meal.menuItem || meal; // Use menuItem if it exists, otherwise use meal
                 const imageSrc = item.image && item.image.trim() ? item.image : 'https://via.placeholder.com/120x90?text=No+Image';
                 
@@ -86,9 +88,10 @@ document.addEventListener('DOMContentLoaded', function() {
             menuMealsList.innerHTML = '<p style="color:#888;">No menu meals added yet.</p>';
             return;
         }
-
+        // Only show butchery items
+        const filteredMenuItems = menuItems.filter(meal => meal.type === 'butchery');
         const menuMealsListHTML = '<div class="recent-orders"><table><thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Quantity</th><th>Action</th></tr></thead><tbody>' +
-            menuItems.map(meal => {
+            filteredMenuItems.map(meal => {
                 let priceDisplay = `Ksh ${Number(meal.price).toLocaleString()}`;
                 if (meal.priceOptions && meal.priceOptions.length > 0) {
                     priceDisplay = meal.priceOptions.map(p => `${p.size}: Ksh ${Number(p.price).toLocaleString()}`).join('<br>');
@@ -279,7 +282,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     image: imageData,
                     category: mealCategory ? mealCategory.value : '',
                     quantity: parseInt(mealQuantity.value, 10) || 0,
-                    priceOptions: priceOptions
+                    priceOptions: priceOptions,
+                    type: 'butchery'
                 };
                 await fetch('https://aticas-backend.onrender.com/api/menu', {
                     method: 'POST',
@@ -304,7 +308,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     image: imageData,
                     category: mealCategory ? mealCategory.value : '',
                     quantity: parseInt(mealQuantity.value, 10) || 0,
-                    priceOptions: priceOptions
+                    priceOptions: priceOptions,
+                    type: 'butchery'
                 };
                 await fetch('https://aticas-backend.onrender.com/api/menu/' + editId, {
                     method: 'PUT',
@@ -331,7 +336,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     isSubmitting = false;
                     return;
                 }
-                const meal = { name, price, image, quantity };
+                const meal = { name, price, image, quantity, type: 'butchery' };
                 await fetch('https://aticas-backend.onrender.com/api/meals', {
                     method: 'POST',
                     headers: {

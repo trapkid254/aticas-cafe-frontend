@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function fetchMenuItems() {
         try {
-            const res = await fetch('https://aticas-backend.onrender.com/api/menu');
+            const res = await fetch('https://aticas-backend.onrender.com/api/menu?type=butchery');
             menuItems = await res.json();
             displayMenuItems();
         } catch (err) {
@@ -94,8 +94,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         let filteredItems = category === 'all' 
-            ? butcheryItems 
-            : butcheryItems.filter(item => item.category === category);
+            ? menuItems 
+            : menuItems.filter(item => item.category === category);
         if (search) {
             filteredItems = filteredItems.filter(item => item.name.toLowerCase().includes(search.toLowerCase()));
         }
@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.add-to-cart').forEach(button => {
             button.addEventListener('click', async function() {
                 const itemId = this.dataset.id;
-                const item = butcheryItems.find(i => i._id === itemId);
+                const item = menuItems.find(i => i._id === itemId);
                 if (!item || item.quantity === 0) {
                     alert('Sorry, this item is out of stock!');
                     return;
@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     await addToCartApi(item);
                     if (window.updateCartCount) window.updateCartCount();
                     showToast(`${item.name} added to cart!`);
-                    fetchbutcheryItems();
+                    fetchMenuItems();
                 }
             });
         });
@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (window.updateCartCount) window.updateCartCount();
                 showToast(`${item.name} (${selectedOption.size}) added to cart!`);
                 priceOptionsModal.style.display = 'none';
-                fetchButcheryItems();
+                fetchMenuItems();
             }
         };
 
@@ -205,17 +205,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     menuSearch.addEventListener('input', function() {
-        displayButcheryItems(document.querySelector('.filter-btn.active')?.dataset.category || 'all', menuSearch.value);
+        displayMenuItems(document.querySelector('.filter-btn.active')?.dataset.category || 'all', menuSearch.value);
     });
 
-    fetchButcheryItems();
+    fetchMenuItems();
     if (window.updateCartCount) window.updateCartCount();
 
     filterButtons.forEach(button => {
         button.addEventListener('click', function() {
             filterButtons.forEach(btn => btn.classList.remove('active'));
             this.classList.add('active');
-            displayButcheryItems(this.dataset.category);
+            displayMenuItems(this.dataset.category);
         });
     });
 });
