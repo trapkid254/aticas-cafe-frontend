@@ -7,6 +7,12 @@
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/admin.css">
     <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
+    <script>
+    // Redirect to login if not logged in
+    if (!localStorage.getItem('butcheryAdminToken')) {
+        window.location.href = 'butcheryadmin-login.html';
+    }
+    </script>
 </head>
 <body>
     <!-- Admin Navbar -->
@@ -253,7 +259,15 @@
             console.error('Failed to load initial data:', error);
         }
     });
-    // ... (rest of the script)
+    document.addEventListener('DOMContentLoaded', function() {
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function() {
+                localStorage.removeItem('butcheryAdminToken');
+                window.location.href = 'butcheryadmin-login.html';
+            });
+        }
+    });
     </script>
 </body>
 </html>
