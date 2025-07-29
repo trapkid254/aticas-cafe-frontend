@@ -123,7 +123,7 @@ function generateReport(reportType, startDate, endDate) {
 
 async function generateSalesReport(startDate, endDate) {
     try {
-        const res = await fetch('https://aticas-backend.onrender.com/api/orders', { headers: { 'Authorization': localStorage.getItem('adminToken') || '' } });
+        const res = await fetch('https://aticas-backend.onrender.com/api/orders?type=cafeteria', { headers: { 'Authorization': localStorage.getItem('adminToken') || '' } });
         const orders = await res.json();
         // Filter orders by date range
         const filteredData = orders.filter(order => {
@@ -231,7 +231,7 @@ function generateSimpleReport(orders) {
 
 async function fetchOrdersAndGenerateReport() {
     try {
-        const res = await fetch('https://aticas-backend.onrender.com/api/orders', { headers: { 'Authorization': localStorage.getItem('adminToken') || '' } });
+        const res = await fetch('https://aticas-backend.onrender.com/api/orders?type=cafeteria', { headers: { 'Authorization': localStorage.getItem('adminToken') || '' } });
         if (!res.ok) {
             throw new Error('Failed to fetch orders for report');
         }

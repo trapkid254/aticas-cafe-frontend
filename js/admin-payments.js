@@ -11,7 +11,7 @@ async function loadPayments() {
     const yearPaymentsElem = document.getElementById('yearPayments');
     paymentsTableBody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
     try {
-        const res = await fetch('https://aticas-backend.onrender.com/api/orders', {
+        const res = await fetch('https://aticas-backend.onrender.com/api/orders?type=cafeteria', {
             headers: { 'Authorization': adminToken }
         });
         if (!res.ok) throw new Error('Failed to fetch orders');

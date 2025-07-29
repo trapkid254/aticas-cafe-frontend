@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
             customerPhone
         };
         try {
-            const res = await fetch('https://aticas-backend.onrender.com/api/orders', {
+            const res = await fetch('https://aticas-backend.onrender.com/api/orders?type=cafeteria', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
                 body: JSON.stringify(order)

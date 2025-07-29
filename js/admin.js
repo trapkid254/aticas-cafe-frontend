@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function updateDashboardData() {
         try {
             const [orders, menuItems, mealsToday] = await Promise.all([
-                fetchFromApi('/api/orders'),
+                fetchFromApi('/api/orders?type=cafeteria'),
                 fetchFromApi('/api/menu'),
                 fetchFromApi('/api/meals')
             ]);
@@ -247,7 +247,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const sidebarOrdersTab = document.querySelector('.admin-sidebar a[href="orders.html"]');
         if (!ordersTab && !sidebarOrdersTab) return;
         try {
-            const res = await fetch('https://aticas-backend.onrender.com/api/orders', {
+            const res = await fetch('https://aticas-backend.onrender.com/api/orders?type=cafeteria', {
                 headers: { 'Authorization': adminToken }
             });
             if (!res.ok) throw new Error('Failed to fetch orders');
@@ -383,7 +383,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function pollForNewOrders() {
         try {
             const adminToken = localStorage.getItem('adminToken');
-            const res = await fetch('https://aticas-backend.onrender.com/api/orders', {
+            const res = await fetch('https://aticas-backend.onrender.com/api/orders?type=cafeteria', {
                 headers: { 'Authorization': adminToken }
             });
             if (!res.ok) throw new Error('Failed to fetch orders');
