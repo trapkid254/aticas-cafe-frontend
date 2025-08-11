@@ -54,6 +54,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         selectedSize
                     })
                 });
+                // Update cart count after successful addition
+                if (window.updateCartCount) await window.updateCartCount();
             } catch (err) {
                 console.error('Error adding to cart:', err);
             }
@@ -77,6 +79,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
             localStorage.setItem('guestCart', JSON.stringify(cart));
+            // Update cart count after successful addition
+            if (window.updateCartCount) await window.updateCartCount();
         }
     }
 
@@ -149,7 +153,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     openPriceOptionsModal(item);
                 } else {
                     await addToCartApi(item);
-                    if (window.updateCartCount) window.updateCartCount();
                     showToast(`${item.name} added to cart!`);
                     fetchMenuItems();
                 }
@@ -184,7 +187,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const selectedOption = item.priceOptions.find(p => p.size === selectedSizeValue);
                 const updatedItem = { ...item, price: selectedOption.price };
                 await addToCartApi(updatedItem, selectedOption);
-                if (window.updateCartCount) window.updateCartCount();
                 showToast(`${item.name} (${selectedOption.size}) added to cart!`);
                 priceOptionsModal.style.display = 'none';
                 fetchMenuItems();

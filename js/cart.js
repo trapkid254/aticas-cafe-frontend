@@ -681,6 +681,12 @@ function initButtonHandlers() {
             return sum + (price * item.quantity);
         }, 0);
 
+        // Determine order type (butchery or cafeteria) based on page context
+        let sectionType = 'cafeteria';
+        if (window.location.pathname.includes('butchery')) {
+            sectionType = 'butchery';
+        }
+        
         const order = {
             items: latestCart.items.map(item => ({ 
                 menuItem: item.menuItem._id, 
@@ -697,36 +703,61 @@ function initButtonHandlers() {
             status: 'pending',
             date: new Date().toISOString(),
             customerName: customerName,
-            customerPhone: customerPhone
+            customerPhone: customerPhone,
+            type: sectionType // 'butchery' or 'cafeteria'
         };
         
         if (paymentMethod === 'mpesa') {
-            showMpesaToast('Initiating M-Pesa payment...');
-            const response = await fetch('https://aticas-backend.onrender.com/api/mpesa/payment', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    phone: mpesaNumber,
-                    amount: order.total,
-                    orderDetails: order
-                })
-            });
+            showMpesaToast('Creating order and initiating M-Pesa payment...');
             
-            const data = await response.json();
-            if (data.errorMessage || data.error) {
-                showMpesaToast('M-Pesa push failed: ' + (data.errorMessage || data.error), '#e74c3c');
+            // First create the order
+            try {
+                const orderResponse = await fetch('https://aticas-backend.onrender.com/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': token } : {}) },
+                    body: JSON.stringify(order)
+                });
+                
+                const orderData = await orderResponse.json();
+                if (!orderData.success) {
+                    showMpesaToast('Failed to create order. Please try again.', '#e74c3c');
+                    return;
+                }
+                
+                const orderId = orderData.order._id;
+                
+                // Then initiate M-Pesa payment with the order ID
+                const mpesaResponse = await fetch('https://aticas-backend.onrender.com/api/mpesa/payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phone: mpesaNumber,
+                        amount: order.total,
+                        orderId: orderId,
+                        orderDetails: order
+                    })
+                });
+                
+                const mpesaData = await mpesaResponse.json();
+                if (mpesaData.errorMessage || mpesaData.error) {
+                    showMpesaToast('M-Pesa push failed: ' + (mpesaData.errorMessage || mpesaData.error), '#e74c3c');
+                    return;
+                }
+                
+                showMpesaToast('M-Pesa push sent. Complete payment on your phone.');
+                let merchantRequestId = mpesaData.MerchantRequestID || mpesaData.merchantRequestId || null;
+                if (merchantRequestId) {
+                    localStorage.setItem('pendingMerchantRequestId', merchantRequestId);
+                    window.location.href = `payment-waiting.html?merchantRequestId=${merchantRequestId}`;
+                } else {
+                    alert('Could not initiate payment. Please try again.');
+                }
+                return;
+            } catch (err) {
+                console.error('Error with M-Pesa order creation:', err);
+                showMpesaToast('Failed to create order. Please try again.', '#e74c3c');
                 return;
             }
-            
-            showMpesaToast('M-Pesa push sent. Complete payment on your phone.');
-            let merchantRequestId = data.MerchantRequestID || data.merchantRequestId || null;
-            if (merchantRequestId) {
-                localStorage.setItem('pendingMerchantRequestId', merchantRequestId);
-                window.location.href = `payment-waiting.html?merchantRequestId=${merchantRequestId}`;
-            } else {
-                alert('Could not initiate payment. Please try again.');
-            }
-            return;
         }
         
         try {

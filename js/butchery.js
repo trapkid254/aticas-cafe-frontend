@@ -48,20 +48,22 @@ document.addEventListener('DOMContentLoaded', function() {
                         'Authorization': userToken
                     },
                     body: JSON.stringify({
-                        butcheryItemId: butcheryItemId,
+                        menuItemId: menuItemId,
                         quantity: 1,
                         itemType,
                         selectedSize
                     })
                 });
+                // Update cart count after successful addition
+                if (window.updateCartCount) await window.updateCartCount();
             } catch (err) {
                 console.error('Error adding to cart:', err);
             }
         } else {
             let cart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
-            const itemType = butcheryItem.category ? 'Menu' : 'MealOfDay';
+            const itemType = menuItem.category ? 'Menu' : 'MealOfDay';
             const existingItemIndex = cart.items.findIndex(i =>
-                i.menuItem._id === butcheryItem._id &&
+                i.menuItem._id === menuItem._id &&
                 i.itemType === itemType &&
                 (selectedSize ? i.selectedSize && i.selectedSize.size === selectedSize.size : !i.selectedSize)
             );
@@ -70,13 +72,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 cart.items[existingItemIndex].quantity += 1;
             } else {
                 cart.items.push({
-                    butcheryItem: butcheryItem,
+                    menuItem: menuItem,
                     quantity: 1,
                     itemType,
                     selectedSize
                 });
             }
             localStorage.setItem('guestCart', JSON.stringify(cart));
+            // Update cart count after successful addition
+            if (window.updateCartCount) await window.updateCartCount();
         }
     }
 
@@ -85,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
     searchDiv.style = 'margin-bottom:1.5rem;text-align:center;';
     searchDiv.innerHTML = '<input type="text" id="menuSearch" placeholder="Search meat..." style="width:60%;max-width:340px;padding:0.7rem 1rem;border-radius:6px;border:1.5px solid #27ae60;font-size:1.1rem;">';
     menuSection.insertBefore(searchDiv, menuSection.children[1]);
-    const menuSearch = document.getElementById('meatSearch');
+    const menuSearch = document.getElementById('menuSearch');
 
     function displayMenuItems(category = 'all', search = '') {
         menuContainer.innerHTML = '';
@@ -100,9 +104,9 @@ document.addEventListener('DOMContentLoaded', function() {
             filteredItems = filteredItems.filter(item => item.name.toLowerCase().includes(search.toLowerCase()));
         }
         filteredItems.forEach(item => {
-            const butcheryItem = document.createElement('div');
-            butcheryItem.className = 'butchery-item';
-            butcheryItem.dataset.category = item.category;
+            const menuItem = document.createElement('div');
+            menuItem.className = 'menu-item';
+            menuItem.dataset.category = item.category;
             const outOfStock = item.quantity === 0;
             const lowStock = item.quantity > 0 && item.quantity <= 3;
             const hasPriceOptions = item.priceOptions && item.priceOptions.length > 0;
@@ -124,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 quantityText = `Low Stock: ${item.quantity}`;
             }
 
-            butcheryItem.innerHTML = `
+            menuItem.innerHTML = `
                 <img src="${item.image}" alt="${item.name}">
                 <div class="menu-item-details">
                     <h3>${item.name}</h3>
@@ -135,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </button>
                 </div>
             `;
-            menuContainer.appendChild(butcheryItem);
+            menuContainer.appendChild(menuItem);
         });
         document.querySelectorAll('.add-to-cart').forEach(button => {
             button.addEventListener('click', async function() {
@@ -149,7 +153,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     openPriceOptionsModal(item);
                 } else {
                     await addToCartApi(item);
-                    if (window.updateCartCount) window.updateCartCount();
                     showToast(`${item.name} added to cart!`);
                     fetchMenuItems();
                 }
@@ -184,7 +187,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const selectedOption = item.priceOptions.find(p => p.size === selectedSizeValue);
                 const updatedItem = { ...item, price: selectedOption.price };
                 await addToCartApi(updatedItem, selectedOption);
-                if (window.updateCartCount) window.updateCartCount();
                 showToast(`${item.name} (${selectedOption.size}) added to cart!`);
                 priceOptionsModal.style.display = 'none';
                 fetchMenuItems();

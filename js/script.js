@@ -94,6 +94,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     headers: { 'Content-Type': 'application/json', 'Authorization': userToken || '' },
                     body: JSON.stringify({ menuItemId, quantity, itemType })
                 });
+                // Update cart count after successful addition
+                await updateCartCount();
             } catch (err) {
                 console.error('Error adding to cart:', err);
             }
@@ -137,26 +139,47 @@ document.addEventListener('DOMContentLoaded', function() {
                 guestCart.items.push({ menuItem, quantity, itemType });
             }
             localStorage.setItem('guestCart', JSON.stringify(guestCart));
+            // Update cart count after successful addition
+            await updateCartCount();
         }
     }
 
     async function updateCartCount() {
-        // Check if user is logged in
-        const userId = getUserIdFromToken();
-        let count = 0;
-        if (userId) {
-            // Logged in: fetch from backend
-            const cart = await fetchCartItems();
-            count = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
-        } else {
-            // Guest: fetch from localStorage
-            let guestCart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
-            if (guestCart && Array.isArray(guestCart.items)) {
-                count = guestCart.items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+        try {
+            // Check if user is logged in
+            const userId = getUserIdFromToken();
+            let count = 0;
+            
+            if (userId) {
+                // Logged in: fetch from backend
+                try {
+                    const cart = await fetchCartItems();
+                    count = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+                } catch (err) {
+                    console.error('Error fetching cart for count:', err);
+                    count = 0;
+                }
+            } else {
+                // Guest: fetch from localStorage
+                try {
+                    let guestCart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
+                    if (guestCart && Array.isArray(guestCart.items)) {
+                        count = guestCart.items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+                    }
+                } catch (err) {
+                    console.error('Error reading guest cart:', err);
+                    count = 0;
+                }
             }
+            
+            const cartCountElem = document.getElementById('cartCount');
+            if (cartCountElem) {
+                cartCountElem.textContent = count;
+                console.log('Cart count updated:', count);
+            }
+        } catch (err) {
+            console.error('Error in updateCartCount:', err);
         }
-        const cartCountElem = document.getElementById('cartCount');
-        if (cartCountElem) cartCountElem.textContent = count;
     }
     window.updateCartCount = updateCartCount;
     document.addEventListener('DOMContentLoaded', updateCartCount);
