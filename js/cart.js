@@ -56,17 +56,16 @@ async function fetchCart() {
             if (!res.ok) throw new Error('Failed to fetch cart');
             const cart = await res.json();
             
-            // Normalize the cart items structure
-            if (cart && cart.items) {
-                cart.items = cart.items.map(item => ({
-                    ...item,
-                    menuItem: item.menuItem?._doc || item.menuItem,
-                    selectedSize: item.selectedSize?._doc || item.selectedSize
-                }));
+            // Ensure cart has proper structure
+            if (!cart || !cart.items) {
+                return { items: [] };
             }
             
-            console.log('[fetchCart] Normalized cart data:', cart);
-            return cart || { items: [] };
+            // Filter out any null or invalid items
+            cart.items = cart.items.filter(item => item && item.menuItem);
+            
+            console.log('[fetchCart] Cart data:', cart);
+            return cart;
         } catch (err) {
             console.error('Error fetching cart:', err);
             return { items: [] };
@@ -119,14 +118,21 @@ async function updateCartItem(menuItemId, quantity, itemType, selectedSize = nul
 async function removeCartItem(menuItemId, itemType, selectedSize = null) {
     const userId = getUserId();
     const token = getUserToken();
-    const sizeIdentifier = selectedSize ? selectedSize.size : 'default';
 
     if (userId && token) {
         try {
-            await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items/${itemType}/${menuItemId}`, {
+            let url = `https://aticas-backend.onrender.com/api/cart/${userId}/items/${itemType}/${menuItemId}`;
+            
+            // Add selectedSize to query parameters if it exists
+            if (selectedSize) {
+                const urlWithParams = new URL(url);
+                urlWithParams.searchParams.set('size', JSON.stringify(selectedSize));
+                url = urlWithParams.toString();
+            }
+            
+            await fetch(url, {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json', 'Authorization': token },
-                body: JSON.stringify({ selectedSize })
+                headers: { 'Content-Type': 'application/json', 'Authorization': token }
             });
         } catch (err) {
             console.error('Error removing cart item:', err);
@@ -263,20 +269,19 @@ async function displayCartItems() {
     cartContainer = newContainer;
 
     cart.items.forEach(item => {
-        const menuItem = item.menuItem?._doc || item.menuItem;
+        const menuItem = item.menuItem;
         if (!menuItem || !menuItem._id) {
             console.warn('Invalid menu item:', item);
             return;
         }
 
-        const selectedSize = item.selectedSize?._doc || item.selectedSize;
+        const selectedSize = item.selectedSize;
         const image = menuItem.image || 'images/varied menu.jpeg';
         const name = selectedSize ? `${menuItem.name} (${selectedSize.size})` : menuItem.name;
         const price = item.effectivePrice || 
                      (selectedSize ? selectedSize.price : menuItem.price) || 0;
         const id = menuItem._id;
         const itemType = item.itemType || (menuItem.category ? 'Menu' : 'MealOfDay');
-        const sizeKey = selectedSize ? selectedSize.size : 'default';
 
         const cartItem = document.createElement('div');
         cartItem.className = 'cart-item';
@@ -356,6 +361,11 @@ function initButtonHandlers() {
             
             // Refresh cart display
             await displayCartItems();
+            
+            // Update cart count
+            if (window.updateCartCount) {
+                await window.updateCartCount();
+            }
         } catch (error) {
             console.error('Error handling button click:', error);
             showMpesaToast('Failed to update cart. Please try again.', '#e74c3c');

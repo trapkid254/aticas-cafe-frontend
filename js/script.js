@@ -89,13 +89,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const menuItemId = menuItem ? menuItem._id : itemOrId;
             const itemType = menuItem ? (menuItem.category ? 'Menu' : 'MealOfDay') : 'Menu';
             try {
-                await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items`, {
+                const response = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': userToken || '' },
                     body: JSON.stringify({ menuItemId, quantity, itemType })
                 });
-                // Update cart count after successful addition
-                await updateCartCount();
+                
+                if (response.ok) {
+                    // Update cart count after successful addition
+                    await updateCartCount();
+                } else {
+                    console.error('Failed to add item to cart:', response.status);
+                }
             } catch (err) {
                 console.error('Error adding to cart:', err);
             }
@@ -154,7 +159,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Logged in: fetch from backend
                 try {
                     const cart = await fetchCartItems();
-                    count = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+                    if (Array.isArray(cart)) {
+                        count = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+                    }
                 } catch (err) {
                     console.error('Error fetching cart for count:', err);
                     count = 0;

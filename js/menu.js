@@ -211,7 +211,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     fetchMenuItems();
-    if (window.updateCartCount) window.updateCartCount();
 
     filterButtons.forEach(button => {
         button.addEventListener('click', function() {
