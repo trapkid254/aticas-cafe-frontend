@@ -34,30 +34,59 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function addToCartApi(menuItem, selectedSize = null) {
-        const userId = getUserIdFromToken();
         const userToken = localStorage.getItem('userToken');
+        const isLoggedIn = !!userToken;
+        const menuItemId = menuItem._id;
+        const itemType = menuItem.category ? 'Menu' : 'MealOfDay';
 
-        if (userId && userToken) {
-            const menuItemId = menuItem._id;
-            const itemType = menuItem.category ? 'Menu' : 'MealOfDay';
+        if (isLoggedIn) {
             try {
-                await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': userToken
+                // First check if the item already exists in the cart
+                const cartResponse = await fetch('https://aticas-backend.onrender.com/api/cart', {
+                    headers: { 
+                        'Authorization': `Bearer ${userToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                let existingItem = null;
+                if (cartResponse.ok) {
+                    const cart = await cartResponse.json();
+                    existingItem = cart.items?.find(item => 
+                        item.menuItem._id === menuItemId && 
+                        item.itemType === itemType &&
+                        ((selectedSize && item.selectedSize?.size === selectedSize.size) || (!selectedSize && !item.selectedSize))
+                    );
+                }
+                
+                const newQuantity = existingItem ? (existingItem.quantity + 1) : 1;
+                
+                // Use PATCH to update existing item or add new one
+                const response = await fetch('https://aticas-backend.onrender.com/api/cart/items', {
+                    method: 'PATCH',
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': `Bearer ${userToken}`
                     },
-                    body: JSON.stringify({
-                        menuItemId: menuItemId,
-                        quantity: 1,
+                    body: JSON.stringify({ 
+                        menuItemId, 
+                        quantity: newQuantity, 
                         itemType,
-                        selectedSize
+                        selectedSize: selectedSize || undefined
                     })
                 });
-                // Update cart count after successful addition
-                if (window.updateCartCount) await window.updateCartCount();
+                
+                if (response.ok) {
+                    await updateCartCount();
+                    showToast('Item added to cart!');
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    console.error('Failed to add item to cart:', response.status, errorData);
+                    showToast('Failed to add item to cart', 'error');
+                }
             } catch (err) {
                 console.error('Error adding to cart:', err);
+                showToast('Error adding to cart', 'error');
             }
         } else {
             let cart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');

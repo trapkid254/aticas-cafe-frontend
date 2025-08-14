@@ -81,57 +81,60 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function addToCart(itemOrId, quantity = 1, selectedSize = null) {
-        const userId = getUserIdFromToken();
         const userToken = localStorage.getItem('userToken');
+        const isLoggedIn = !!userToken;
         
         const menuItem = typeof itemOrId === 'object' ? itemOrId : null;
         const menuItemId = menuItem ? menuItem._id : itemOrId;
         const itemType = menuItem ? (menuItem.category ? 'Menu' : 'MealOfDay') : 'Menu';
         
-        if (userId && userToken) {
+        if (isLoggedIn) {
             try {
-                // First check if the item already exists in the cart
-                const cartResponse = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
-                    headers: { 'Authorization': `Bearer ${userToken}` }
+                // Check if the item already exists in the cart
+                const cartResponse = await fetch('https://aticas-backend.onrender.com/api/cart', {
+                    headers: { 
+                        'Authorization': `Bearer ${userToken}`,
+                        'Content-Type': 'application/json'
+                    }
                 });
                 
+                let existingItem = null;
                 if (cartResponse.ok) {
                     const cart = await cartResponse.json();
-                    const existingItem = cart.items?.find(item => 
+                    existingItem = cart.items?.find(item => 
                         item.menuItem._id === menuItemId && 
                         item.itemType === itemType &&
                         ((selectedSize && item.selectedSize?.size === selectedSize.size) || (!selectedSize && !item.selectedSize))
                     );
-                    
-                    const newQuantity = existingItem ? existingItem.quantity + quantity : quantity;
-                    
-                    // Use PATCH to update existing item or add new one
-                    const response = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items`, {
-                        method: 'PATCH',
-                        headers: { 
-                            'Content-Type': 'application/json', 
-                            'Authorization': `Bearer ${userToken}`
-                        },
-                        body: JSON.stringify({ 
-                            menuItemId, 
-                            quantity: newQuantity, 
-                            itemType,
-                            selectedSize: selectedSize ? selectedSize.size : undefined
-                        })
-                    });
-                    
-                    if (response.ok) {
-                        // Update cart count after successful addition
-                        await updateCartCount();
-                        showToast('Item added to cart!');
-                    } else {
-                        const errorData = await response.json().catch(() => ({}));
-                        console.error('Failed to add item to cart:', response.status, errorData);
-                        showToast('Failed to add item to cart', 'error');
-                    }
+                }
+                
+                const newQuantity = existingItem ? existingItem.quantity + quantity : quantity;
+                
+                // Use PATCH to update existing item or add new one
+                const response = await fetch('https://aticas-backend.onrender.com/api/cart/items', {
+                    method: 'PATCH',
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': `Bearer ${userToken}`
+                    },
+                    body: JSON.stringify({ 
+                        menuItemId, 
+                        quantity: newQuantity, 
+                        itemType,
+                        selectedSize: selectedSize ? selectedSize.size : undefined
+                    })
+                });
+                
+                if (response.ok) {
+                    // Update cart count after successful addition
+                    await updateCartCount();
+                    showToast('Item added to cart!');
+                    return true;
                 } else {
-                    console.error('Failed to fetch cart:', cartResponse.status);
-                    showToast('Failed to update cart', 'error');
+                    const errorData = await response.json().catch(() => ({}));
+                    console.error('Failed to add item to cart:', response.status, errorData);
+                    showToast('Failed to add item to cart', 'error');
+                    return false;
                 }
             } catch (err) {
                 console.error('Error adding to cart:', err);
@@ -183,42 +186,57 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function updateCartCount() {
+        const cartCountElements = document.querySelectorAll('.cart-count');
+        const userToken = localStorage.getItem('userToken');
+        const isLoggedIn = !!userToken;
+        
         try {
-            // Check if user is logged in
-            const userId = getUserIdFromToken();
             let count = 0;
             
-            if (userId) {
-                // Logged in: fetch from backend
-                try {
-                    const cart = await fetchCartItems();
-                    if (Array.isArray(cart)) {
-                        count = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+            if (isLoggedIn) {
+                // For logged-in users
+                const response = await fetch('https://aticas-backend.onrender.com/api/cart', {
+                    headers: { 
+                        'Authorization': `Bearer ${userToken}`,
+                        'Content-Type': 'application/json'
                     }
-                } catch (err) {
-                    console.error('Error fetching cart for count:', err);
-                    count = 0;
+                });
+                
+                if (response.ok) {
+                    const cart = await response.json();
+                    count = cart.items?.reduce((total, item) => total + (item.quantity || 0), 0) || 0;
+                } else {
+                    console.error('Failed to fetch cart:', response.status);
+                    // Fallback to guest cart if there's an error
+                    const guestCart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
+                    count = guestCart.items?.reduce((total, item) => total + (item.quantity || 0), 0) || 0;
                 }
             } else {
-                // Guest: fetch from localStorage
-                try {
-                    let guestCart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
-                    if (guestCart && Array.isArray(guestCart.items)) {
-                        count = guestCart.items.reduce((sum, item) => sum + (item.quantity || 1), 0);
-                    }
-                } catch (err) {
-                    console.error('Error reading guest cart:', err);
-                    count = 0;
-                }
+                // For guests, use localStorage
+                const guestCart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
+                count = guestCart.items?.reduce((total, item) => total + (item.quantity || 0), 0) || 0;
             }
             
-            const cartCountElem = document.getElementById('cartCount');
-            if (cartCountElem) {
-                cartCountElem.textContent = count;
-                console.log('Cart count updated:', count);
-            }
+            // Update all cart count elements
+            cartCountElements.forEach(element => {
+                if (element) {
+                    element.textContent = count > 0 ? count : '';
+                    element.style.display = count > 0 ? 'flex' : 'none';
+                }
+            });
+            
+            return count;
+            
         } catch (err) {
-            console.error('Error in updateCartCount:', err);
+            console.error('Error updating cart count:', err);
+            // In case of any error, ensure cart count is hidden
+            const elements = document.querySelectorAll('.cart-count');
+            elements.forEach(element => {
+                if (element) {
+                    element.style.display = 'none';
+                }
+            });
+            return 0;
         }
     }
     // Initialize cart count on page load and when authentication state changes
