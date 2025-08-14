@@ -1,3 +1,21 @@
+// Fetch menu item details
+async function fetchMenuItem(menuItemId, itemType) {
+    try {
+        let url = `https://aticas-backend.onrender.com/api/`;
+        url += itemType === 'MealOfDay' ? 'mealsofday' : 'menuitems';
+        url += `/${menuItemId}`;
+        
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Failed to fetch menu item');
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching menu item:', error);
+        return null;
+    }
+}
+
 // Helper to get userId and token
 function getUserId() {
     return localStorage.getItem('userId');
@@ -5,6 +23,18 @@ function getUserId() {
 
 function getUserToken() {
     return localStorage.getItem('userToken');
+}
+
+// Function to update cart count in the UI
+function updateCartCount() {
+    const cartCountElements = document.querySelectorAll('.cart-count');
+    const cart = getGuestCart();
+    const count = cart && cart.items ? cart.items.reduce((total, item) => total + item.quantity, 0) : 0;
+    
+    cartCountElements.forEach(element => {
+        element.textContent = count;
+        element.style.display = count > 0 ? 'flex' : 'none';
+    });
 }
 
 // Cafe coordinates (JKUAT area)
@@ -117,6 +147,8 @@ async function updateCartItem(menuItemId, quantity, itemType, selectedSize = nul
     } else {
         // Guest: update localStorage cart
         let cart = getGuestCart();
+        if (!cart.items) cart.items = [];
+        
         const idx = cart.items.findIndex(i => 
             i.menuItem._id === menuItemId && 
             i.itemType === itemType &&
@@ -128,6 +160,18 @@ async function updateCartItem(menuItemId, quantity, itemType, selectedSize = nul
                 cart.items.splice(idx, 1);
             } else {
                 cart.items[idx].quantity = quantity;
+            }
+        } else if (quantity > 0) {
+            // Add new item to cart if it doesn't exist
+            const menuItem = await fetchMenuItem(menuItemId, itemType);
+            if (menuItem) {
+                cart.items.push({
+                    menuItem,
+                    quantity,
+                    itemType,
+                    selectedSize,
+                    effectivePrice: selectedSize ? selectedSize.price : menuItem.price
+                });
             }
         }
         
@@ -815,6 +859,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Initialize cart count on page load
+    updateCartCount();
+    
     // Call displayCartItems after DOMContentLoaded setup
     displayCartItems();
 });
