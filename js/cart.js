@@ -87,15 +87,26 @@ async function fetchCart() {
 async function updateCartItem(menuItemId, quantity, itemType, selectedSize = null) {
     const userId = getUserId();
     const token = getUserToken();
-    if (userId && token) {
-        try {
-            await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': token },
-                body: JSON.stringify({ menuItemId, quantity, itemType, selectedSize })
-            });
+     if (userId && token) {
+    try {
+      await fetch(`/api/cart/${userId}/items`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': token 
+        },
+        body: JSON.stringify({ 
+          menuItemId, 
+          quantity: newQuantity, // Send FINAL quantity
+          itemType,
+          selectedSize 
+        })
+      });
+            if (!response.ok) throw new Error('Failed to update cart item');
+            return await response.json();
         } catch (err) {
             console.error('Error updating cart item:', err);
+            throw err;
         }
     } else {
         // Guest: update localStorage cart
@@ -113,6 +124,7 @@ async function updateCartItem(menuItemId, quantity, itemType, selectedSize = nul
             }
         }
         setGuestCart(cart);
+        return cart;
     }
 }
 
@@ -123,21 +135,27 @@ async function removeCartItem(menuItemId, itemType, selectedSize = null) {
 
     if (userId && token) {
         try {
-            let url = `https://aticas-backend.onrender.com/api/cart/${userId}/items/${itemType}/${menuItemId}`;
+            let url = `https://aticas-backend.onrender.com/api/cart/${userId}/items/${menuItemId}`;
             
-            // Add selectedSize to query parameters if it exists
+            const params = new URLSearchParams();
+            params.append('itemType', itemType);
             if (selectedSize) {
-                const urlWithParams = new URL(url);
-                urlWithParams.searchParams.set('size', JSON.stringify(selectedSize));
-                url = urlWithParams.toString();
+                params.append('size', selectedSize.size);
             }
             
-            await fetch(url, {
+            const response = await fetch(`${url}?${params.toString()}`, {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json', 'Authorization': token }
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': token 
+                }
             });
+            
+            if (!response.ok) throw new Error('Failed to remove cart item');
+            return await response.json();
         } catch (err) {
             console.error('Error removing cart item:', err);
+            throw err;
         }
     } else {
         let cart = getGuestCart();
@@ -147,6 +165,7 @@ async function removeCartItem(menuItemId, itemType, selectedSize = null) {
               (selectedSize ? i.selectedSize && i.selectedSize.size === selectedSize.size : !i.selectedSize))
         );
         setGuestCart(cart);
+        return cart;
     }
 }
 
@@ -154,21 +173,19 @@ async function removeCartItem(menuItemId, itemType, selectedSize = null) {
 async function clearCart() {
     const userId = getUserId();
     const token = getUserToken();
-    console.log('[clearCart] Called. userId:', userId, 'token:', token);
+    
     if (userId && token) {
         try {
             const res = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': token }
             });
-            console.log('[clearCart] Backend DELETE response:', res.status, await res.text());
+            console.log('Backend DELETE response:', res.status, await res.text());
         } catch (err) {
-            console.error('[clearCart] Error clearing cart:', err);
+            console.error('Error clearing cart:', err);
         }
     } else {
-        console.log('[clearCart] Guest cart. Clearing localStorage.');
         setGuestCart({ items: [] });
-        console.log('[clearCart] guestCart after clear:', localStorage.getItem('guestCart'));
     }
 }
 
@@ -314,71 +331,52 @@ async function displayCartItems() {
 }
 
 // Initialize button handlers
-function initButtonHandlers() {
-    // Handle quantity and remove buttons
+async function initButtonHandlers() {
     cartContainer.addEventListener('click', async function(e) {
-        const target = e.target;
-        const button = target.closest('.quantity-btn') || target.closest('.remove-btn');
-        
+        const button = e.target.closest('.quantity-btn') || e.target.closest('.remove-btn');
         if (!button) return;
 
         const itemId = button.dataset.id;
         const itemType = button.dataset.type;
         const itemSize = button.dataset.size ? JSON.parse(button.dataset.size) : null;
+        const selectedSize = itemSize ? { size: itemSize } : null;
 
-        // Show loading overlay immediately
-        showLoadingOverlay();
+        const item = cart.items.find(i => 
+            String(i.menuItem._id) === itemId && 
+            i.itemType === itemType &&
+            (
+                (itemSize && i.selectedSize?.size === itemSize) ||
+                (!itemSize && !i.selectedSize)
+            )
+        );
 
+        if (!item) return;
+
+        const loadingOverlay = showLoadingOverlay();
+        
         try {
-            // Find the exact item in the cart
-            const item = cart.items.find(i => 
-                String(i.menuItem._id) === String(itemId) && 
-                i.itemType === itemType &&
-                ((itemSize && i.selectedSize && i.selectedSize.size === itemSize) || 
-                 (!itemSize && !i.selectedSize))
-            );
-
-            if (!item) {
-                showMpesaToast('Item not found in cart', '#e74c3c');
-                return;
-            }
-
             if (button.classList.contains('remove-btn')) {
-                // Remove item completely
-                await removeCartItem(itemId, itemType, item.selectedSize || null);
+                await removeCartItem(itemId, itemType, selectedSize);
             } 
             else if (button.classList.contains('minus')) {
-                // Decrease quantity
                 const newQty = item.quantity - 1;
-                if (newQty > 0) {
-                    await updateCartItem(itemId, newQty, itemType, item.selectedSize || null);
-                } else {
-                    await removeCartItem(itemId, itemType, item.selectedSize || null);
-                }
+                await updateCartItem(itemId, newQty, itemType, selectedSize);
             } 
             else if (button.classList.contains('plus')) {
-                // Increase quantity
-                await updateCartItem(itemId, item.quantity + 1, itemType, item.selectedSize || null);
+                await updateCartItem(itemId, item.quantity + 1, itemType, selectedSize);
             }
             
-            // Refresh cart display
+            cart = await fetchCart();
             await displayCartItems();
-            
-            // Update cart count
-            if (window.updateCartCount) {
-                await window.updateCartCount();
-            }
+            if (window.updateCartCount) window.updateCartCount();
         } catch (error) {
-            console.error('Error handling button click:', error);
+            console.error('Error:', error);
             showMpesaToast('Failed to update cart. Please try again.', '#e74c3c');
         } finally {
             hideLoadingOverlay();
         }
     });
 }
-
-// [Rest of the code remains the same]
-
     function updateCartSummary() {
         if (!cartSummary || !document.getElementById('subtotal') || !document.getElementById('total')) return;
         
