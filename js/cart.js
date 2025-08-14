@@ -99,7 +99,7 @@ async function updateCartItem(menuItemId, quantity, itemType, selectedSize = nul
           menuItemId, 
           quantity, // Send FINAL quantity
           itemType,
-          selectedSize 
+          selectedSize: selectedSize || undefined
         })
       });
            if (!response.ok) {
