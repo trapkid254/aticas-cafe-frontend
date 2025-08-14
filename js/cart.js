@@ -93,7 +93,7 @@ async function updateCartItem(menuItemId, quantity, itemType, selectedSize = nul
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json', 
-          'Authorization': 'Bearer ${token}' 
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ 
           menuItemId, 
@@ -151,7 +151,7 @@ async function removeCartItem(menuItemId, itemType, selectedSize = null) {
                 method: 'DELETE',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ${token}' 
+                    'Authorization': `Bearer ${token}` 
                 }
             });
             
