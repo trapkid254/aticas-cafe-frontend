@@ -44,216 +44,7 @@ function setGuestCart(cart) {
     localStorage.setItem('guestCart', JSON.stringify(cart));
 }
 
-// Fetch cart (backend for logged-in, loca// ...existing code...
-
-// --- CHANGES: Use size string everywhere for selectedSize ---
-
-// Update or add item in cart
-async function updateCartItem(menuItemId, quantity, itemType, selectedSize = null) {
-    const userId = getUserId();
-    const token = getUserToken();
-    if (userId && token) {
-        try {
-            const response = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items`, {
-                method: 'PATCH',
-                headers: { 
-                    'Content-Type': 'application/json', 
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ 
-                    menuItemId, 
-                    quantity, // Send FINAL quantity
-                    itemType,
-                    selectedSize: selectedSize && selectedSize.size ? selectedSize.size : undefined // send string
-                })
-            });
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to update cart item');
-            }
-            return await response.json();
-        } catch (err) {
-            console.error('Error updating cart item:', err);
-            throw err;
-        }
-    } else {
-        // Guest: update localStorage cart
-        let cart = getGuestCart();
-        const idx = cart.items.findIndex(i => 
-            i.menuItem._id === menuItemId && 
-            i.itemType === itemType &&
-            ((selectedSize && i.selectedSize && i.selectedSize.size === selectedSize.size) || (!selectedSize && !i.selectedSize))
-        );
-        if (idx > -1) {
-            if (quantity < 1) {
-                cart.items.splice(idx, 1);
-            } else {
-                cart.items[idx].quantity = quantity;
-            }
-        }
-        setGuestCart(cart);
-        return cart;
-    }
-}
-
-// Remove item from cart
-async function removeCartItem(menuItemId, itemType, selectedSize = null) {
-    const userId = getUserId();
-    const token = getUserToken();
-
-    if (userId && token) {
-        try {
-            let url = `https://aticas-backend.onrender.com/api/cart/${userId}/items/${menuItemId}`;
-            const params = new URLSearchParams();
-            params.append('itemType', itemType);
-            if (selectedSize && selectedSize.size) {
-                params.append('size', selectedSize.size); // send string
-            }
-            const response = await fetch(`${url}?${params.toString()}`, {
-                method: 'DELETE',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` 
-                }
-            });
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to remove cart item');
-            }
-            return await response.json();
-        } catch (err) {
-            console.error('Error removing cart item:', err);
-            throw new Error(err.message || 'Failed to remove cart item');
-        }
-    } else {
-        let cart = getGuestCart();
-        cart.items = cart.items.filter(i => 
-            !(i.menuItem._id === menuItemId && 
-              i.itemType === itemType &&
-              ((selectedSize && i.selectedSize && i.selectedSize.size === selectedSize.size) || (!selectedSize && !i.selectedSize)))
-        );
-        setGuestCart(cart);
-        return cart;
-    }
-}
-
-// ...existing code...
-
-async function displayCartItems() {
-    cart = await fetchCart();
-    console.log('Full cart data:', JSON.parse(JSON.stringify(cart)));
-    
-    if (!cart || !cart.items || cart.items.length === 0) {
-        cartContainer.innerHTML = `
-            <div class="empty-cart" style="text-align: center; padding: 3rem 0;">
-                <i class="fas fa-shopping-cart" style="font-size: 4rem; color: #ccc; margin-bottom: 1.5rem;"></i>
-                <p style="font-size: 1.2rem; color: #555; margin-bottom: 2rem;">Your cart is empty</p>
-                <a href="menu.html" class="menu-btn">View Menu</a>
-            </div>
-        `;
-        cartSummary.style.display = 'none';
-        return;
-    }
-
-    // Create a new container to replace the old one (helps with event listeners)
-    const newContainer = document.createElement('div');
-    newContainer.id = 'cartContainer';
-    newContainer.className = cartContainer.className;
-    cartContainer.parentNode.replaceChild(newContainer, cartContainer);
-    cartContainer = newContainer;
-
-    cart.items.forEach(item => {
-        const menuItem = item.menuItem;
-        if (!menuItem || !menuItem._id) {
-            console.warn('Invalid menu item:', item);
-            return;
-        }
-
-        const selectedSize = item.selectedSize;
-        const image = menuItem.image || 'images/varied menu.jpeg';
-        const name = selectedSize ? `${menuItem.name} (${selectedSize.size})` : menuItem.name;
-        const price = item.effectivePrice || 
-                     (selectedSize ? selectedSize.price : menuItem.price) || 0;
-        const id = menuItem._id;
-        const itemType = item.itemType || (menuItem.category ? 'Menu' : 'MealOfDay');
-
-        // --- CHANGED: data-size is now a string, not JSON ---
-        cartItem = document.createElement('div');
-        cartItem.className = 'cart-item';
-        cartItem.innerHTML = `
-            <img src="${image}" alt="${name}">
-            <div class="cart-item-details">
-                <h3>${name}</h3>
-                <span class="price">Ksh ${(price * item.quantity).toLocaleString()}</span>
-                <div class="quantity-controls">
-                    <button class="quantity-btn minus" data-id="${id}" data-type="${itemType}" 
-                        data-size='${selectedSize ? selectedSize.size : ''}'>-</button>
-                    <span class="quantity">${item.quantity}</span>
-                    <button class="quantity-btn plus" data-id="${id}" data-type="${itemType}" 
-                        data-size='${selectedSize ? selectedSize.size : ''}'>+</button>
-                </div>
-            </div>
-            <button class="remove-btn" data-id="${id}" data-type="${itemType}" 
-                data-size='${selectedSize ? selectedSize.size : ''}'>
-                <i class="fas fa-trash"></i>
-            </button>
-        `;
-        cartContainer.appendChild(cartItem);
-    });
-
-    // Initialize button handlers after cart is rendered
-    initButtonHandlers();
-    updateCartSummary();
-}
-
-// Initialize button handlers
-async function initButtonHandlers() {
-    cartContainer.addEventListener('click', async function(e) {
-        const button = e.target.closest('.quantity-btn') || e.target.closest('.remove-btn');
-        if (!button) return;
-
-        const itemId = button.dataset.id;
-        const itemType = button.dataset.type;
-        // --- CHANGED: data-size is a string, not JSON ---
-        const itemSize = button.dataset.size || null;
-        const selectedSize = itemSize ? { size: itemSize } : null;
-
-        const item = cart.items.find(i => 
-            String(i.menuItem._id) === itemId && 
-            i.itemType === itemType &&
-            (
-                (itemSize && i.selectedSize?.size === itemSize) ||
-                (!itemSize && !i.selectedSize)
-            )
-        );
-
-        if (!item) return;
-
-        const loadingOverlay = showLoadingOverlay();
-        
-        try {
-            if (button.classList.contains('remove-btn')) {
-                await removeCartItem(itemId, itemType, selectedSize);
-            } 
-            else if (button.classList.contains('minus')) {
-                const newQty = item.quantity - 1;
-                await updateCartItem(itemId, newQty, itemType, selectedSize);
-            } 
-            else if (button.classList.contains('plus')) {
-                await updateCartItem(itemId, item.quantity + 1, itemType, selectedSize);
-            }
-            
-            cart = await fetchCart();
-            await displayCartItems();
-            if (window.updateCartCount) window.updateCartCount();
-        } catch (error) {
-            console.error('Error:', error);
-            showMpesaToast('Failed to update cart. Please try again.', '#e74c3c');
-        } finally {
-            hideLoadingOverlay();
-        }
-    });
-}
+// Fetch cart (backend for logged-in, local for guest)
 async function fetchCart() {
     const userId = getUserId();
     const token = getUserToken();
@@ -296,22 +87,24 @@ async function fetchCart() {
 async function updateCartItem(menuItemId, quantity, itemType, selectedSize = null) {
     const userId = getUserId();
     const token = getUserToken();
-     if (userId && token) {
-    try {
-        const response = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items`, {
-        method: 'PATCH',
-        headers: { 
-          'Content-Type': 'application/json', 
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ 
-          menuItemId, 
-          quantity, // Send FINAL quantity
-          itemType,
-          selectedSize: selectedSize || undefined
-        })
-      });
-           if (!response.ok) {
+    
+    if (userId && token) {
+        try {
+            const response = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items`, {
+                method: 'PATCH',
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ 
+                    menuItemId, 
+                    quantity,
+                    itemType,
+                    selectedSize: selectedSize ? selectedSize.size : undefined // Always send as string
+                })
+            });
+            
+            if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Failed to update cart item');
             }
@@ -327,8 +120,9 @@ async function updateCartItem(menuItemId, quantity, itemType, selectedSize = nul
         const idx = cart.items.findIndex(i => 
             i.menuItem._id === menuItemId && 
             i.itemType === itemType &&
-            (selectedSize ? i.selectedSize && i.selectedSize.size === selectedSize.size : !i.selectedSize)
+            ((selectedSize && i.selectedSize && i.selectedSize.size === selectedSize.size) || (!selectedSize && !i.selectedSize))
         );
+        
         if (idx > -1) {
             if (quantity < 1) {
                 cart.items.splice(idx, 1);
@@ -336,6 +130,7 @@ async function updateCartItem(menuItemId, quantity, itemType, selectedSize = nul
                 cart.items[idx].quantity = quantity;
             }
         }
+        
         setGuestCart(cart);
         return cart;
     }
@@ -349,11 +144,11 @@ async function removeCartItem(menuItemId, itemType, selectedSize = null) {
     if (userId && token) {
         try {
             let url = `https://aticas-backend.onrender.com/api/cart/${userId}/items/${menuItemId}`;
-            
             const params = new URLSearchParams();
             params.append('itemType', itemType);
-            if (selectedSize) {
-                params.append('size', selectedSize.size);
+            
+            if (selectedSize && selectedSize.size) {
+                params.append('size', selectedSize.size); // Always send as plain string
             }
             
             const response = await fetch(`${url}?${params.toString()}`, {
@@ -379,7 +174,7 @@ async function removeCartItem(menuItemId, itemType, selectedSize = null) {
         cart.items = cart.items.filter(i => 
             !(i.menuItem._id === menuItemId && 
               i.itemType === itemType &&
-              (selectedSize ? i.selectedSize && i.selectedSize.size === selectedSize.size : !i.selectedSize))
+              ((selectedSize && i.selectedSize && i.selectedSize.size === selectedSize.size) || (!selectedSize && !i.selectedSize)))
         );
         setGuestCart(cart);
         return cart;
@@ -479,121 +274,124 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-// [Previous helper functions remain the same until the displayCartItems function]
-
-async function displayCartItems() {
-    cart = await fetchCart();
-    console.log('Full cart data:', JSON.parse(JSON.stringify(cart)));
-    
-    if (!cart || !cart.items || cart.items.length === 0) {
-        cartContainer.innerHTML = `
-            <div class="empty-cart" style="text-align: center; padding: 3rem 0;">
-                <i class="fas fa-shopping-cart" style="font-size: 4rem; color: #ccc; margin-bottom: 1.5rem;"></i>
-                <p style="font-size: 1.2rem; color: #555; margin-bottom: 2rem;">Your cart is empty</p>
-                <a href="menu.html" class="menu-btn">View Menu</a>
-            </div>
-        `;
-        cartSummary.style.display = 'none';
-        return;
-    }
-
-    // Create a new container to replace the old one (helps with event listeners)
-    const newContainer = document.createElement('div');
-    newContainer.id = 'cartContainer';
-    newContainer.className = cartContainer.className;
-    cartContainer.parentNode.replaceChild(newContainer, cartContainer);
-    cartContainer = newContainer;
-
-    cart.items.forEach(item => {
-        const menuItem = item.menuItem;
-        if (!menuItem || !menuItem._id) {
-            console.warn('Invalid menu item:', item);
+    async function displayCartItems() {
+        cart = await fetchCart();
+        console.log('Full cart data:', JSON.parse(JSON.stringify(cart)));
+        
+        if (!cart || !cart.items || cart.items.length === 0) {
+            cartContainer.innerHTML = `
+                <div class="empty-cart" style="text-align: center; padding: 3rem 0;">
+                    <i class="fas fa-shopping-cart" style="font-size: 4rem; color: #ccc; margin-bottom: 1.5rem;"></i>
+                    <p style="font-size: 1.2rem; color: #555; margin-bottom: 2rem;">Your cart is empty</p>
+                    <a href="menu.html" class="menu-btn">View Menu</a>
+                </div>
+            `;
+            cartSummary.style.display = 'none';
             return;
         }
 
-        const selectedSize = item.selectedSize;
-        const image = menuItem.image || 'images/varied menu.jpeg';
-        const name = selectedSize ? `${menuItem.name} (${selectedSize.size})` : menuItem.name;
-        const price = item.effectivePrice || 
-                     (selectedSize ? selectedSize.price : menuItem.price) || 0;
-        const id = menuItem._id;
-        const itemType = item.itemType || (menuItem.category ? 'Menu' : 'MealOfDay');
+        // Create a new container to replace the old one (helps with event listeners)
+        const newContainer = document.createElement('div');
+        newContainer.id = 'cartContainer';
+        newContainer.className = cartContainer.className;
+        cartContainer.parentNode.replaceChild(newContainer, cartContainer);
+        cartContainer = newContainer;
 
-        const cartItem = document.createElement('div');
-        cartItem.className = 'cart-item';
-        cartItem.innerHTML = `
-            <img src="${image}" alt="${name}">
-            <div class="cart-item-details">
-                <h3>${name}</h3>
-                <span class="price">Ksh ${(price * item.quantity).toLocaleString()}</span>
-                <div class="quantity-controls">
-                    <button class="quantity-btn minus" data-id="${id}" data-type="${itemType}" 
-                        data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>-</button>
-                    <span class="quantity">${item.quantity}</span>
-                    <button class="quantity-btn plus" data-id="${id}" data-type="${itemType}" 
-                        data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>+</button>
-                </div>
-            </div>
-            <button class="remove-btn" data-id="${id}" data-type="${itemType}" 
-                data-size='${selectedSize ? JSON.stringify(selectedSize.size) : ''}'>
-                <i class="fas fa-trash"></i>
-            </button>
-        `;
-        cartContainer.appendChild(cartItem);
-    });
-
-    // Initialize button handlers after cart is rendered
-    initButtonHandlers();
-    updateCartSummary();
-}
-
-// Initialize button handlers
-async function initButtonHandlers() {
-    cartContainer.addEventListener('click', async function(e) {
-        const button = e.target.closest('.quantity-btn') || e.target.closest('.remove-btn');
-        if (!button) return;
-
-        const itemId = button.dataset.id;
-        const itemType = button.dataset.type;
-        const itemSize = button.dataset.size ? JSON.parse(button.dataset.size) : null;
-        const selectedSize = itemSize ? { size: itemSize } : null;
-
-        const item = cart.items.find(i => 
-            String(i.menuItem._id) === itemId && 
-            i.itemType === itemType &&
-            (
-                (itemSize && i.selectedSize?.size === itemSize) ||
-                (!itemSize && !i.selectedSize)
-            )
-        );
-
-        if (!item) return;
-
-        const loadingOverlay = showLoadingOverlay();
-        
-        try {
-            if (button.classList.contains('remove-btn')) {
-                await removeCartItem(itemId, itemType, selectedSize);
-            } 
-            else if (button.classList.contains('minus')) {
-                const newQty = item.quantity - 1;
-                await updateCartItem(itemId, newQty, itemType, selectedSize);
-            } 
-            else if (button.classList.contains('plus')) {
-                await updateCartItem(itemId, item.quantity + 1, itemType, selectedSize);
+        cart.items.forEach(item => {
+            const menuItem = item.menuItem;
+            if (!menuItem || !menuItem._id) {
+                console.warn('Invalid menu item:', item);
+                return;
             }
+
+            const selectedSize = item.selectedSize;
+            const image = menuItem.image || 'images/varied menu.jpeg';
+            const name = selectedSize ? `${menuItem.name} (${selectedSize.size})` : menuItem.name;
+            const price = item.effectivePrice || 
+                         (selectedSize ? selectedSize.price : menuItem.price) || 0;
+            const id = menuItem._id;
+            const itemType = item.itemType || (menuItem.category ? 'Menu' : 'MealOfDay');
+
+            const cartItem = document.createElement('div');
+            cartItem.className = 'cart-item';
+            cartItem.innerHTML = `
+                <img src="${image}" alt="${name}">
+                <div class="cart-item-details">
+                    <h3>${name}</h3>
+                    <span class="price">Ksh ${(price * item.quantity).toLocaleString()}</span>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn minus" data-id="${id}" data-type="${itemType}" 
+                            data-size="${selectedSize ? selectedSize.size : ''}">-</button>
+                        <span class="quantity">${item.quantity}</span>
+                        <button class="quantity-btn plus" data-id="${id}" data-type="${itemType}" 
+                            data-size="${selectedSize ? selectedSize.size : ''}">+</button>
+                    </div>
+                </div>
+                <button class="remove-btn" data-id="${id}" data-type="${itemType}" 
+                    data-size="${selectedSize ? selectedSize.size : ''}">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            cartContainer.appendChild(cartItem);
+        });
+
+        // Initialize button handlers after cart is rendered
+        initButtonHandlers();
+        updateCartSummary();
+    }
+
+    // Initialize button handlers
+    async function initButtonHandlers() {
+        cartContainer.addEventListener('click', async function(e) {
+            const button = e.target.closest('.quantity-btn') || e.target.closest('.remove-btn');
+            if (!button) return;
+
+            const itemId = button.dataset.id;
+            const itemType = button.dataset.type;
+            const itemSize = button.dataset.size || null;
+            const selectedSize = itemSize ? { size: itemSize } : null;
+
+            const item = cart.items.find(i => 
+                String(i.menuItem._id) === itemId && 
+                i.itemType === itemType &&
+                (
+                    (itemSize && i.selectedSize?.size === itemSize) ||
+                    (!itemSize && !i.selectedSize)
+                )
+            );
+
+            if (!item) return;
+
+            const loadingOverlay = showLoadingOverlay();
             
-            cart = await fetchCart();
-            await displayCartItems();
-            if (window.updateCartCount) window.updateCartCount();
-        } catch (error) {
-            console.error('Error:', error);
-            showMpesaToast('Failed to update cart. Please try again.', '#e74c3c');
-        } finally {
-            hideLoadingOverlay();
-        }
-    });
-}
+            try {
+                if (button.classList.contains('remove-btn')) {
+                    await removeCartItem(itemId, itemType, selectedSize);
+                } 
+                else if (button.classList.contains('minus')) {
+                    const newQty = item.quantity - 1;
+                    if (newQty < 1) {
+                        await removeCartItem(itemId, itemType, selectedSize);
+                    } else {
+                        await updateCartItem(itemId, newQty, itemType, selectedSize);
+                    }
+                } 
+                else if (button.classList.contains('plus')) {
+                    await updateCartItem(itemId, item.quantity + 1, itemType, selectedSize);
+                }
+                
+                cart = await fetchCart();
+                await displayCartItems();
+                if (window.updateCartCount) window.updateCartCount();
+            } catch (error) {
+                console.error('Error:', error);
+                showMpesaToast('Failed to update cart. Please try again.', '#e74c3c');
+            } finally {
+                hideLoadingOverlay();
+            }
+        });
+    }
+
     function updateCartSummary() {
         if (!cartSummary || !document.getElementById('subtotal') || !document.getElementById('total')) return;
         
@@ -1017,6 +815,6 @@ async function initButtonHandlers() {
         }
     });
 
-// Call displayCartItems after DOMContentLoaded setup
+    // Call displayCartItems after DOMContentLoaded setup
     displayCartItems();
 });
