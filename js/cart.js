@@ -90,14 +90,14 @@ async function updateCartItem(menuItemId, quantity, itemType, selectedSize = nul
      if (userId && token) {
     try {
       await fetch(`/api/cart/${userId}/items`, {
-        method: 'POST',
+        method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json', 
           'Authorization': token 
         },
         body: JSON.stringify({ 
           menuItemId, 
-          quantity: newQuantity, // Send FINAL quantity
+          quantity, // Send FINAL quantity
           itemType,
           selectedSize 
         })
