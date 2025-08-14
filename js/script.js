@@ -80,29 +80,62 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    async function addToCart(itemOrId, quantity = 1) {
+    async function addToCart(itemOrId, quantity = 1, selectedSize = null) {
         const userId = getUserIdFromToken();
-        const userToken = localStorage.getItem('userToken'); // Get token
-        if (userId && userToken) { // Check for both userId and token
-            // Logged in: send to backend
-            const menuItem = typeof itemOrId === 'object' ? itemOrId : null;
-            const menuItemId = menuItem ? menuItem._id : itemOrId;
-            const itemType = menuItem ? (menuItem.category ? 'Menu' : 'MealOfDay') : 'Menu';
+        const userToken = localStorage.getItem('userToken');
+        
+        const menuItem = typeof itemOrId === 'object' ? itemOrId : null;
+        const menuItemId = menuItem ? menuItem._id : itemOrId;
+        const itemType = menuItem ? (menuItem.category ? 'Menu' : 'MealOfDay') : 'Menu';
+        
+        if (userId && userToken) {
             try {
-                const response = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': userToken || '' },
-                    body: JSON.stringify({ menuItemId, quantity, itemType })
+                // First check if the item already exists in the cart
+                const cartResponse = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
+                    headers: { 'Authorization': `Bearer ${userToken}` }
                 });
                 
-                if (response.ok) {
-                    // Update cart count after successful addition
-                    await updateCartCount();
+                if (cartResponse.ok) {
+                    const cart = await cartResponse.json();
+                    const existingItem = cart.items?.find(item => 
+                        item.menuItem._id === menuItemId && 
+                        item.itemType === itemType &&
+                        ((selectedSize && item.selectedSize?.size === selectedSize.size) || (!selectedSize && !item.selectedSize))
+                    );
+                    
+                    const newQuantity = existingItem ? existingItem.quantity + quantity : quantity;
+                    
+                    // Use PATCH to update existing item or add new one
+                    const response = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items`, {
+                        method: 'PATCH',
+                        headers: { 
+                            'Content-Type': 'application/json', 
+                            'Authorization': `Bearer ${userToken}`
+                        },
+                        body: JSON.stringify({ 
+                            menuItemId, 
+                            quantity: newQuantity, 
+                            itemType,
+                            selectedSize: selectedSize ? selectedSize.size : undefined
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        // Update cart count after successful addition
+                        await updateCartCount();
+                        showToast('Item added to cart!');
+                    } else {
+                        const errorData = await response.json().catch(() => ({}));
+                        console.error('Failed to add item to cart:', response.status, errorData);
+                        showToast('Failed to add item to cart', 'error');
+                    }
                 } else {
-                    console.error('Failed to add item to cart:', response.status);
+                    console.error('Failed to fetch cart:', cartResponse.status);
+                    showToast('Failed to update cart', 'error');
                 }
             } catch (err) {
                 console.error('Error adding to cart:', err);
+                showToast('Error adding to cart', 'error');
             }
         } else {
             // Guest: update localStorage cart
@@ -188,8 +221,28 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error in updateCartCount:', err);
         }
     }
+    // Initialize cart count on page load and when authentication state changes
+    function initializeCart() {
+        updateCartCount();
+        // Also update cart count when auth state changes
+        const originalSetItem = localStorage.setItem;
+        localStorage.setItem = function(key, value) {
+            originalSetItem.apply(this, arguments);
+            if (key === 'userToken' || key === 'userId') {
+                updateCartCount();
+            }
+        };
+    }
+    
     window.updateCartCount = updateCartCount;
-    document.addEventListener('DOMContentLoaded', updateCartCount);
+    window.initializeCart = initializeCart;
+    
+    // Initialize cart when DOM is loaded and when script is loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeCart);
+    } else {
+        initializeCart();
+    }
 
     // Refactor renderMealsOfDayHomepage to use addToCart API
     async function renderMealsOfDayHomepage() {
