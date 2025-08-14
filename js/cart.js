@@ -93,7 +93,7 @@ async function updateCartItem(menuItemId, quantity, itemType, selectedSize = nul
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json', 
-          'Authorization': token 
+          'Authorization': 'Bearer ${token}' 
         },
         body: JSON.stringify({ 
           menuItemId, 
