@@ -89,7 +89,7 @@ async function updateCartItem(menuItemId, quantity, itemType, selectedSize = nul
     const token = getUserToken();
      if (userId && token) {
     try {
-      await fetch(`/api/cart/${userId}/items`, {
+        const response = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items`, {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json', 
@@ -102,7 +102,11 @@ async function updateCartItem(menuItemId, quantity, itemType, selectedSize = nul
           selectedSize 
         })
       });
-            if (!response.ok) throw new Error('Failed to update cart item');
+           if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to update cart item');
+            }
+            
             return await response.json();
         } catch (err) {
             console.error('Error updating cart item:', err);
@@ -147,15 +151,19 @@ async function removeCartItem(menuItemId, itemType, selectedSize = null) {
                 method: 'DELETE',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Authorization': token 
+                    'Authorization': 'Bearer ${token}' 
                 }
             });
             
-            if (!response.ok) throw new Error('Failed to remove cart item');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to remove cart item');
+            }
+            
             return await response.json();
         } catch (err) {
             console.error('Error removing cart item:', err);
-            throw err;
+            throw new Error(err.message || 'Failed to remove cart item');
         }
     } else {
         let cart = getGuestCart();
