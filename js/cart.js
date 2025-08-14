@@ -53,6 +53,9 @@ async function fetchCart() {
     if (userId && token) {
         try {
             const res = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`);
+            {
+                headers: { 'Authorization': token, 'Content-Type': 'application/json' } 
+            }
             if (!res.ok) throw new Error('Failed to fetch cart');
             const cart = await res.json();
             
