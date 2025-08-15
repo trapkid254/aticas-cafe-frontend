@@ -2,7 +2,7 @@
 async function fetchMenuItem(menuItemId, itemType) {
     try {
         let url = `https://aticas-backend.onrender.com/api/`;
-        url += itemType === 'MealOfDay' ? 'mealsofday' : 'menuitems';
+        url += itemType === 'MealOfDay' ? 'meals' : 'menu';
         url += `/${menuItemId}`;
         
         const response = await fetch(url);
@@ -112,7 +112,7 @@ async function fetchCart() {
     if (userId && token) {
         try {
             const res = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
-                headers: { 'Authorization': token, 'Content-Type': 'application/json' } 
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } 
             });
             if (!res.ok) throw new Error('Failed to fetch cart');
             const cart = await res.json();
@@ -149,7 +149,7 @@ async function updateCartItem(menuItemId, quantity, itemType, selectedSize = nul
     
     if (userId && token) {
         try {
-            const response = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items`, {
+            const response = await fetch(`https://aticas-backend.onrender.com/api/cart/items`, {
                 method: 'PATCH',
                 headers: { 
                     'Content-Type': 'application/json', 
@@ -159,7 +159,7 @@ async function updateCartItem(menuItemId, quantity, itemType, selectedSize = nul
                     menuItemId, 
                     quantity,
                     itemType,
-                    selectedSize: selectedSize ? selectedSize.size : undefined // Always send as string
+                    selectedSize: selectedSize || undefined
                 })
             });
             
@@ -216,12 +216,12 @@ async function removeCartItem(menuItemId, itemType, selectedSize = null) {
 
     if (userId && token) {
         try {
-            let url = `https://aticas-backend.onrender.com/api/cart/${userId}/items/${menuItemId}`;
+            let url = `https://aticas-backend.onrender.com/api/cart/items/${menuItemId}`;
             const params = new URLSearchParams();
             params.append('itemType', itemType);
             
             if (selectedSize && selectedSize.size) {
-                params.append('size', selectedSize.size); // Always send as plain string
+                params.append('size', selectedSize.size);
             }
             
             const response = await fetch(`${url}?${params.toString()}`, {
@@ -261,9 +261,9 @@ async function clearCart() {
     
     if (userId && token) {
         try {
-            const res = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
+            const res = await fetch(`https://aticas-backend.onrender.com/api/cart`, {
                 method: 'DELETE',
-                headers: { 'Authorization': token }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
             console.log('Backend DELETE response:', res.status, await res.text());
         } catch (err) {
@@ -894,3 +894,4 @@ document.addEventListener('DOMContentLoaded', function() {
     // Call displayCartItems after DOMContentLoaded setup
     displayCartItems();
 });
+
