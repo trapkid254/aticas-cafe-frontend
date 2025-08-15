@@ -40,35 +40,40 @@ document.addEventListener('DOMContentLoaded', function() {
             const res = await fetch('https://aticas-backend.onrender.com/api/menu', {
                 headers: { 'Authorization': getCurrentAdminToken() }
             });
-            menuItems = await res.json();
+            const data = await res.json();
+            menuItems = Array.isArray(data) ? data : data.data || [];
             renderMenuMeals();
         } catch (err) {
+            console.error('Failed to load menu meals:', err);
             menuMealsList.innerHTML = '<p style="color:#888;">Failed to load menu meals.</p>';
         }
     }
+
     // Fetch meals of the day from API
     async function fetchMealsOfDay() {
         try {
             const res = await fetch('https://aticas-backend.onrender.com/api/meals', {
                 headers: { 'Authorization': getCurrentAdminToken() }
             });
-            mealsOfDay = await res.json();
+            const data = await res.json();
+            mealsOfDay = Array.isArray(data) ? data : data.data || [];
             renderMealsOfDay();
         } catch (err) {
+            console.error('Failed to load meals of the day:', err);
             mealsOfDayList.innerHTML = '<p style="color:#888;">Failed to load meals of the day.</p>';
         }
     }
+
     // Render Meals of the Day
     function renderMealsOfDay() {
         if (!mealsOfDay.length) {
             mealsOfDayList.innerHTML = '<p style="color:#888;">No meals of the day set.</p>';
             return;
         }
-        // Only show butchery items
-        const filteredMealsOfDay = mealsOfDay.filter(meal => meal.type === 'butchery');
+        
         mealsOfDayList.innerHTML = '<div class="recent-orders"><table><thead><tr><th>Image</th><th>Name</th><th>Price</th><th>Quantity</th><th>Action</th></tr></thead><tbody>' +
-            filteredMealsOfDay.map(meal => {
-                const item = meal.menuItem || meal; // Use menuItem if it exists, otherwise use meal
+            mealsOfDay.map(meal => {
+                const item = meal.menuItem || meal;
                 const imageSrc = item.image && item.image.trim() ? item.image : 'https://via.placeholder.com/120x90?text=No+Image';
                 
                 let priceDisplay = `Ksh ${Number(item.price).toLocaleString()}`;
@@ -90,16 +95,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
             }).join('') + '</tbody></table></div>';
     }
+
     // Render Menu Meals
     function renderMenuMeals() {
         if (!menuItems.length) {
             menuMealsList.innerHTML = '<p style="color:#888;">No menu meals added yet.</p>';
             return;
         }
-        // Only show butchery items
-        const filteredMenuItems = menuItems.filter(meal => meal.type === 'butchery');
+
         const menuMealsListHTML = '<div class="recent-orders"><table><thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Quantity</th><th>Action</th></tr></thead><tbody>' +
-            filteredMenuItems.map(meal => {
+            menuItems.map(meal => {
                 let priceDisplay = `Ksh ${Number(meal.price).toLocaleString()}`;
                 if (meal.priceOptions && meal.priceOptions.length > 0) {
                     priceDisplay = meal.priceOptions.map(p => `${p.size}: Ksh ${Number(p.price).toLocaleString()}`).join('<br>');
@@ -117,10 +122,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button class="action-btn" title="Delete" style="background:#e74c3c;color:#fff;" onclick="removeMenuMeal('${meal._id}')"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
-                `
+                `;
             }).join('') + '</tbody></table></div>';
         menuMealsList.innerHTML = menuMealsListHTML;
     }
+
     // Remove meal from Meals of the Day (by id)
     window.removeMealOfDay = async function(id) {
         try {
@@ -130,9 +136,11 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             fetchMealsOfDay();
         } catch (err) {
+            console.error('Failed to delete meal:', err);
             alert('Failed to delete meal of the day');
         }
     };
+
     // Remove meal from Menu (by id)
     window.removeMenuMeal = async function(id) {
         try {
@@ -141,11 +149,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: { 'Authorization': getCurrentAdminToken() }
             });
             fetchMenuItems();
-            fetchMealsOfDay(); // In case it was also a meal of the day
+            fetchMealsOfDay();
         } catch (err) {
+            console.error('Failed to delete menu meal:', err);
             alert('Failed to delete menu meal');
         }
     };
+
     // Add Meal Modal logic
     if (addMealOfDayBtn) {
         addMealOfDayBtn.onclick = function() {
@@ -158,6 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
             addMealModal.querySelector('.modal-content').style.background = 'yellow';
         };
     }
+
     if (addMenuMealBtn) {
         addMenuMealBtn.onclick = function() {
             addType = 'menu';
@@ -170,16 +181,18 @@ document.addEventListener('DOMContentLoaded', function() {
             addMealModal.querySelector('.modal-content').style.background = 'yellow';
         };
     }
+
     closeModal.onclick = function() {
         addMealModal.style.display = 'none';
         addMealForm.reset();
-        priceOptionsWrapper.innerHTML = ''; // Clear price options on modal close
+        priceOptionsWrapper.innerHTML = '';
     };
+
     window.onclick = function(e) {
         if (e.target === addMealModal) {
             addMealModal.style.display = 'none';
             addMealForm.reset();
-            priceOptionsWrapper.innerHTML = ''; // Clear price options on modal close
+            priceOptionsWrapper.innerHTML = '';
         }
     };
 
@@ -187,7 +200,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderPriceOptions(priceOptions = []) {
         priceOptionsWrapper.innerHTML = '';
         if (priceOptions.length === 0) {
-            // Add a default empty option if none exist
             addPriceOption();
         } else {
             priceOptions.forEach(option => addPriceOption(option));
@@ -238,11 +250,12 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('mealImage').value = '';
         document.getElementById('mealImage').setAttribute('data-existing', meal.image || '');
         
-        renderPriceOptions(meal.priceOptions); // Render existing price options
+        renderPriceOptions(meal.priceOptions);
 
         addMealModal.style.display = 'flex';
         addMealModal.querySelector('.modal-content').style.background = 'yellow';
     };
+
     // Edit meal of the day function
     window.editMealOfDay = function(id) {
         const meal = mealsOfDay.find(m => m._id === id);
@@ -260,11 +273,13 @@ document.addEventListener('DOMContentLoaded', function() {
         addMealModal.style.display = 'flex';
         addMealModal.querySelector('.modal-content').style.background = 'yellow';
     };
+
     // Add Meal Form submit
     addMealForm.onsubmit = async function(e) {
         e.preventDefault();
-        if (isSubmitting) return; // Prevent double submission
+        if (isSubmitting) return;
         isSubmitting = true;
+        
         const imageInput = document.getElementById('mealImage');
         const file = imageInput.files && imageInput.files[0];
         const useExistingImage = imageInput.getAttribute('data-existing') || '';
@@ -281,109 +296,69 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         const processMeal = async (imageData) => {
-            if (addType === 'menu') {
-                // Add new menu meal
-                const meal = {
+            try {
+                let url, method;
+                const baseMeal = {
                     name: document.getElementById('mealName').value,
-                    description: document.getElementById('mealDescription') ? document.getElementById('mealDescription').value : '',
+                    description: document.getElementById('mealDescription')?.value || '',
                     price: parseFloat(document.getElementById('mealPrice').value),
                     image: imageData,
-                    category: mealCategory ? mealCategory.value : '',
-                    quantity: parseInt(mealQuantity.value, 10) || 0,
-                    priceOptions: priceOptions,
-                    type: 'butchery'
+                    priceOptions: priceOptions
                 };
-                await fetch('https://aticas-backend.onrender.com/api/menu', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': getCurrentAdminToken()
-                    },
-                    body: JSON.stringify(meal)
-                });
-                fetchMenuItems();
-                addMealModal.style.display = 'none';
-                addMealForm.reset();
-                addType = 'menu';
-                editId = null;
-                isSubmitting = false;
-            } else if (addType === 'edit') {
-                // Edit menu meal
-                const meal = {
-                    name: document.getElementById('mealName').value,
-                    description: document.getElementById('mealDescription') ? document.getElementById('mealDescription').value : '',
-                    price: parseFloat(document.getElementById('mealPrice').value),
-                    image: imageData,
-                    category: mealCategory ? mealCategory.value : '',
-                    quantity: parseInt(mealQuantity.value, 10) || 0,
-                    priceOptions: priceOptions,
-                    type: 'butchery'
-                };
-                await fetch('https://aticas-backend.onrender.com/api/menu/' + editId, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': getCurrentAdminToken()
-                    },
-                    body: JSON.stringify(meal)
-                });
-                fetchMenuItems();
-                addMealModal.style.display = 'none';
-                addMealForm.reset();
-                addType = 'menu';
-                editId = null;
-                isSubmitting = false;
-            } else if (addType === 'mod') {
-                // Add to Meals of the Day (standalone)
-                const name = document.getElementById('mealName').value.trim();
-                const price = parseFloat(document.getElementById('mealPrice').value);
-                const image = imageData;
-                const quantity = parseInt(modMealQuantity.value, 10) || 10;
-                if (!name || !price || !image) {
-                    alert('Please fill in all fields for Meal of the Day.');
-                    isSubmitting = false;
-                    return;
+
+                if (addType === 'menu' || addType === 'edit') {
+                    baseMeal.category = mealCategory?.value || '';
+                    baseMeal.quantity = parseInt(mealQuantity.value, 10) || 0;
                 }
-                const meal = { name, price, image, quantity, type: 'butchery' };
-                await fetch('https://aticas-backend.onrender.com/api/meals', {
-                    method: 'POST',
+
+                if (addType === 'menu') {
+                    url = 'https://aticas-backend.onrender.com/api/menu';
+                    method = 'POST';
+                } else if (addType === 'edit') {
+                    url = `https://aticas-backend.onrender.com/api/menu/${editId}`;
+                    method = 'PUT';
+                } else if (addType === 'mod') {
+                    const quantity = parseInt(modMealQuantity.value, 10) || 10;
+                    if (!baseMeal.name || !baseMeal.price || !baseMeal.image) {
+                        throw new Error('Please fill in all fields for Meal of the Day');
+                    }
+                    url = 'https://aticas-backend.onrender.com/api/meals';
+                    method = 'POST';
+                    baseMeal.quantity = quantity;
+                } else if (addType === 'mod-edit') {
+                    url = `https://aticas-backend.onrender.com/api/meals/${editId}`;
+                    method = 'PUT';
+                    baseMeal.quantity = parseInt(modMealQuantity.value, 10) || 0;
+                } else {
+                    throw new Error(`Unknown addType: ${addType}`);
+                }
+
+                const response = await fetch(url, {
+                    method,
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': getCurrentAdminToken()
                     },
-                    body: JSON.stringify(meal)
+                    body: JSON.stringify(baseMeal)
                 });
+
+                if (!response.ok) throw new Error('API request failed');
+
+                fetchMenuItems();
                 fetchMealsOfDay();
                 addMealModal.style.display = 'none';
                 addMealForm.reset();
+                priceOptionsWrapper.innerHTML = '';
                 addType = 'menu';
                 editId = null;
-                isSubmitting = false;
-            } else if (addType === 'mod-edit') {
-                // Edit meal of the day
-                const mealData = {
-                    quantity: parseInt(modMealQuantity.value, 10) || 0
-                };
-                await fetch('https://aticas-backend.onrender.com/api/meals/' + editId, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': getCurrentAdminToken()
-                    },
-                    body: JSON.stringify(mealData)
-                });
-                fetchMealsOfDay();
-                addMealModal.style.display = 'none';
-                addMealForm.reset();
-                addType = 'menu';
-                editId = null;
-                isSubmitting = false;
-                return;
-            } else {
-                alert('Unknown addType: ' + addType);
+            } catch (err) {
+                console.error('Form submission error:', err);
+                alert(err.message || 'Failed to save meal');
+            } finally {
                 isSubmitting = false;
             }
         };
+
         if (file) {
             const reader = new FileReader();
             reader.onload = function(evt) {
@@ -394,7 +369,8 @@ document.addEventListener('DOMContentLoaded', function() {
             processMeal(useExistingImage);
         }
     };
+
     // Initial fetch
     fetchMenuItems();
     fetchMealsOfDay();
-}); 
+});
