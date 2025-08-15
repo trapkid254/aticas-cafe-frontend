@@ -112,7 +112,10 @@ async function fetchCart() {
     if (userId && token) {
         try {
             const res = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } 
+                headers: { 
+                    'Authorization': `Bearer ${token}`, 
+                    'Content-Type': 'application/json' 
+                } 
             });
             if (!res.ok) throw new Error('Failed to fetch cart');
             const cart = await res.json();
@@ -149,16 +152,6 @@ async function updateCartItem(menuItemId, quantity, itemType, selectedSize = nul
     
     if (userId && token) {
         try {
-            const payload = {
-                menuItemId,
-                quantity,
-
-                itemType
-            };
-
-            if (selectedSize) {
-                payload.selectedSize = selectedSize;
-            }
             const response = await fetch(`https://aticas-backend.onrender.com/api/cart/items`, {
                 method: 'PATCH',
                 headers: { 
@@ -191,7 +184,8 @@ async function updateCartItem(menuItemId, quantity, itemType, selectedSize = nul
         const idx = cart.items.findIndex(i => 
             i.menuItem._id === menuItemId && 
             i.itemType === itemType &&
-            ((selectedSize && i.selectedSize && i.selectedSize.size === selectedSize.size) || (!selectedSize && !i.selectedSize))
+            ((selectedSize && i.selectedSize && i.selectedSize.size === selectedSize.size) || 
+             (!selectedSize && !i.selectedSize))
         );
         
         if (idx > -1) {
@@ -199,6 +193,9 @@ async function updateCartItem(menuItemId, quantity, itemType, selectedSize = nul
                 cart.items.splice(idx, 1);
             } else {
                 cart.items[idx].quantity = quantity;
+                if (selectedSize) {
+                    cart.items[idx].selectedSize = selectedSize;
+                }
             }
         } else if (quantity > 0) {
             // Add new item to cart if it doesn't exist
@@ -257,7 +254,8 @@ async function removeCartItem(menuItemId, itemType, selectedSize = null) {
         cart.items = cart.items.filter(i => 
             !(i.menuItem._id === menuItemId && 
               i.itemType === itemType &&
-              ((selectedSize && i.selectedSize && i.selectedSize.size === selectedSize.size) || (!selectedSize && !i.selectedSize)))
+              ((selectedSize && i.selectedSize && i.selectedSize.size === selectedSize.size) || 
+               (!selectedSize && !i.selectedSize)))
         );
         setGuestCart(cart);
         return cart;
@@ -822,7 +820,10 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const orderResponse = await fetch('https://aticas-backend.onrender.com/api/orders', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': token } : {}) },
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        ...(token ? { 'Authorization': token } : {}) 
+                    },
                     body: JSON.stringify(order)
                 });
                 
@@ -871,7 +872,10 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const response = await fetch('https://aticas-backend.onrender.com/api/orders', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': token } : {}) },
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    ...(token ? { 'Authorization': token } : {}) 
+                },
                 body: JSON.stringify(order)
             });
             
@@ -904,4 +908,3 @@ document.addEventListener('DOMContentLoaded', function() {
     // Call displayCartItems after DOMContentLoaded setup
     displayCartItems();
 });
-
