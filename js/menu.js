@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             // Guest cart handling
             try {
-                let cart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}';
+                let cart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
                 if (typeof cart === 'string') {
                     cart = JSON.parse(cart);
                 }
