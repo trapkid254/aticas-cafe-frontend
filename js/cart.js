@@ -149,6 +149,16 @@ async function updateCartItem(menuItemId, quantity, itemType, selectedSize = nul
     
     if (userId && token) {
         try {
+            const payload = {
+                menuItemId,
+                quantity,
+
+                itemType
+            };
+
+            if (selectedSize) {
+                payload.selectedSize = selectedSize;
+            }
             const response = await fetch(`https://aticas-backend.onrender.com/api/cart/items`, {
                 method: 'PATCH',
                 headers: { 
