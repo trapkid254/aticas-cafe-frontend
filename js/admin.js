@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Redirect to specific admin page based on type
     if (window.location.pathname.endsWith('admin.html')) {
-        const targetPage = adminType === 'butchery' ? 'butchery-admin.html' : 'cafeteria-admin.html';
+        const targetPage = adminType === 'butchery' ? 'index.html' : 'index.html';
         if (!window.location.pathname.endsWith(targetPage)) {
             window.location.href = targetPage;
         }
