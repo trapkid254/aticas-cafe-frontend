@@ -49,7 +49,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Dashboard Update Functions ---
     async function updateDashboardData() {
         try {
-<<<<<<< HEAD
             // Show loading state
             const contentArea = document.querySelector('.admin-content');
             const loadingDiv = document.createElement('div');
@@ -65,29 +64,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (loadingDiv.parentNode) {
                     loadingDiv.remove();
                 }
-=======
-            const endpoint = adminType === 'butchery' ? '/api/butchery-orders' : '/api/orders';
-            const [orders, menuItems, mealsToday] = await Promise.all([
-                fetchFromApi(endpoint),
-                fetchFromApi('/api/menu'),
-                adminType === 'cafeteria' ? fetchFromApi('/api/meals') : Promise.resolve([])
-            ]);
-
-            // Update dashboard stats
-            const totalOrdersElem = document.getElementById('totalOrders');
-            if (totalOrdersElem) totalOrdersElem.textContent = orders.length;
-            
-            const totalRevenueElem = document.getElementById('totalRevenue');
-            if (totalRevenueElem) totalRevenueElem.textContent = `Ksh ${orders.reduce((sum, order) => sum + order.total, 0).toLocaleString()}`;
-            
-            const totalMenuItemsElem = document.getElementById('totalMenuItems');
-            if (totalMenuItemsElem) totalMenuItemsElem.textContent = menuItems.length;
-            
-            if (adminType === 'cafeteria') {
-                const mealsTodayElem = document.getElementById('mealsToday');
-                if (mealsTodayElem) mealsTodayElem.textContent = mealsToday.length;
-            }
->>>>>>> ac383f831e2ed28deab68c935d3e79e7b119066a
 
                 // Update dashboard stats
                 if (response.stats) {
@@ -152,10 +128,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             console.error('Failed to update dashboard data:', error);
-<<<<<<< HEAD
-            
-            // Show error message to user
-            const errorDiv = document.createElement('div');
+// Show error message to user
+const errorDiv = document.createElement('div');
             errorDiv.className = 'error-message';
             errorDiv.textContent = 'Failed to load dashboard data. ' + 
                 (error.message || 'Please try again later.');
@@ -178,8 +152,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 localStorage.removeItem('adminToken');
                 window.location.href = 'admin-login.html';
             }
-=======
->>>>>>> ac383f831e2ed28deab68c935d3e79e7b119066a
         }
     }
 
