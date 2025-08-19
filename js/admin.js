@@ -32,43 +32,171 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Dashboard Update Functions ---
     async function updateDashboardData() {
         try {
-            const [orders, menuItems, mealsToday] = await Promise.all([
-                fetchFromApi('/api/orders?type=cafeteria'),
-                fetchFromApi('/api/menu'),
-                fetchFromApi('/api/meals')
-            ]);
+            // Show loading state
+            const contentArea = document.querySelector('.admin-content');
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading';
+            loadingDiv.textContent = 'Loading dashboard data...';
+            contentArea.insertBefore(loadingDiv, contentArea.firstChild);
 
-            const totalOrdersElem = document.getElementById('totalOrders');
-            if (totalOrdersElem) totalOrdersElem.textContent = orders.length;
-            const totalRevenueElem = document.getElementById('totalRevenue');
-            if (totalRevenueElem) totalRevenueElem.textContent = `Ksh ${orders.reduce((sum, order) => sum + order.total, 0).toLocaleString()}`;
-            const totalMenuItemsElem = document.getElementById('totalMenuItems');
-            if (totalMenuItemsElem) totalMenuItemsElem.textContent = menuItems.length;
-            const mealsTodayElem = document.getElementById('mealsToday');
-            if (mealsTodayElem) mealsTodayElem.textContent = mealsToday.length;
+            try {
+                // Fetch dashboard stats from the new endpoint
+                const response = await fetchFromApi('/api/dashboard/stats');
+                
+                // Remove loading indicator
+                if (loadingDiv.parentNode) {
+                    loadingDiv.remove();
+                }
 
-            renderRecentOrders(orders.slice(0, 5));
-            renderTopSellingChart(orders, menuItems);
-            renderRevenueChart(orders);
+                // Update dashboard stats
+                if (response.stats) {
+                    const stats = response.stats;
+                    
+                    // Update dashboard cards
+                    const todayOrdersEl = document.getElementById('todayOrders');
+                    const totalRevenueEl = document.getElementById('totalRevenue');
+                    const pendingOrdersEl = document.getElementById('pendingOrders');
+                    const completedOrdersEl = document.getElementById('completedOrders');
+                    
+                    if (todayOrdersEl) todayOrdersEl.textContent = stats.todayOrders?.toLocaleString() || '0';
+                    if (totalRevenueEl) totalRevenueEl.textContent = `Ksh ${(stats.todayRevenue || 0).toLocaleString()}`;
+                    if (pendingOrdersEl) pendingOrdersEl.textContent = stats.pendingOrders?.toLocaleString() || '0';
+                    if (completedOrdersEl) completedOrdersEl.textContent = stats.completedOrders?.toLocaleString() || '0';
+                }
+
+                // Render recent orders if available
+                if (response.recentOrders && Array.isArray(response.recentOrders)) {
+                    renderRecentOrders(response.recentOrders);
+                    
+                    // If we need to show charts, we can use the recent orders data
+                    if (response.recentOrders.length > 0) {
+                        try {
+                            const menuItems = await fetchFromApi('/api/menu');
+                            renderTopSellingChart(response.recentOrders, menuItems);
+                            renderRevenueChart(response.recentOrders);
+                        } catch (chartError) {
+                            console.error('Failed to load chart data:', chartError);
+                            // Continue without charts if they fail
+                        }
+                    }
+                } else {
+                    // Handle case when no recent orders
+                    const tableBody = document.querySelector('#recentOrdersTable tbody');
+                    if (tableBody) {
+                        tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No recent orders found</td></tr>';
+                    }
+                }
+
+                // Show success message
+                const successMessage = document.createElement('div');
+                successMessage.className = 'success-message';
+                successMessage.textContent = 'Dashboard updated successfully';
+                contentArea.insertBefore(successMessage, contentArea.firstChild);
+                
+                // Remove success message after 3 seconds
+                setTimeout(() => {
+                    if (successMessage.parentNode) {
+                        successMessage.style.opacity = '0';
+                        setTimeout(() => successMessage.remove(), 500);
+                    }
+                }, 3000);
+
+            } catch (fetchError) {
+                // Remove loading indicator if still present
+                if (loadingDiv.parentNode) {
+                    loadingDiv.remove();
+                }
+                throw fetchError; // Re-throw to be caught by outer catch
+            }
 
         } catch (error) {
             console.error('Failed to update dashboard data:', error);
-            // You could display an error message to the user here
+            
+            // Show error message to user
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = 'Failed to load dashboard data. ' + 
+                (error.message || 'Please try again later.');
+                
+            const contentArea = document.querySelector('.admin-content');
+            if (contentArea) {
+                contentArea.insertBefore(errorDiv, contentArea.firstChild);
+                
+                // Remove error message after 5 seconds
+                setTimeout(() => {
+                    if (errorDiv.parentNode) {
+                        errorDiv.style.opacity = '0';
+                        setTimeout(() => errorDiv.remove(), 500);
+                    }
+                }, 5000);
+            }
+            
+            // If we have a token but still get an error, the token might be invalid
+            if (error.message && error.message.includes('401')) {
+                localStorage.removeItem('adminToken');
+                window.location.href = 'admin-login.html';
+            }
         }
     }
 
     function renderRecentOrders(orders) {
-        const recentOrdersList = document.getElementById('recentOrdersList');
-        if (!recentOrdersList) return;
-        recentOrdersList.innerHTML = '';
+        const tableBody = document.querySelector('#recentOrdersTable tbody');
+        if (!tableBody) return;
+        
+        tableBody.innerHTML = ''; // Clear existing rows
+        
+        if (!orders || orders.length === 0) {
+            const row = document.createElement('tr');
+            row.innerHTML = '<td colspan="5" style="text-align: center;">No recent orders found</td>';
+            tableBody.appendChild(row);
+            return;
+        }
+        
         orders.forEach(order => {
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <span>Order #${order._id.substring(0, 8)}</span>
-                <span>${order.customerName}</span>
-                <span class="status-${order.status}">${order.status}</span>
+            const row = document.createElement('tr');
+            
+            // Format order items for display
+            const itemsText = order.items
+                .slice(0, 2) // Show only first 2 items
+                .map(item => {
+                    const itemName = item.menuItem?.name || 'Unknown Item';
+                    return `${item.quantity}x ${itemName}`;
+                })
+                .join(', ');
+                
+            if (order.items.length > 2) {
+                itemsText += `, +${order.items.length - 2} more`;
+            }
+            
+            // Format date
+            const orderDate = new Date(order.date).toLocaleString();
+            
+            // Format status with appropriate class
+            const statusClass = order.status === 'completed' ? 'status-completed' : 
+                              order.status === 'cancelled' ? 'status-cancelled' : 'status-pending';
+            
+            row.innerHTML = `
+                <td>#${order._id.substring(0, 8)}</td>
+                <td>${order.customerName || 'Walk-in'}</td>
+                <td>Ksh ${order.total?.toLocaleString() || '0'}</td>
+                <td><span class="${statusClass}">${order.status}</span></td>
+                <td>
+                    <button class="action-btn view-order-btn" data-order-id="${order._id}">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                </td>
             `;
-            recentOrdersList.appendChild(li);
+            
+            // Add event listener to view order button
+            const viewBtn = row.querySelector('.view-order-btn');
+            if (viewBtn) {
+                viewBtn.addEventListener('click', () => {
+                    // Redirect to order details page or show a modal
+                    window.location.href = `orders.html?orderId=${order._id}`;
+                });
+            }
+            
+            tableBody.appendChild(row);
         });
     }
 
@@ -76,25 +204,48 @@ document.addEventListener('DOMContentLoaded', function() {
         const ctx = document.getElementById('topSellingChart');
         if (!ctx) return;
 
+        // If no orders or menu items, don't show the chart
+        if (!orders || orders.length === 0 || !menuItems || menuItems.length === 0) {
+            ctx.parentElement.innerHTML = '<p>No data available for top selling items</p>';
+            return;
+        }
+
         const itemSales = {};
+        
+        // Process each order to count item quantities
         orders.forEach(order => {
-            order.items.forEach(item => {
-                const id = item.menuItem?._id || item.menuItem;
-                if(id) {
-                    itemSales[id] = (itemSales[id] || 0) + item.quantity;
-                }
-            });
+            if (order.items && order.items.length > 0) {
+                order.items.forEach(item => {
+                    const id = item.menuItem?._id || item.menuItem;
+                    if (id) {
+                        itemSales[id] = (itemSales[id] || 0) + (item.quantity || 1);
+                    }
+                });
+            }
         });
 
-        const sortedItems = Object.entries(itemSales).sort(([, a], [, b]) => b - a).slice(0, 5);
+        // Sort and get top 5 items
+        const sortedItems = Object.entries(itemSales)
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, 5);
 
+        if (sortedItems.length === 0) {
+            ctx.parentElement.innerHTML = '<p>No sales data available</p>';
+            return;
+        }
+
+        // Get item names and quantities
         const labels = sortedItems.map(([id, _]) => {
             const menuItem = menuItems.find(item => item._id === id);
-            return menuItem ? menuItem.name : 'Unknown';
+            return menuItem ? menuItem.name : 'Unknown Item';
         });
+        
         const data = sortedItems.map(([_, quantity]) => quantity);
 
+        // Destroy existing chart if it exists
         if (topSellingChart) topSellingChart.destroy();
+        
+        // Create new chart
         topSellingChart = new Chart(ctx, {
             type: 'pie',
             data: {
@@ -102,10 +253,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 datasets: [{
                     label: 'Quantity Sold',
                     data: data,
-                    backgroundColor: ['#2ecc71', '#3498db', '#f1c40f', '#e74c3c', '#9b59b6'],
+                    backgroundColor: [
+                        '#2ecc71', 
+                        '#3498db', 
+                        '#f1c40f', 
+                        '#e74c3c', 
+                        '#9b59b6'
+                    ],
+                    borderWidth: 1
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false }
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Top Selling Items',
+                        font: {
+                            size: 16
+                        }
+                    }
+                }
+            }
         });
     }
 
@@ -113,29 +286,116 @@ document.addEventListener('DOMContentLoaded', function() {
         const ctx = document.getElementById('revenueChart');
         if (!ctx) return;
 
+        // If no orders, don't show the chart
+        if (!orders || orders.length === 0) {
+            ctx.parentElement.innerHTML = '<p>No revenue data available</p>';
+            return;
+        }
+
+        // Group revenue by month
         const monthlyRevenue = {};
-        orders.forEach(order => {
-            const month = new Date(order.date).toLocaleString('default', { month: 'long' });
-            monthlyRevenue[month] = (monthlyRevenue[month] || 0) + order.total;
+        const currentYear = new Date().getFullYear();
+        
+        // Initialize all months with 0
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                           'July', 'August', 'September', 'October', 'November', 'December'];
+        monthNames.forEach(month => {
+            monthlyRevenue[month] = 0;
         });
 
+        // Calculate revenue for each month
+        orders.forEach(order => {
+            if (order.date) {
+                const orderDate = new Date(order.date);
+                // Only include orders from current year
+                if (orderDate.getFullYear() === currentYear) {
+                    const month = monthNames[orderDate.getMonth()];
+                    monthlyRevenue[month] = (monthlyRevenue[month] || 0) + (order.total || 0);
+                }
+            }
+        });
+
+        // Convert to arrays for chart
         const labels = Object.keys(monthlyRevenue);
         const data = Object.values(monthlyRevenue);
 
+        // Check if we have any revenue data
+        const hasRevenueData = data.some(amount => amount > 0);
+        
+        if (!hasRevenueData) {
+            ctx.parentElement.innerHTML = '<p>No revenue data available for the current year</p>';
+            return;
+        }
+
+        // Destroy existing chart if it exists
         if (revenueChart) revenueChart.destroy();
+        
+        // Create new chart
         revenueChart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Revenue per Month',
+                    label: 'Monthly Revenue (Ksh)',
                     data: data,
                     borderColor: '#3498db',
-                    tension: 0.1,
-                    fill: false
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true,
+                    pointBackgroundColor: '#3498db',
+                    pointBorderColor: '#fff',
+                    pointHoverRadius: 5,
+                    pointHoverBackgroundColor: '#3498db',
+                    pointHoverBorderColor: '#fff',
+                    pointHitRadius: 10,
+                    pointBorderWidth: 2
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Monthly Revenue',
+                        font: {
+                            size: 16
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `Ksh ${context.raw.toLocaleString()}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'Ksh ' + value.toLocaleString();
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Amount (Ksh)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Month'
+                        }
+                    }
+                }
+            }
         });
     }
 
