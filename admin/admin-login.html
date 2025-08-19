@@ -108,9 +108,10 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // Store token and redirect
+                    // Store token, admin type and redirect
                     localStorage.setItem('adminToken', data.token);
                     localStorage.setItem('isAdminLoggedIn', 'true'); // For compatibility with other scripts
+                    localStorage.setItem('adminType', 'cafeteria'); // Set admin type for cafeteria
                     window.location.href = 'index.html'; // Redirect to admin dashboard in the same folder
                 } else {
                     errorDiv.textContent = data.error || 'Invalid credentials. Please try again.';

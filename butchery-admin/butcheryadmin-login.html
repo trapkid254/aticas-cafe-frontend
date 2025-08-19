@@ -94,14 +94,31 @@
             const employmentNumber = document.getElementById('employmentNumber').value;
             const password = document.getElementById('password').value;
             const errorDiv = document.getElementById('login-error');
-            errorDiv.textContent = '';
+            errorDiv.textContent = ''; // Clear previous errors
 
-            // Hardcoded credentials for butchery admin
-            if (employmentNumber === 'AB001' && password === 'admin@aticas') {
-                localStorage.setItem('butcheryAdminToken', 'butcheryAdminLoggedIn');
-                window.location.href = 'index.html';
-            } else {
-                errorDiv.textContent = 'Invalid credentials. Please try again.';
+            try {
+                const response = await fetch('https://aticas-backend.onrender.com/api/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ employmentNumber, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Store token, admin type and redirect
+                    localStorage.setItem('adminToken', data.token);
+                    localStorage.setItem('isAdminLoggedIn', 'true');
+                    localStorage.setItem('adminType', 'butchery'); // Set admin type for butchery
+                    window.location.href = 'index.html';
+                } else {
+                    errorDiv.textContent = data.error || 'Invalid credentials. Please try again.';
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                errorDiv.textContent = 'An error occurred during login. Please try again.';
             }
         });
     </script>

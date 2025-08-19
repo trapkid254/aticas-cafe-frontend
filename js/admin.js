@@ -7,18 +7,16 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    // Set the correct admin page based on admin type
-    const currentPage = window.location.pathname.split('/').pop();
-    const isCafeteriaAdmin = adminType === 'cafeteria';
-    const isButcheryAdmin = adminType === 'butchery';
+    // Get the current page name
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
     
-    // Only redirect if we're on a generic admin page
-    if (currentPage === 'admin.html' || currentPage === 'index.html') {
-        const targetPage = isButcheryAdmin ? 'butchery-admin/index.html' : 'admin/index.html';
-        if (currentPage !== targetPage) {
-            window.location.href = targetPage;
-            return; // Stop execution to prevent further processing during redirect
-        }
+    // Determine the correct dashboard path based on admin type
+    const targetDashboard = adminType === 'butchery' ? 'butchery-admin/index.html' : 'admin/index.html';
+    
+    // Only redirect if we're not already on the correct dashboard
+    if (!window.location.pathname.includes(targetDashboard)) {
+        window.location.href = targetDashboard;
+        return; // Stop execution to prevent further processing during redirect
     }
 
     // Setup logout button
