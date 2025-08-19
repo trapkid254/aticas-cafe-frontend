@@ -806,7 +806,7 @@ document.addEventListener('DOMContentLoaded', function() {
             deliveryLocation: deliveryLocation,
             paymentMethod: paymentMethod,
             mpesaNumber: mpesaNumber,
-            status: 'pending',
+            status: 'pendin
             date: new Date().toISOString(),
             customerName: customerName,
             customerPhone: customerPhone,
