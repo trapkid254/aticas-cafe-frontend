@@ -7,11 +7,17 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    // Redirect to specific admin page based on type
-    if (window.location.pathname.endsWith('admin.html')) {
-        const targetPage = adminType === 'butchery' ? 'index.html' : 'index.html';
-        if (!window.location.pathname.endsWith(targetPage)) {
+    // Set the correct admin page based on admin type
+    const currentPage = window.location.pathname.split('/').pop();
+    const isCafeteriaAdmin = adminType === 'cafeteria';
+    const isButcheryAdmin = adminType === 'butchery';
+    
+    // Only redirect if we're on a generic admin page
+    if (currentPage === 'admin.html' || currentPage === 'index.html') {
+        const targetPage = isButcheryAdmin ? 'butchery-admin/index.html' : 'admin/index.html';
+        if (currentPage !== targetPage) {
             window.location.href = targetPage;
+            return; // Stop execution to prevent further processing during redirect
         }
     }
 
