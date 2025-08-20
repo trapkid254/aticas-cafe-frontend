@@ -423,6 +423,16 @@ const errorDiv = document.createElement('div');
         });
     }
 
+    // Helper function to get auth headers
+    function getAuthHeaders() {
+        const token = localStorage.getItem('adminToken');
+        if (!token) return {};
+        return {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        };
+    }
+
     // Quick Actions buttons - hide/show based on admin type
     const addMealBtn = document.getElementById('addMealBtn');
     const updateMealsBtn = document.getElementById('updateMealsBtn');
@@ -471,7 +481,7 @@ const errorDiv = document.createElement('div');
             
             const res = await fetch(url, {
                 method,
-                headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
+                headers: getAuthHeaders(),
                 body: JSON.stringify(meal)
             });
             
@@ -495,28 +505,22 @@ const errorDiv = document.createElement('div');
         document.getElementById('addMealModal').style.display = 'flex';
     };
 
+    // Handle meal removal
     window.removeMeal = async function(mealId) {
         if (!confirm('Are you sure you want to remove this meal?')) return;
-        await fetch('https://aticas-backend.onrender.com/api/menu/' + mealId, {
-            method: 'DELETE',
-            headers: { 'Authorization': adminToken }
-        });
-    };
-
-    // --- Update Meals of the Day: Remove Logic ---
-    const mealsSelection = document.getElementById('mealsSelection');
-    if (mealsSelection && adminType === 'cafeteria') {
-        mealsSelection.addEventListener('click', async function(e) {
-            if (e.target.classList.contains('remove-btn')) {
-                const mealId = e.target.dataset.mealId;
-                if (!confirm('Remove this meal from Meals of the Day?')) return;
-                await fetch('https://aticas-backend.onrender.com/api/meals/' + mealId, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': adminToken }
-                });
+        try {
+            const res = await fetch('https://aticas-backend.onrender.com/api/menu/' + mealId, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+            if (res.ok) {
+                window.location.reload();
             }
-        });
-    }
+        } catch (error) {
+            console.error('Error removing meal:', error);
+            alert('Failed to remove meal. Please try again.');
+        }
+    };
 
     // Modal close button logic
     document.querySelectorAll('.close-modal').forEach(btn => {
@@ -533,10 +537,19 @@ const errorDiv = document.createElement('div');
         if (!ordersTab && !sidebarOrdersTab) return;
         
         try {
+            const token = localStorage.getItem('adminToken');
+            if (!token) return;
+            
             const endpoint = adminType === 'butchery' ? '/api/butchery-orders' : '/api/orders';
             const res = await fetch(`https://aticas-backend.onrender.com${endpoint}`, {
-                headers: { 'Authorization': adminToken }
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
             });
+
+            if (!res.ok) return;
+            
             const orders = await res.json();
             const unviewed = orders.filter(o => !o.viewedByAdmin && (!o.status || (o.status !== 'completed' && o.status !== 'cancelled')));
 
@@ -554,6 +567,7 @@ const errorDiv = document.createElement('div');
                 badge.style.display = unviewed.length > 0 ? 'inline-block' : 'none';
             });
         } catch (err) {
+            console.error('Error updating unviewed orders badge:', err);
             // Hide badges on error
             document.querySelectorAll('.order-badge').forEach(badge => {
                 badge.style.display = 'none';
@@ -579,7 +593,7 @@ const errorDiv = document.createElement('div');
             try {
                 const res = await fetch('https://aticas-backend.onrender.com/api/meals', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify({ name, price, image, quantity })
                 });
                 
@@ -623,13 +637,30 @@ const errorDiv = document.createElement('div');
     async function pollForNewOrders() {
         try {
             const endpoint = adminType === 'butchery' ? '/api/butchery-orders' : '/api/orders';
+            const token = localStorage.getItem('adminToken');
+            
+            if (!token) {
+                console.error('No admin token found');
+                return;
+            }
+
             const res = await fetch(`https://aticas-backend.onrender.com${endpoint}`, {
-                headers: { 'Authorization': adminToken }
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
             });
+
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+
             const orders = await res.json();
             const unviewed = orders.filter(o => !o.viewedByAdmin && (!o.status || (o.status !== 'completed' && o.status !== 'cancelled')));
             
-            if (typeof updateUnviewedOrdersBadge === 'function') updateUnviewedOrdersBadge();
+            if (typeof updateUnviewedOrdersBadge === 'function') {
+                updateUnviewedOrdersBadge();
+            }
             
             if (unviewed.length > lastUnviewedOrderCount) {
                 showAdminOrderToast('New order received!');
@@ -637,6 +668,15 @@ const errorDiv = document.createElement('div');
             lastUnviewedOrderCount = unviewed.length;
         } catch (err) {
             console.error('Error polling for orders:', err);
+            if (err.message.includes('401')) {
+                console.error('Authentication failed. Redirecting to login...');
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('adminType');
+                window.location.href = adminType === 'butchery' 
+                    ? '/butchery-admin/butcheryadmin-login.html' 
+                    : '/admin/admin-login.html';
+                return;
+            }
         }
         setTimeout(pollForNewOrders, 10000);
     }
