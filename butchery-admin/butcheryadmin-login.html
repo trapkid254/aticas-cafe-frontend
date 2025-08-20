@@ -111,8 +111,13 @@
                     // Store token, admin type and redirect
                     localStorage.setItem('adminToken', data.token);
                     localStorage.setItem('isAdminLoggedIn', 'true');
-                    localStorage.setItem('adminType', 'butchery'); // Set admin type for butchery
-                    window.location.href = 'index.html';
+                    localStorage.setItem('adminType', data.adminType || 'butchery'); // Use adminType from server response
+                    
+                    // Redirect based on admin type
+                    const redirectTo = data.adminType === 'cafeteria' 
+                        ? '/admin/index.html' 
+                        : '/butchery-admin/index.html';
+                    window.location.href = redirectTo;
                 } else {
                     errorDiv.textContent = data.error || 'Invalid credentials. Please try again.';
                 }
