@@ -109,12 +109,16 @@
 
                 if (data.success && data.admin) {
                     // Store token and admin data
+                    console.log('Storing token:', data.token);
+                    console.log('Admin type:', data.admin.adminType);
+                    
                     localStorage.setItem('adminToken', data.token);
                     localStorage.setItem('isAdminLoggedIn', 'true');
                     localStorage.setItem('adminType', data.admin.adminType);
                     
-                    // Debug log
-                    console.log('Login successful, admin type:', data.admin.adminType);
+                    // Verify storage
+                    console.log('Stored token:', localStorage.getItem('adminToken'));
+                    console.log('Stored admin type:', localStorage.getItem('adminType'));
                     
                     // Redirect based on admin type
                     if (data.admin.adminType === 'cafeteria') {

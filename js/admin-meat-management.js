@@ -89,12 +89,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function getToken() {
-        let token = localStorage.getItem('adminToken') || '';
-        // Ensure we don't add 'Bearer ' prefix multiple times
-        if (token && !token.startsWith('Bearer ')) {
-            return `Bearer ${token}`;
+        // Get the raw token from localStorage
+        const token = localStorage.getItem('adminToken');
+        console.log('Raw token from localStorage:', token ? 'Token exists' : 'No token found');
+        
+        if (!token) {
+            console.error('No admin token found in localStorage');
+            return '';
         }
-        return token;
+        
+        // Return the token with Bearer prefix if not already present
+        return token.startsWith('Bearer ') ? token : `Bearer ${token}`;
     }
     
     function openAddModal(type) {
