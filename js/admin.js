@@ -648,7 +648,6 @@ const errorDiv = document.createElement('div');
 
     async function pollForNewOrders() {
         try {
-            const endpoint = adminType === 'butchery' ? '/api/butchery-orders' : '/api/orders';
             const token = localStorage.getItem('adminToken');
             
             if (!token) {
@@ -656,7 +655,7 @@ const errorDiv = document.createElement('div');
                 return;
             }
 
-            const res = await fetch(`https://aticas-backend.onrender.com${endpoint}`, {
+            const res = await fetch('https://aticas-backend.onrender.com/api/orders', {
                 headers: { 
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
