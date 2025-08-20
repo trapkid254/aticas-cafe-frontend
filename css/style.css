@@ -300,6 +300,96 @@ body {
 .add-to-cart:hover {
     background-color: yellow;
 }
+/* Meals Section */
+.meats-section {
+    padding: 4rem 2rem;
+    text-align: center;
+}
+
+.meats-section h2 {
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+    color: green;
+}
+
+.meats-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 2rem;
+}
+
+.meat-card {
+    background-color: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    transition: transform 0.3s;
+}
+
+.meat-card:hover {
+    transform: translateY(-10px);
+    background-color: #ff5252;
+}
+
+.meat-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.meat-card h3 {
+    margin: 1rem 0;
+    font-size: 1.5rem;
+}
+
+.meat-card p {
+    padding: 0 1rem;
+    color: #666;
+    margin-bottom: 1rem;
+}
+
+.meat-card .meal-qty {
+    padding: 0 1rem;
+    color: #666;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.meat-card .meal-qty.low-stock {
+    color: #f39c12;
+    font-weight: bold;
+}
+
+.meat-card .meal-qty.out-of-stock {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+.price {
+    display: block;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #ff6b6b;
+    margin-bottom: 1rem;
+}
+
+.add-to-cart {
+    padding: 0.7rem 1.5rem;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 1.5rem;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.add-to-cart:hover {
+    background-color: yellow;
+}
 
 /* Why Us Section */
 .why-us {
