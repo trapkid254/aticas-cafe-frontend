@@ -126,6 +126,25 @@ document.addEventListener('DOMContentLoaded', function() {
         editId = null;
     }
     
+    // Add image preview functionality
+    document.getElementById('meatImage')?.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const preview = document.getElementById('previewImage');
+        const previewContainer = document.getElementById('imagePreview');
+        
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                previewContainer.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        } else {
+            preview.src = '#';
+            previewContainer.style.display = 'none';
+        }
+    });
+
     async function handleSubmit(e) {
         e.preventDefault();
         
@@ -133,23 +152,40 @@ document.addEventListener('DOMContentLoaded', function() {
         isSubmitting = true;
         
         try {
-            // Get form elements directly since we have IDs
+            // Get form elements
             const name = document.getElementById('meatName')?.value?.trim();
             const price = document.getElementById('meatPrice')?.value;
             const description = document.getElementById('meatDescription')?.value?.trim() || '';
             const quantity = document.getElementById('meatQuantity')?.value || '1';
-            const image = document.getElementById('meatImage')?.value || '';
-            
-            console.log('Form values:', { name, price, description, quantity, image });
+            const category = document.getElementById('meatCategory')?.value || 'beef';
+            const imageInput = document.getElementById('meatImage');
             
             // Basic validation
             if (!name) throw new Error('Meat name is required');
             if (!price) throw new Error('Price is required');
-            if (!image) throw new Error('Image is required');
             
             const priceNum = parseFloat(price);
             if (isNaN(priceNum) || priceNum <= 0) {
                 throw new Error('Price must be a valid positive number');
+            }
+            
+            // Handle image file
+            let imageData = '';
+            const file = imageInput.files[0];
+            
+            if (file) {
+                // If new image is uploaded
+                imageData = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsDataURL(file);
+                });
+            } else if (editId) {
+                // If editing and no new image, keep the existing one
+                const existingMeat = meatItems.find(m => m._id === editId);
+                imageData = existingMeat?.image || '';
+            } else {
+                throw new Error('Please select an image');
             }
             
             const meatData = {
@@ -157,7 +193,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 price: priceNum,
                 description,
                 quantity: parseInt(quantity) || 1,
-                image
+                category,
+                image: imageData,  // This will be the base64 string of the image
+                adminType: 'butchery'  // Set default admin type for butchery
             };
 
             const token = getToken();
@@ -170,53 +208,52 @@ document.addEventListener('DOMContentLoaded', function() {
             const method = editId ? 'PUT' : 'POST';
             const requestUrl = editId ? `${url}/${editId}` : url;
 
-            console.log('Sending request to:', requestUrl);
+            console.log('Submitting form to:', requestUrl);
             console.log('Request method:', method);
             console.log('Request payload:', meatData);
-            
-            const response = await fetch(requestUrl, {
-                method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': token
-                },
-                body: JSON.stringify(meatData)
-            });
 
-            let responseData;
             try {
-                responseData = await response.json();
-                console.log('Response status:', response.status);
-                console.log('Response data:', responseData);
-            } catch (jsonError) {
-                console.error('Failed to parse response as JSON:', jsonError);
-                throw new Error('Server returned an invalid response');
-            }
+                // Prepare form data for file upload
+                const formData = new FormData();
+                Object.keys(meatData).forEach(key => {
+                    formData.append(key, meatData[key]);
+                });
+                
+                // If we have a file, append it separately
+                if (file) {
+                    formData.append('imageFile', file);
+                }
+                
+                const response = await fetch(requestUrl, {
+                    method,
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                        // Don't set Content-Type header - let the browser set it with the correct boundary
+                    },
+                    body: formData
+                });
 
-            if (!response.ok) {
-                const errorMessage = responseData?.error || 
-                                  responseData?.message || 
-                                  `HTTP error! status: ${response.status}`;
-                throw new Error(errorMessage);
-            }
+                const responseData = await response.json();
+                
+                if (!response.ok) {
+                    const errorMessage = responseData?.message || 'Failed to save meat. Please try again.';
+                    throw new Error(errorMessage);
+                }
 
-            closeMeatModal();
-            fetchMeatItems();
-            showToast(editId ? 'Meat updated successfully' : 'Meat added successfully', 'success');
-            
-        } catch (error) {
-            console.error('Error in handleSubmit:', {
-                error: error.message,
-                stack: error.stack,
-                timestamp: new Date().toISOString()
-            });
-            
-            const errorMessage = error.message || 'Failed to save meat. Please try again.';
-            showToast(errorMessage, 'error');
-            
-            // Only show alert for critical errors
-            if (!error.message || error.message.includes('Failed to fetch')) {
-                alert(`Error: ${errorMessage}\n\nPlease check your connection and try again.`);
+                // If successful, close the modal and refresh the list
+                closeMeatModal();
+                fetchMeatItems();
+                showToast(editId ? 'Meat updated successfully!' : 'Meat added successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Error saving meat:', error);
+                const errorMessage = error.message || 'Failed to save meat. Please try again.';
+                showToast(errorMessage, 'error');
+                
+                // Only show alert for critical errors
+                if (!error.message || error.message.includes('Failed to fetch')) {
+                    alert(`Error: ${errorMessage}\n\nPlease check your connection and try again.`);
+                }
             }
         } finally {
             isSubmitting = false;
