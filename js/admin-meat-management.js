@@ -38,7 +38,9 @@ document.addEventListener('DOMContentLoaded', function() {
             renderMeatMenu();
         } catch (err) {
             console.error('Failed to load meat menu:', err);
-            meatMenuList.innerHTML = '<p>Failed to load meat items: ' + err.message + '</p>';
+            if (meatMenuList) {
+                meatMenuList.innerHTML = '<p>Failed to load meat items: ' + err.message + '</p>';
+            }
         }
     }
     
@@ -118,8 +120,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         try {
             const url = editId 
-                ? `https://aticas-backend.onrender.com/api/meat-menu/${editId}`
-                : 'https://aticas-backend.onrender.com/api/meat-menu';
+                ? `https://aticas-backend.onrender.com/api/meats/${editId}`
+                : 'https://aticas-backend.onrender.com/api/meats';
                 
             const method = editId ? 'PUT' : 'POST';
             
@@ -162,15 +164,15 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     window.deleteMeat = async function(id) {
-        if (!confirm('Delete this meat item?')) return;
+        if (!confirm('Are you sure you want to delete this meat item?')) return;
         
         try {
-            const res = await fetch(`https://aticas-backend.onrender.com/api/meat-menu/${id}`, {
+            const res = await fetch(`https://aticas-backend.onrender.com/api/meats/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': getToken() }
             });
             
-            if (!res.ok) throw new Error('Failed to delete');
+            if (!res.ok) throw new Error('Failed to delete meat');
             
             fetchMeatItems();
             showToast('Meat deleted');
