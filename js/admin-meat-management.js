@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function getToken() {
-        return localStorage.getItem('butcheryAdminToken') || '';
+        return localStorage.getItem('adminToken') || '';
     }
     
     function openAddModal(type) {
