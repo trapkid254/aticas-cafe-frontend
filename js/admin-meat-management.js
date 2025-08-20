@@ -133,12 +133,14 @@ document.addEventListener('DOMContentLoaded', function() {
         isSubmitting = true;
         
         try {
-            const formData = new FormData(addMeatForm);
-            const name = formData.get('name')?.toString().trim();
-            const price = formData.get('price')?.toString();
-            const description = formData.get('description')?.toString().trim() || '';
-            const quantity = formData.get('quantity')?.toString() || '1';
-            const image = formData.get('image')?.toString() || '';
+            // Get form elements directly since we have IDs
+            const name = document.getElementById('meatName')?.value?.trim();
+            const price = document.getElementById('meatPrice')?.value;
+            const description = document.getElementById('meatDescription')?.value?.trim() || '';
+            const quantity = document.getElementById('meatQuantity')?.value || '1';
+            const image = document.getElementById('meatImage')?.value || '';
+            
+            console.log('Form values:', { name, price, description, quantity, image });
             
             // Basic validation
             if (!name) throw new Error('Meat name is required');
