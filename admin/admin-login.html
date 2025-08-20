@@ -107,17 +107,21 @@
 
                 const data = await response.json();
 
-                if (data.success) {
-                    // Store token, admin type and redirect
+                if (data.success && data.admin) {
+                    // Store token and admin data
                     localStorage.setItem('adminToken', data.token);
                     localStorage.setItem('isAdminLoggedIn', 'true');
-                    localStorage.setItem('adminType', data.adminType || 'cafeteria'); // Use adminType from server response
+                    localStorage.setItem('adminType', data.admin.adminType);
+                    
+                    // Debug log
+                    console.log('Login successful, admin type:', data.admin.adminType);
                     
                     // Redirect based on admin type
-                    const redirectTo = data.adminType === 'butchery' 
-                        ? '/butchery-admin/index.html' 
-                        : '/admin/index.html';
-                    window.location.href = redirectTo;
+                    if (data.admin.adminType === 'butchery') {
+                        window.location.href = '/butchery-admin/index.html';
+                    } else {
+                        window.location.href = '/admin/index.html';
+                    }
                 } else {
                     errorDiv.textContent = data.error || 'Invalid credentials. Please try again.';
                 }
