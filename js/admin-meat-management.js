@@ -89,7 +89,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function getToken() {
-        return localStorage.getItem('adminToken') || '';
+        let token = localStorage.getItem('adminToken') || '';
+        // Ensure we don't add 'Bearer ' prefix multiple times
+        if (token && !token.startsWith('Bearer ')) {
+            return `Bearer ${token}`;
+        }
+        return token;
     }
     
     function openAddModal(type) {
@@ -125,20 +130,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 
             const method = editId ? 'PUT' : 'POST';
             
+            const token = getToken();
+            console.log('Using token:', token ? 'Token exists' : 'No token found');
+            console.log('Sending request to:', url);
+            console.log('Request data:', meatData);
+            
             const res = await fetch(url, {
                 method,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': getToken()
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(meatData)
             });
             
-            if (!res.ok) throw new Error('Failed to save meat');
+            const responseData = await res.json().catch(() => ({}));
+            console.log('Response status:', res.status);
+            console.log('Response data:', responseData);
+            
+            if (!res.ok) {
+                const errorMsg = responseData.message || `HTTP error! status: ${res.status}`;
+                console.error('Error response:', errorMsg);
+                throw new Error(errorMsg);
+            }
             
             closeMeatModal();
             fetchMeatItems();
-            showToast(editId ? 'Meat updated' : 'Meat added');
+            showToast(editId ? 'Meat updated successfully' : 'Meat added successfully');
             
         } catch (err) {
             console.error('Error saving meat:', err);
