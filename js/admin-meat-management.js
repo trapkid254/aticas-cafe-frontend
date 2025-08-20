@@ -134,18 +134,29 @@ document.addEventListener('DOMContentLoaded', function() {
         
         try {
             const formData = new FormData(addMeatForm);
-            const meatData = {
-                name: formData.get('name').trim(),
-                price: formData.get('price'),
-                description: formData.get('description')?.trim() || '',
-                quantity: formData.get('quantity') || 1,
-                image: formData.get('image')
-            };
+            const name = formData.get('name')?.toString().trim();
+            const price = formData.get('price')?.toString();
+            const description = formData.get('description')?.toString().trim() || '';
+            const quantity = formData.get('quantity')?.toString() || '1';
+            const image = formData.get('image')?.toString() || '';
             
             // Basic validation
-            if (!meatData.name) throw new Error('Meat name is required');
-            if (!meatData.price) throw new Error('Price is required');
-            if (isNaN(parseFloat(meatData.price))) throw new Error('Price must be a valid number');
+            if (!name) throw new Error('Meat name is required');
+            if (!price) throw new Error('Price is required');
+            if (!image) throw new Error('Image is required');
+            
+            const priceNum = parseFloat(price);
+            if (isNaN(priceNum) || priceNum <= 0) {
+                throw new Error('Price must be a valid positive number');
+            }
+            
+            const meatData = {
+                name,
+                price: priceNum,
+                description,
+                quantity: parseInt(quantity) || 1,
+                image
+            };
 
             const token = getToken();
             if (!token) {
