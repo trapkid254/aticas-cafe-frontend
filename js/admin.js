@@ -7,14 +7,18 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    // Get the current page name
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    // Get the current page path
+    const currentPath = window.location.pathname;
+    const isButcheryPath = currentPath.includes('butchery-admin');
+    const isCafeteriaPath = currentPath.includes('admin');
     
     // Determine the correct dashboard path based on admin type
-    const targetDashboard = adminType === 'butchery' ? 'butchery-admin/index.html' : 'admin/index.html';
+    const targetDashboard = adminType === 'butchery' ? '/butchery-admin/index.html' : '/admin/index.html';
+    const isOnCorrectDashboard = (adminType === 'butchery' && isButcheryPath) || 
+                               (adminType === 'cafeteria' && isCafeteriaPath);
     
     // Only redirect if we're not already on the correct dashboard
-    if (!window.location.pathname.includes(targetDashboard)) {
+    if (!isOnCorrectDashboard) {
         window.location.href = targetDashboard;
         return; // Stop execution to prevent further processing during redirect
     }
