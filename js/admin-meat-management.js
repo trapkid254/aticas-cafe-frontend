@@ -91,15 +91,27 @@ document.addEventListener('DOMContentLoaded', function() {
     function getToken() {
         // Get the raw token from localStorage
         const token = localStorage.getItem('adminToken');
-        console.log('Raw token from localStorage:', token ? 'Token exists' : 'No token found');
         
         if (!token) {
             console.error('No admin token found in localStorage');
             return '';
         }
         
-        // Return the token with Bearer prefix if not already present
-        return token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+        // Debug log the raw token (first 10 chars only for security)
+        console.log('Raw token from localStorage:', token.substring(0, 10) + '...');
+        
+        // Check if token is a valid JWT (3 parts separated by dots)
+        const tokenParts = token.split('.');
+        if (tokenParts.length !== 3) {
+            console.error('Invalid JWT format in token');
+            return '';
+        }
+        
+        // Ensure the token has the Bearer prefix
+        const formattedToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+        console.log('Formatted token:', formattedToken.substring(0, 15) + '...');
+        
+        return formattedToken;
     }
     
     function openAddModal(type) {
@@ -116,56 +128,58 @@ document.addEventListener('DOMContentLoaded', function() {
     
     async function handleSubmit(e) {
         e.preventDefault();
-        if (isSubmitting) return;
-        isSubmitting = true;
         
         const formData = new FormData(addMeatForm);
         const meatData = {
-            name: formData.get('meatName'),
-            price: parseFloat(formData.get('meatPrice')),
-            category: formData.get('meatCategory'),
-            description: formData.get('meatDescription'),
-            quantity: parseInt(formData.get('meatQuantity')) || 10
+            name: formData.get('name'),
+            price: parseFloat(formData.get('price')),
+            description: formData.get('description') || '',
+            quantity: parseInt(formData.get('quantity')) || 1,
+            image: formData.get('image')
         };
+
+        const token = getToken();
+        console.log('Using token for request:', token ? 'Token exists' : 'No token');
         
+        if (!token) {
+            alert('Please log in to continue');
+            window.location.href = '/butchery-admin/butcheryadmin-login.html';
+            return;
+        }
+
+        const url = 'https://aticas-backend.onrender.com/api/meats';
+        const method = editId ? 'PUT' : 'POST';
+        const requestUrl = editId ? `${url}/${editId}` : url;
+
         try {
-            const url = editId 
-                ? `https://aticas-backend.onrender.com/api/meats/${editId}`
-                : 'https://aticas-backend.onrender.com/api/meats';
-                
-            const method = editId ? 'PUT' : 'POST';
+            console.log('Sending request to:', requestUrl);
+            console.log('Request method:', method);
+            console.log('Request payload:', meatData);
             
-            const token = getToken();
-            console.log('Using token:', token ? 'Token exists' : 'No token found');
-            console.log('Sending request to:', url);
-            console.log('Request data:', meatData);
-            
-            const res = await fetch(url, {
+            const response = await fetch(requestUrl, {
                 method,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': token
                 },
                 body: JSON.stringify(meatData)
             });
-            
-            const responseData = await res.json().catch(() => ({}));
-            console.log('Response status:', res.status);
+
+            const responseData = await response.json();
+            console.log('Response status:', response.status);
             console.log('Response data:', responseData);
-            
-            if (!res.ok) {
-                const errorMsg = responseData.message || `HTTP error! status: ${res.status}`;
-                console.error('Error response:', errorMsg);
-                throw new Error(errorMsg);
+
+            if (!response.ok) {
+                throw new Error(responseData.error || `HTTP error! status: ${response.status}`);
             }
-            
+
             closeMeatModal();
             fetchMeatItems();
-            showToast(editId ? 'Meat updated successfully' : 'Meat added successfully');
-            
-        } catch (err) {
-            console.error('Error saving meat:', err);
-            showToast('Failed to save meat', 'error');
+        } catch (error) {
+            console.error('Error saving meat:', error);
+            const errorMessage = error.message || 'Failed to save meat. Please try again.';
+            alert(`Error: ${errorMessage}`);
+            showToast(errorMessage, 'error');
         } finally {
             isSubmitting = false;
         }
