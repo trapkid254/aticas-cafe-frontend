@@ -129,29 +129,34 @@ document.addEventListener('DOMContentLoaded', function() {
     async function handleSubmit(e) {
         e.preventDefault();
         
-        const formData = new FormData(addMeatForm);
-        const meatData = {
-            name: formData.get('name'),
-            price: parseFloat(formData.get('price')),
-            description: formData.get('description') || '',
-            quantity: parseInt(formData.get('quantity')) || 1,
-            image: formData.get('image')
-        };
-
-        const token = getToken();
-        console.log('Using token for request:', token ? 'Token exists' : 'No token');
+        if (isSubmitting) return;
+        isSubmitting = true;
         
-        if (!token) {
-            alert('Please log in to continue');
-            window.location.href = '/butchery-admin/butcheryadmin-login.html';
-            return;
-        }
-
-        const url = 'https://aticas-backend.onrender.com/api/meats';
-        const method = editId ? 'PUT' : 'POST';
-        const requestUrl = editId ? `${url}/${editId}` : url;
-
         try {
+            const formData = new FormData(addMeatForm);
+            const meatData = {
+                name: formData.get('name').trim(),
+                price: formData.get('price'),
+                description: formData.get('description')?.trim() || '',
+                quantity: formData.get('quantity') || 1,
+                image: formData.get('image')
+            };
+            
+            // Basic validation
+            if (!meatData.name) throw new Error('Meat name is required');
+            if (!meatData.price) throw new Error('Price is required');
+            if (isNaN(parseFloat(meatData.price))) throw new Error('Price must be a valid number');
+
+            const token = getToken();
+            if (!token) {
+                window.location.href = '/butchery-admin/butcheryadmin-login.html';
+                return;
+            }
+
+            const url = 'https://aticas-backend.onrender.com/api/meats';
+            const method = editId ? 'PUT' : 'POST';
+            const requestUrl = editId ? `${url}/${editId}` : url;
+
             console.log('Sending request to:', requestUrl);
             console.log('Request method:', method);
             console.log('Request payload:', meatData);
@@ -165,21 +170,41 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify(meatData)
             });
 
-            const responseData = await response.json();
-            console.log('Response status:', response.status);
-            console.log('Response data:', responseData);
+            let responseData;
+            try {
+                responseData = await response.json();
+                console.log('Response status:', response.status);
+                console.log('Response data:', responseData);
+            } catch (jsonError) {
+                console.error('Failed to parse response as JSON:', jsonError);
+                throw new Error('Server returned an invalid response');
+            }
 
             if (!response.ok) {
-                throw new Error(responseData.error || `HTTP error! status: ${response.status}`);
+                const errorMessage = responseData?.error || 
+                                  responseData?.message || 
+                                  `HTTP error! status: ${response.status}`;
+                throw new Error(errorMessage);
             }
 
             closeMeatModal();
             fetchMeatItems();
+            showToast(editId ? 'Meat updated successfully' : 'Meat added successfully', 'success');
+            
         } catch (error) {
-            console.error('Error saving meat:', error);
+            console.error('Error in handleSubmit:', {
+                error: error.message,
+                stack: error.stack,
+                timestamp: new Date().toISOString()
+            });
+            
             const errorMessage = error.message || 'Failed to save meat. Please try again.';
-            alert(`Error: ${errorMessage}`);
             showToast(errorMessage, 'error');
+            
+            // Only show alert for critical errors
+            if (!error.message || error.message.includes('Failed to fetch')) {
+                alert(`Error: ${errorMessage}\n\nPlease check your connection and try again.`);
+            }
         } finally {
             isSubmitting = false;
         }
