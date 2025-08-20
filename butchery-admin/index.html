@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - ATICAS CAFE'</title>
+    <title>Admin Dashboard - ATICAS BUTCHERY</title>
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/admin.css">
     <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
@@ -23,8 +23,7 @@
         <div class="admin-navbar-tabs">
             <a href="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
             <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
-            <a href="bookings.html"><i class="fas fa-calendar-check"></i> Bookings</a>
-            <a href="menu-management.html"><i class="fas fa-utensils"></i> Menu Management</a>
+            <a href="meat-management.html"><i class="fas fa-drumstick-bite"></i> Meat Management</a>
             <a href="admins.html"><i class="fas fa-user-shield"></i> Admins</a>
             <a href="reports.html"><i class="fas fa-chart-line"></i> Reports</a>
             <a href="payments.html"><i class="fas fa-credit-card"></i> Payments</a>
@@ -36,8 +35,7 @@
     <div class="admin-sidebar">
         <a href="index.html" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
         <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
-        <a href="bookings.html"><i class="fas fa-calendar-check"></i> Bookings</a>
-        <a href="menu-management.html"><i class="fas fa-utensils"></i> Menu Management</a>
+        <a href="meat-management.html"><i class="fas fa-drumstick-bite"></i> Meat Management</a>
         <a href="reports.html"><i class="fas fa-chart-bar"></i> Reports</a>
         <a href="admins.html"><i class="fas fa-user-shield"></i> Admins</a>
         <a href="payments.html"><i class="fas fa-money-bill-wave"></i> Payments</a>
@@ -57,12 +55,12 @@
                 <p id="totalRevenue">Ksh 0</p>
             </div>
             <div class="dashboard-card">
-                <h3>Total Menu Items</h3>
-                <p id="totalMenuItems">0</p>
+                <h3>Total Meat Items</h3>
+                <p id="totalMeatItems">0</p>
             </div>
             <div class="dashboard-card">
                 <h3>Meats of the Day</h3>
-                <p id="mealsToday">0</p>
+                <p id="meatsToday">0</p>
             </div>
         </div>
 
@@ -70,8 +68,8 @@
         <div class="quick-actions">
             <h3>Quick Actions</h3>
             <div class="action-buttons">
-                <button class="action-btn" id="addMealBtn"><i class="fas fa-plus"></i> Add New Meal</button>
-                <button class="action-btn" id="updateMealsBtn"><i class="fas fa-sync-alt"></i> Update Meals of the Day</button>
+                <button class="action-btn" id="addMeatBtn"><i class="fas fa-plus"></i> Add New Meat</button>
+                <button class="action-btn" id="updateMeatsBtn"><i class="fas fa-sync-alt"></i> Update Meats of the Day</button>
                 <button class="action-btn" id="viewOrdersBtn"><i class="fas fa-clipboard-list"></i> View Recent Orders</button>
             </div>
         </div>
@@ -98,43 +96,43 @@
     </div>
 
     <!-- Add Meal Modal -->
-    <div class="modal" id="addMealModal">
+    <div class="modal" id="addMeatModal">
         <div class="modal-content">
             <span class="close-modal">&times;</span>
-            <h3>Add New Meal</h3>
-            <form id="addMealForm">
+            <h3>Add New Meat</h3>
+            <form id="addMeatForm">
                 <div class="form-group">
-                    <label for="mealName">Meal Name</label>
-                    <input type="text" id="mealName" required>
+                    <label for="meatName">Meat Name</label>
+                    <input type="text" id="meatName" required>
                 </div>
                 <div class="form-group">
-                    <label for="mealDescription">Description</label>
-                    <textarea id="mealDescription" rows="3" required></textarea>
+                    <label for="meatDescription">Description</label>
+                    <textarea id="meatDescription" rows="3" required></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="mealPrice">Price</label>
-                    <input type="number" id="mealPrice" step="0.01" min="0" required>
+                    <label for="meatPrice">Price</label>
+                    <input type="number" id="meatPrice" step="0.01" min="0" required>
                 </div>
                 <div class="form-group">
-                    <label for="mealCategory">Category</label>
-                    <select id="mealCategory" required>
-                        <option value="breakfast">Breakfast</option>
-                        <option value="lunch">Lunch</option>
-                        <option value="dinner">Dinner</option>
-                        <option value="drinks">Drinks & Beverages</option>
+                    <label for="meatCategory">Category</label>
+                    <select id="meatCategory" required>
+                        <option value="beef">Beef</option>
+                        <option value="goat meat">Goat Meat(Chevon)</option>
+                        <option value="chicken">Chicken</option>
+                        <option value="ready made">Ready Made</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="mealImage">Image URL</label>
-                    <input type="text" id="mealImage" required>
+                    <label for="meatImage">Image URL</label>
+                    <input type="text" id="meatImage" required>
                 </div>
-                <button type="submit" class="submit-btn">Add Meal</button>
+                <button type="submit" class="submit-btn">Add Meat</button>
             </form>
         </div>
     </div>
 
     <!-- Update Meals of the Day Modal -->
-    <div class="modal" id="updateMealsModal">
+    <div class="modal" id="updateMeatsModal">
         <div class="modal-content">
             <span class="close-modal">&times;</span>
             <h3>Add Meat of the Day</h3>
@@ -161,12 +159,12 @@
     </div>
 
     <!-- Menu Management Modal -->
-    <div id="menuManagementModal" class="modal">
+    <div id="meatManagementModal" class="modal">
         <div class="modal-content">
-            <span class="close-modal" id="closeMenuManagement">&times;</span>
-            <h3>Menu Management</h3>
+            <span class="close-modal" id="closeMeatManagement">&times;</span>
+            <h3>Meat Management</h3>
             <div class="mm-sections">
-                <!-- Meals of the Day Section -->
+                <!-- Meats of the Day Section -->
                 <div class="mm-card">
                     <h4>Meats of the Day</h4>
                     <button id="showAddMeatOfDayForm" class="submit-btn" style="margin-bottom: 0.5rem;">Add Meat of the Day</button>
@@ -197,12 +195,12 @@
                     <button id="showAddMenuMeatForm" class="submit-btn" style="margin-bottom: 0.5rem;">Add Menu Meat</button>
                     <form id="addMenuMeatForm" style="display:none; margin-bottom: 1rem;">
                         <div class="form-group">
-                            <label for="menuName">Meat Name</label>
-                            <input type="text" id="menuName" required>
+                            <label for="meatName">Meat Name</label>
+                            <input type="text" id="meatName" required>
                         </div>
                         <div class="form-group">
-                            <label for="menuCategory">Category</label>
-                            <select id="menuCategory" required>
+                            <label for="meatCategory">Category</label>
+                            <select id="meatCategory" required>
                                 <option value="beef">Beef</option>
                                 <option value="goat">Goat Meat</option>
                                 <option value="chicken">Chicken</option>
@@ -210,12 +208,12 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="menuPrice">Price</label>
-                            <input type="number" id="menuPrice" min="0" step="0.01" required>
+                            <label for="meatPrice">Price</label>
+                            <input type="number" id="meatPrice" min="0" step="0.01" required>
                         </div>
                         <div class="form-group">
-                            <label for="menuImage">Image</label>
-                            <input type="file" id="menuImage" accept="image/*" required>
+                            <label for="meatImage">Image</label>
+                            <input type="file" id="meatImage" accept="image/*" required>
                         </div>
                         <button type="submit" class="submit-btn">Add</button>
                     </form>
@@ -246,9 +244,9 @@
             */
 
             // Fetch existing meals of the day
-            const meatsRes = await fetch('https://aticas-backend.onrender.com/api/meals', { headers: { 'Authorization': localStorage.getItem('butcheryAdminToken') || '' } });
+            const meatsRes = await fetch('https://aticas-backend.onrender.com/api/meats', { headers: { 'Authorization': localStorage.getItem('butcheryAdminToken') || '' } });
             const meats = await meatsRes.json();
-            // ... (rest of the script to display meals)
+            // ... (rest of the script to display meats)
 
         } catch (error) {
             console.error('Failed to load initial data:', error);

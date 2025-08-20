@@ -1,0 +1,170 @@
+/* Meats of the Day Section */
+.meats-section {
+    padding: 4rem 2rem;
+    background-color: #f9f9f9;
+    text-align: center;
+}
+
+.meats-section h2 {
+    font-size: 2.5rem;
+    color: #2c3e50;
+    margin-bottom: 2.5rem;
+    position: relative;
+    display: inline-block;
+    font-weight: 700;
+}
+
+.meats-section h2::after {
+    content: '';
+    position: absolute;
+    width: 80px;
+    height: 4px;
+    background-color: #e74c3c;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 2px;
+}
+
+.meats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.meat-item {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.meat-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.meat-image {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+}
+
+.meat-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.meat-item:hover .meat-image img {
+    transform: scale(1.05);
+}
+
+.meat-details {
+    padding: 1.5rem;
+    text-align: left;
+}
+
+.meat-details h3 {
+    margin: 0 0 0.5rem 0;
+    color: #2c3e50;
+    font-size: 1.3rem;
+}
+
+.meat-description {
+    color: #7f8c8d;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.meat-price {
+    font-size: 1.5rem;
+    color: #e74c3c;
+    font-weight: 700;
+    margin: 1rem 0;
+}
+
+.add-to-cart-btn {
+    display: inline-block;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+    width: 100%;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.9rem;
+}
+
+.add-to-cart-btn:hover {
+    background-color: #c0392b;
+}
+
+.no-meals {
+    grid-column: 1 / -1;
+    padding: 2rem;
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+/* Toast Notifications */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #2ecc71;
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 5px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    max-width: 300px;
+}
+
+.toast.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.toast.error {
+    background-color: #e74c3c;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .meats-container {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        padding: 0.5rem;
+    }
+    
+    .meats-section {
+        padding: 3rem 1rem;
+    }
+    
+    .meats-section h2 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .meats-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .meat-item {
+        max-width: 100%;
+    }
+}

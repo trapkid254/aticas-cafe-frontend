@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menu Management - ATICAS CAFE' Admin</title>
+    <title>Meat Management - ATICAS BUTCHERY Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/admin.css">
@@ -23,7 +23,7 @@
         <div class="admin-navbar-tabs">
             <a href="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
             <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
-            <a href="menu-management.html"><i class="fas fa-utensils"></i> Menu Management</a>
+            <a href="meat-management.html"><i class="fas fa-drumstick-bite"></i> Meat Management</a>
             <a href="admins.html"><i class="fas fa-user-shield"></i> Admins</a>
             <a href="reports.html"><i class="fas fa-chart-line"></i> Reports</a>
             <a href="payments.html"><i class="fas fa-credit-card"></i> Payments</a>
@@ -39,7 +39,7 @@
         <ul class="sidebar-menu">
             <li><a href="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
             <li><a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a></li>
-            <li><a href="menu-management.html" class="active"><i class="fas fa-utensils"></i> Menu Management</a></li>
+            <li><a href="meat-management.html" class="active"><i class="fas fa-drumstick-bite"></i> Meat Management</a></li>
             <li><a href="admins.html"><i class="fas fa-user-shield"></i> Admins</a></li>
             <li><a href="reports.html"><i class="fas fa-chart-line"></i> Reports</a></li>
             <li><a href="payments.html"><i class="fas fa-credit-card"></i> Payments</a></li>
@@ -48,7 +48,7 @@
 
     <!-- Admin Content -->
     <div class="admin-content">
-        <h2>Menu Management</h2>
+        <h2>Meat Management</h2>
         <div class="dashboard-cards" style="margin-bottom: 2.5rem;">
             <div class="dashboard-card" style="flex: 2 1 400px; background: #ffffff;">
                 <h3>Meats of the Day</h3>
@@ -56,9 +56,9 @@
                 <div id="meatsOfDayList" style="margin-top: 1rem;"></div>
             </div>
             <div class="dashboard-card" style="flex: 3 1 600px; background: #ffffff;">
-                <h3>Menu</h3>
-                <button class="action-btn" id="addMenuMealBtn" style="margin-bottom: 1rem;"><i class="fas fa-plus"></i> Add Menu Meat</button>
-                <div id="menuMealsList" style="margin-top: 1rem;"></div>
+                <h3>Meat Menu</h3>
+                <button class="action-btn" id="addMenuMeatBtn" style="margin-bottom: 1rem;"><i class="fas fa-plus"></i> Add Meat Item</button>
+                <div id="meatMenuList" style="margin-top: 1rem;"></div>
             </div>
         </div>
     </div>
@@ -67,7 +67,7 @@
     <div class="modal" id="addMeatModal">
         <div class="modal-content" style="max-width: 480px; margin: 2rem auto; padding: 2.5rem 2rem 2rem 2rem; border-radius: 14px; background: #fff; box-shadow: 0 4px 24px rgba(39,174,96,0.10); position: relative;">
             <span class="close-modal" style="top: 1.2rem; right: 1.2rem; font-size: 2rem; color: #e74c3c;">&times;</span>
-            <h3 id="addMeatModalTitle" style="color: #27ae60; font-size: 1.5rem; margin-bottom: 1.5rem; text-align: center;"><i class="fas fa-utensils"></i> Add Meat</h3>
+            <h3 id="addMeatModalTitle" style="color: #27ae60; font-size: 1.5rem; margin-bottom: 1.5rem; text-align: center;"><i class="fas fa-drumstick-bite"></i> Add Meat</h3>
             <form id="addMeatForm" style="display: flex; flex-direction: column; gap: 1.2rem;">
                 <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
                     <label for="meatName" style="font-weight: bold; color: #222;">Meat Name</label>
@@ -117,6 +117,6 @@
     </div>
 
     <script src="../js/script.js"></script>
-    <script src="../js/admin-menu-management.js"></script>
+    <script src="../js/admin-meat-management.js"></script>
 </body>
 </html> 
