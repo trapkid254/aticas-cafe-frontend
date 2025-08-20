@@ -192,7 +192,7 @@ const errorDiv = document.createElement('div');
             const row = document.createElement('tr');
             
             // Format order items for display
-            const itemsText = order.items
+            let itemsText = order.items
                 .slice(0, 2) // Show only first 2 items
                 .map(item => {
                     const itemName = item.menuItem?.name || 'Unknown Item';
