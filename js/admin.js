@@ -42,15 +42,27 @@ document.addEventListener('DOMContentLoaded', function() {
     const fetchFromApi = async (endpoint) => {
         const url = new URL(`https://aticas-backend.onrender.com${endpoint}`);
         
-        // Add type parameter for order-related endpoints
-        if (endpoint.startsWith('/api/orders')) {
+        // Add type parameter for order-related and dashboard endpoints
+        if (endpoint.startsWith('/api/orders') || endpoint.startsWith('/api/dashboard')) {
             url.searchParams.append('type', adminType);
         }
         
         const response = await fetch(url, {
-            headers: { 'Authorization': adminToken }
+            headers: getAuthHeaders()
         });
-        if (!response.ok) throw new Error(`Failed to fetch from ${endpoint}`);
+        
+        if (!response.ok) {
+            if (response.status === 401) {
+                // Handle unauthorized access
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('adminType');
+                window.location.href = adminType === 'butchery' 
+                    ? '/butchery-admin/butcheryadmin-login.html'
+                    : '/admin/admin-login.html';
+                return null;
+            }
+            throw new Error(`Failed to fetch from ${endpoint}`);
+        }
         return response.json();
     };
 
