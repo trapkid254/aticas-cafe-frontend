@@ -288,7 +288,11 @@
                     const cart1 = await (await fetchCart()).json();
                     
                     // Load butchery cart
-                    const cart2 = await fetch('https://aticas-backend.onrender.com/api/cart/butchery').then(res => res.json());
+                    const cart2 = await fetch('https://aticas-backend.onrender.com/api/butchery/cart', {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('userToken') || ''}`
+                        }
+                    }).then(res => res.json());
                     
                     // Combine both carts
                     const combinedCart = {
@@ -299,8 +303,17 @@
                     displayCombinedCart(combinedCart);
                 } catch (error) {
                     console.error('Error loading carts:', error);
-                    // Fallback to regular cart if there's an error
-                    displayCartItems();
+                    // Show error message to user
+                    const cartContainer = document.getElementById('cartContainer');
+                    if (cartContainer) {
+                        cartContainer.innerHTML = `
+                            <div class="empty-cart">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <p>Error loading cart. Please try again.</p>
+                                <button onclick="window.location.reload()" class="btn">Retry</button>
+                            </div>
+                        `;
+                    }
                 }
             }
             
@@ -428,7 +441,7 @@
             // Butchery cart functions
             async function updateButcheryCartItem(menuItemId, quantity, size = null) {
                 try {
-                    const response = await fetch('https://aticas-backend.onrender.com/api/cart/butchery/update', {
+                    const response = await fetch('https://aticas-backend.onrender.com/api/butchery/cart/update', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -449,7 +462,7 @@
             
             async function removeFromButcheryCart(menuItemId, size = null) {
                 try {
-                    const response = await fetch('https://aticas-backend.onrender.com/api/cart/butchery/remove', {
+                    const response = await fetch('https://aticas-backend.onrender.com/api/butchery/cart/remove', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
