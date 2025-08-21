@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/meats.css">
+    <link rel="stylesheet" href="css/butchery.css">
     <!-- Algerian font is not available on Google Fonts, so we use a similar decorative font as fallback -->
     <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
 </head>
@@ -53,11 +54,16 @@
         </div>
     </section>
 
-    <!-- Meats of the Day -->
+    <!-- Meats Section -->
     <section class="meats-section">
-        <h2 class="typewriter-on-scroll">Meats of the Day</h2>
-        <div class="meats-container" id="meatsOfDayContainer">
-            <!-- Meats of the Day will be loaded here by JS -->
+        <div class="container">
+            <h2 class="typewriter-on-scroll">Our Fresh Meats</h2>
+            <div class="search-container" style="text-align: center; margin-bottom: 2rem;">
+                <input type="text" id="menuSearch" placeholder="Search meats..." class="search-input">
+            </div>
+            <div class="meats-container" id="meatsOfDayContainer">
+                <!-- Meats will be loaded here by JS -->
+            </div>
         </div>
     </section>
 
@@ -101,6 +107,7 @@
     </footer>
 
     <div id="toast" class="toast"></div>
+    <script src="js/butchery.js"></script>
     <script src="js/script.js"></script>
     <script src="js/meats-of-day.js"></script>
 </body>

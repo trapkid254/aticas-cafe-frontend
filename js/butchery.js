@@ -1,108 +1,102 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Load menu items from API
-    let menuItems = [];
-    const menuContainer = document.getElementById('butcheryItems');
+    // Load meat items from API
+    let meatItems = [];
+    const menuContainer = document.getElementById('butcheryItems') || document.getElementById('meatsOfDayContainer');
     const filterButtons = document.querySelectorAll('.filter-btn');
     const priceOptionsModal = document.getElementById('price-options-modal');
     const modalItemName = document.getElementById('modal-item-name');
     const modalPriceOptions = document.getElementById('modal-price-options');
     const modalAddToCartBtn = document.getElementById('modal-add-to-cart-btn');
-    const closeModalBtn = priceOptionsModal.querySelector('.close-modal');
-
-    async function fetchMenuItems() {
-        try {
-            const res = await fetch('https://aticas-backend.onrender.com/api/menu?type=butchery');
-            menuItems = await res.json();
-            displayMenuItems();
-        } catch (err) {
-            menuContainer.innerHTML = '<div class="empty-menu-message">Failed to load menu items.</div>';
-        }
-    }
-
-    function getUserIdFromToken() {
-        return localStorage.getItem('userId');
-    }
-
-    async function fetchCart() {
-        const userId = getUserIdFromToken();
-        if (!userId) return [];
-        const res = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
-            headers: { 'Authorization': localStorage.getItem('userToken') || '' }
-        });
-        if (!res.ok) return [];
-        return await res.json();
-    }
-
-    async function addToCartApi(menuItem, selectedSize = null) {
-        const userId = getUserIdFromToken();
-        const userToken = localStorage.getItem('userToken');
-
-        if (userId && userToken) {
-            const menuItemId = menuItem._id;
-            const itemType = menuItem.category ? 'Menu' : 'MealOfDay';
-            try {
-                await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}/items`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': userToken
-                    },
-                    body: JSON.stringify({
-                        menuItemId: menuItemId,
-                        quantity: 1,
-                        itemType,
-                        selectedSize
-                    })
-                });
-                // Update cart count after successful addition
-                if (window.updateCartCount) await window.updateCartCount();
-            } catch (err) {
-                console.error('Error adding to cart:', err);
-            }
-        } else {
-            let cart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
-            const itemType = menuItem.category ? 'Menu' : 'MealOfDay';
-            const existingItemIndex = cart.items.findIndex(i =>
-                i.menuItem._id === menuItem._id &&
-                i.itemType === itemType &&
-                (selectedSize ? i.selectedSize && i.selectedSize.size === selectedSize.size : !i.selectedSize)
-            );
-
-            if (existingItemIndex > -1) {
-                cart.items[existingItemIndex].quantity += 1;
-            } else {
-                cart.items.push({
-                    menuItem: menuItem,
-                    quantity: 1,
-                    itemType,
-                    selectedSize
-                });
-            }
-            localStorage.setItem('guestCart', JSON.stringify(cart));
-            // Update cart count after successful addition
-            if (window.updateCartCount) await window.updateCartCount();
-        }
-    }
-
-    const menuSection = document.querySelector('.menu-section');
-    const searchDiv = document.createElement('div');
-    searchDiv.style = 'margin-bottom:1.5rem;text-align:center;';
-    searchDiv.innerHTML = '<input type="text" id="menuSearch" placeholder="Search meat..." style="width:60%;max-width:340px;padding:0.7rem 1rem;border-radius:6px;border:1.5px solid #27ae60;font-size:1.1rem;">';
-    menuSection.insertBefore(searchDiv, menuSection.children[1]);
+    const closeModalBtn = priceOptionsModal?.querySelector('.close-modal');
     const menuSearch = document.getElementById('menuSearch');
 
+    // Cart state
+    let cart = JSON.parse(localStorage.getItem('butcheryCart')) || [];
+    
+    // Initialize
+    updateCartCount();
+    fetchMeatItems();
+
+    async function fetchMeatItems() {
+        try {
+            const res = await fetch('https://aticas-backend.onrender.com/api/meats');
+            if (!res.ok) throw new Error('Failed to fetch meat items');
+            meatItems = await res.json();
+            displayMenuItems();
+        } catch (err) {
+            console.error('Error fetching meat items:', err);
+            const errorMsg = document.createElement('div');
+            errorMsg.className = 'error-message';
+            errorMsg.innerHTML = `
+                <p>Failed to load meat items. Please try again later.</p>
+                <button onclick="window.location.reload()">Retry</button>
+            `;
+            menuContainer.innerHTML = '';
+            menuContainer.appendChild(errorMsg);
+        }
+    }
+
+    function updateCartCount() {
+        const count = cart.reduce((total, item) => total + item.quantity, 0);
+        const cartCount = document.getElementById('cartCount');
+        if (cartCount) cartCount.textContent = count;
+    }
+
+    async function addToCart(meatItem, selectedOption) {
+        // Check if already in cart
+        const existingItem = cart.find(item => item.id === meatItem._id);
+        
+        if (existingItem) {
+            existingItem.quantity += 1;
+        } else {
+            cart.push({
+                id: meatItem._id,
+                name: meatItem.name,
+                price: selectedOption ? selectedOption.price : meatItem.price,
+                image: meatItem.image || 'images/placeholder-meat.jpg',
+                quantity: 1,
+                size: selectedOption ? selectedOption.size : null
+            });
+        }
+        
+        localStorage.setItem('butcheryCart', JSON.stringify(cart));
+        updateCartCount();
+        
+        // Show success message
+        showToast(`${meatItem.name} added to cart!`);
+    }
+
+    // Add search functionality if search input exists
+    if (menuSearch) {
+        menuSearch.addEventListener('input', (e) => {
+            displayMenuItems(document.querySelector('.filter-btn.active')?.dataset.category || 'all', menuSearch.value);
+        });
+    }
+
     function displayMenuItems(category = 'all', search = '') {
+        if (!menuContainer) return;
+        
         menuContainer.innerHTML = '';
-        if (!menuItems || menuItems.length === 0) {
-            menuContainer.innerHTML = '<div class="empty-menu-message">No meat available for now. Please check back later.</div>';
+        if (!meatItems || meatItems.length === 0) {
+            const emptyMsg = document.createElement('div');
+            emptyMsg.className = 'empty-menu-message';
+            emptyMsg.innerHTML = `
+                <i class="fas fa-drumstick-bite"></i>
+                <p>No meat available at the moment. Please check back later.</p>
+            `;
+            menuContainer.appendChild(emptyMsg);
             return;
         }
-        let filteredItems = category === 'all' 
-            ? menuItems 
-            : menuItems.filter(item => item.category === category);
-        if (search) {
-            filteredItems = filteredItems.filter(item => item.name.toLowerCase().includes(search.toLowerCase()));
-        }
+        
+        // Filter items based on search and category
+        let filteredItems = meatItems.filter(item => {
+            const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase()) ||
+                                (item.description && item.description.toLowerCase().includes(search.toLowerCase()));
+            const matchesCategory = category === 'all' || item.category === category;
+            return matchesSearch && matchesCategory;
+        });
+        
+        // Render meat items
         filteredItems.forEach(item => {
             const menuItem = document.createElement('div');
             menuItem.className = 'menu-item';
@@ -129,14 +123,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             menuItem.innerHTML = `
-                <img src="${item.image}" alt="${item.name}">
-                <div class="menu-item-details">
+                <div class="meat-image">
+                    <img src="${item.image || 'images/placeholder-meat.jpg'}" alt="${item.name}">
+                    <div class="meat-overlay">
+                        <button class="add-to-cart-btn" data-id="${item._id}" ${outOfStock ? 'disabled' : ''}>
+                            <i class="fas fa-cart-plus"></i> ${outOfStock ? 'Out of Stock' : 'Add to Cart'}
+                        </button>
+                    </div>
+                </div>
+                <div class="meat-details">
                     <h3>${item.name}</h3>
-                    <p class="menu-qty ${quantityClass}">${quantityText}</p>
-                    <span class="price">${priceDisplay}</span>
-                    <button class="add-to-cart" data-id="${item._id}" ${outOfStock ? 'disabled style="background:#ccc;cursor:not-allowed;"' : ''}>
-                        ${outOfStock ? 'Out of Stock' : (hasPriceOptions ? 'Select Option' : 'Add to Cart')}
-                    </button>
+                    <p class="meat-description">${item.description || 'Fresh quality meat'}</p>
+                    <div class="meat-footer">
+                        <span class="price">Ksh ${typeof item.price === 'number' ? item.price.toFixed(2) : 'N/A'}</span>
+                        <span class="quantity ${quantityClass}">${quantityText}</span>
+                    </div>
                 </div>
             `;
             menuContainer.appendChild(menuItem);
@@ -144,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.add-to-cart').forEach(button => {
             button.addEventListener('click', async function() {
                 const itemId = this.dataset.id;
-                const item = menuItems.find(i => i._id === itemId);
+                const item = meatItems.find(i => i._id === itemId);
                 if (!item || item.quantity === 0) {
                     alert('Sorry, this item is out of stock!');
                     return;
@@ -196,9 +197,11 @@ document.addEventListener('DOMContentLoaded', function() {
         priceOptionsModal.style.display = 'flex';
     }
 
-    closeModalBtn.addEventListener('click', () => {
-        priceOptionsModal.style.display = 'none';
-    });
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', () => {
+            priceOptionsModal.style.display = 'none';
+        });
+    }
 
     window.addEventListener('click', (event) => {
         if (event.target === priceOptionsModal) {
@@ -222,11 +225,21 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function showToast(message) {
-    const toast = document.getElementById('toast');
-    if (!toast) return;
+    const toast = document.createElement('div');
+    toast.className = 'toast';
     toast.textContent = message;
-    toast.className = 'toast show';
+    document.body.appendChild(toast);
+    
+    // Show toast
     setTimeout(() => {
-        toast.className = 'toast';
-    }, 2000);
+        toast.classList.add('show');
+    }, 100);
+    
+    // Hide toast after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 3000);
 }
