@@ -221,11 +221,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const response = await fetch(requestUrl, {
                     method,
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
                         // Don't set Content-Type header - let the browser set it with the correct boundary
                     },
                     body: formData,
-                    credentials: 'include' // Include cookies if needed
+                    credentials: 'same-origin' // Only send credentials for same-origin requests
                 });
 
                 let responseData;
