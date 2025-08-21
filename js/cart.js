@@ -2,7 +2,13 @@
 async function fetchMenuItem(menuItemId, itemType) {
     try {
         let url = `https://aticas-backend.onrender.com/api/`;
-        url += itemType === 'MealOfDay' ? 'meals' : 'menu';
+        if (itemType === 'MealOfDay') {
+            url += 'meals';
+        } else if (itemType === 'meat') {
+            url += 'meats';
+        } else {
+            url += 'menu';
+        }
         url += `/${menuItemId}`;
         
         const response = await fetch(url);
@@ -193,217 +199,31 @@ async function updateCartItem(menuItemId, quantity, itemType, selectedSize = nul
                 cart.items.splice(idx, 1);
             } else {
                 cart.items[idx].quantity = quantity;
-                if (selectedSize) {
-                    cart.items[idx].selectedSize = selectedSize;
-                }
-            }
-        } else if (quantity > 0) {
-            // Add new item to cart if it doesn't exist
-            const menuItem = await fetchMenuItem(menuItemId, itemType);
-            if (menuItem) {
-                cart.items.push({
-                    menuItem,
-                    quantity,
-                    itemType,
-                    selectedSize,
-                    effectivePrice: selectedSize ? selectedSize.price : menuItem.price
-                });
-            }
         }
         
-        setGuestCart(cart);
-        return cart;
-    }
-}
-
-// Remove item from cart
-async function removeCartItem(menuItemId, itemType, selectedSize = null) {
-    const userId = getUserId();
-    const token = getUserToken();
-
-    if (userId && token) {
-        try {
-            let url = `https://aticas-backend.onrender.com/api/cart/items/${menuItemId}`;
-            const params = new URLSearchParams();
-            params.append('itemType', itemType);
-            
-            if (selectedSize && selectedSize.size) {
-                params.append('size', selectedSize.size);
-            }
-            
-            const response = await fetch(`${url}?${params.toString()}`, {
-                method: 'DELETE',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` 
-                }
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to remove cart item');
-            }
-            
-            return await response.json();
-        } catch (err) {
-            console.error('Error removing cart item:', err);
-            throw new Error(err.message || 'Failed to remove cart item');
+        if (item.selectedSize) {
+            cartItem.dataset.size = item.selectedSize.size;
         }
-    } else {
-        let cart = getGuestCart();
-        cart.items = cart.items.filter(i => 
-            !(i.menuItem._id === menuItemId && 
-              i.itemType === itemType &&
-              ((selectedSize && i.selectedSize && i.selectedSize.size === selectedSize.size) || 
-               (!selectedSize && !i.selectedSize)))
-        );
-        setGuestCart(cart);
-        return cart;
-    }
-}
 
-// Clear cart after order
-async function clearCart() {
-    const userId = getUserId();
-    const token = getUserToken();
-    
-    if (userId && token) {
-        try {
-            const res = await fetch(`https://aticas-backend.onrender.com/api/cart`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            console.log('Backend DELETE response:', res.status, await res.text());
-        } catch (err) {
-            console.error('Error clearing cart:', err);
-        }
-    } else {
-        setGuestCart({ items: [] });
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    let cartContainer = document.getElementById('cartContainer');
-    const cartSummary = document.getElementById('cartSummary');
-    const subtotalElement = document.getElementById('subtotal');
-    const taxElement = document.getElementById('tax');
-    const totalElement = document.getElementById('total');
-    const checkoutBtn = document.getElementById('checkoutBtn');
-    const checkoutModal = document.getElementById('checkoutModal');
-    const confirmationModal = document.getElementById('confirmationModal');
-    const closeModalButtons = document.querySelectorAll('.close-modal');
-    const paymentOptions = document.querySelectorAll('input[name="payment"]');
-    const mpesaDetails = document.getElementById('mpesaDetails');
-    const checkoutForm = document.getElementById('checkoutForm');
-    const continueShoppingBtn = document.getElementById('continueShoppingBtn');
-    
-    let cart = { items: [] };
-    
-    // Improved loading overlay function
-    function showLoadingOverlay(message = "Updating...") {
-        // Remove existing overlay if present
-        hideLoadingOverlay();
-        
-        const overlay = document.createElement('div');
-        overlay.id = 'cartLoadingOverlay';
-        overlay.style.position = 'fixed';
-        overlay.style.top = '0';
-        overlay.style.left = '0';
-        overlay.style.width = '100%';
-        overlay.style.height = '100%';
-        overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
-        overlay.style.zIndex = '9999';
-        overlay.style.display = 'flex';
-        overlay.style.justifyContent = 'center';
-        overlay.style.alignItems = 'center';
-        
-        const spinner = document.createElement('div');
-        spinner.style.display = 'flex';
-        spinner.style.flexDirection = 'column';
-        spinner.style.alignItems = 'center';
-        spinner.style.justifyContent = 'center';
-        spinner.style.backgroundColor = 'white';
-        spinner.style.padding = '2rem';
-        spinner.style.borderRadius = '8px';
-        spinner.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
-        
-        const spinnerIcon = document.createElement('div');
-        spinnerIcon.className = 'fas fa-spinner fa-spin';
-        spinnerIcon.style.fontSize = '2rem';
-        spinnerIcon.style.marginBottom = '1rem';
-        spinnerIcon.style.color = '#27ae60';
-        
-        const spinnerText = document.createElement('div');
-        spinnerText.textContent = message;
-        spinnerText.style.fontSize = '1.2rem';
-        
-        spinner.appendChild(spinnerIcon);
-        spinner.appendChild(spinnerText);
-        overlay.appendChild(spinner);
-        
-        document.body.appendChild(overlay);
-        document.body.style.overflow = 'hidden';
-        
-        return overlay;
-    }
-
-    function hideLoadingOverlay() {
-        const overlay = document.getElementById('cartLoadingOverlay');
-        if (overlay) {
-            document.body.removeChild(overlay);
-            document.body.style.overflow = '';
-        }
-    }
-
-    async function displayCartItems() {
-        cart = await fetchCart();
-        console.log('Full cart data:', JSON.parse(JSON.stringify(cart)));
-        
-        if (!cart || !cart.items || cart.items.length === 0) {
-            cartContainer.innerHTML = `
-                <div class="empty-cart" style="text-align: center; padding: 3rem 0;">
-                    <i class="fas fa-shopping-cart" style="font-size: 4rem; color: #ccc; margin-bottom: 1.5rem;"></i>
-                    <p style="font-size: 1.2rem; color: #555; margin-bottom: 2rem;">Your cart is empty</p>
-                    <a href="menu.html" class="menu-btn">View Menu</a>
+        cartItem.innerHTML = `
+            <img src="${image}" alt="${name}">
+            <div class="cart-item-details">
+                <h3>${name}</h3>
+                <span class="price">Ksh ${(price * item.quantity).toLocaleString()}</span>
+                <div class="quantity-controls">
+                    <button class="quantity-btn minus" data-id="${id}" data-type="${itemType}" 
+                        data-size="${selectedSize ? selectedSize.size : ''}">-</button>
+                    <span class="quantity">${item.quantity}</span>
+                    <button class="quantity-btn plus" data-id="${id}" data-type="${itemType}" 
+                        data-size="${selectedSize ? selectedSize.size : ''}">+</button>
                 </div>
-            `;
-            cartSummary.style.display = 'none';
-            return;
-        }
-
-        // Create a new container to replace the old one (helps with event listeners)
-        const newContainer = document.createElement('div');
-        newContainer.id = 'cartContainer';
-        newContainer.className = cartContainer.className;
-        cartContainer.parentNode.replaceChild(newContainer, cartContainer);
-        cartContainer = newContainer;
-
-        cart.items.forEach(item => {
-            const menuItem = item.menuItem;
-            if (!menuItem || !menuItem._id) {
-                console.warn('Invalid menu item:', item);
-                return;
-            }
-
-            const selectedSize = item.selectedSize;
-            const image = menuItem.image || 'images/varied menu.jpeg';
-            const name = selectedSize ? `${menuItem.name} (${selectedSize.size})` : menuItem.name;
-            const price = item.effectivePrice || 
-                         (selectedSize ? selectedSize.price : menuItem.price) || 0;
-            const id = menuItem._id;
-            const itemType = item.itemType || (menuItem.category ? 'Menu' : 'MealOfDay');
-
-            const cartItem = document.createElement('div');
-            cartItem.className = 'cart-item';
-            cartItem.innerHTML = `
-                <img src="${image}" alt="${name}">
-                <div class="cart-item-details">
-                    <h3>${name}</h3>
-                    <span class="price">Ksh ${(price * item.quantity).toLocaleString()}</span>
-                    <div class="quantity-controls">
-                        <button class="quantity-btn minus" data-id="${id}" data-type="${itemType}" 
-                            data-size="${selectedSize ? selectedSize.size : ''}">-</button>
-                        <span class="quantity">${item.quantity}</span>
+            </div>
+            <button class="remove-btn" data-id="${id}" data-type="${itemType}" 
+                data-size="${selectedSize ? selectedSize.size : ''}">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        cartContainer.appendChild(cartItem);
                         <button class="quantity-btn plus" data-id="${id}" data-type="${itemType}" 
                             data-size="${selectedSize ? selectedSize.size : ''}">+</button>
                     </div>

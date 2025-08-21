@@ -276,7 +276,200 @@
         </p>
     </footer>
 
-    <script src="js/cart.js"></script>
     <script src="js/script.js"></script>
+    <script src="js/cart.js"></script>
+    <script>
+        // Unified cart functionality
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Load both carts
+            async function loadCarts() {
+                try {
+                    // Load cafeteria cart
+                    const cart1 = await (await fetchCart()).json();
+                    
+                    // Load butchery cart
+                    const cart2 = await fetch('https://aticas-backend.onrender.com/api/cart/butchery').then(res => res.json());
+                    
+                    // Combine both carts
+                    const combinedCart = {
+                        items: [...(cart1?.items || []), ...(cart2?.items || [])],
+                        total: (cart1?.total || 0) + (cart2?.total || 0)
+                    };
+                    
+                    displayCombinedCart(combinedCart);
+                } catch (error) {
+                    console.error('Error loading carts:', error);
+                    // Fallback to regular cart if there's an error
+                    displayCartItems();
+                }
+            }
+            
+            // Display combined cart items
+            function displayCombinedCart(combinedCart) {
+                const cartContainer = document.getElementById('cartContainer');
+                const cartSummary = document.getElementById('cartSummary');
+                const subtotalElement = document.getElementById('subtotal');
+                const deliveryFeeElement = document.getElementById('deliveryFee');
+                const totalElement = document.getElementById('total');
+                
+                if (!combinedCart?.items?.length) {
+                    cartContainer.innerHTML = `
+                        <div class="empty-cart">
+                            <i class="fas fa-shopping-cart"></i>
+                            <p>Your cart is empty</p>
+                            <a href="menu.html" class="btn">Browse Menu</a>
+                            <a href="butchery.html" class="btn" style="margin-top: 10px;">Visit Butchery</a>
+                        </div>
+                    `;
+                    if (cartSummary) cartSummary.style.display = 'none';
+                    return;
+                }
+                
+                let subtotal = 0;
+                let cartHTML = '';
+                
+                combinedCart.items.forEach(item => {
+                    const isButchery = item.itemType === 'meat';
+                    const itemTotal = item.quantity * (item.selectedSize?.price || item.price || 0);
+                    subtotal += itemTotal;
+                    
+                    cartHTML += `
+                        <div class="cart-item" data-id="${item.menuItem}" data-type="${item.itemType}" 
+                             ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>
+                            <img src="${item.image || (isButchery ? 'images/default-meat.jpg' : 'images/default-food.jpg')}" 
+                                 alt="${item.name}">
+                            <div class="cart-item-details">
+                                <h3>${item.name} ${isButchery ? '<span class="butchery-badge">Butchery</span>' : ''}</h3>
+                                ${item.selectedSize ? `<p>Size: ${item.selectedSize.size}</p>` : ''}
+                                <p class="price">Ksh ${(item.selectedSize?.price || item.price || 0).toLocaleString()}</p>
+                                <div class="quantity-controls">
+                                    <button class="quantity-btn minus" data-id="${item.menuItem}" 
+                                        data-type="${item.itemType}" 
+                                        ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>-</button>
+                                    <span class="quantity">${item.quantity}</span>
+                                    <button class="quantity-btn plus" data-id="${item.menuItem}" 
+                                        data-type="${item.itemType}" 
+                                        ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>+</button>
+                                </div>
+                            </div>
+                            <button class="remove-btn" data-id="${item.menuItem}" 
+                                data-type="${item.itemType}" 
+                                ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+                
+                cartContainer.innerHTML = cartHTML;
+                if (cartSummary) cartSummary.style.display = 'block';
+                
+                // Update summary
+                const deliveryFee = 200; // Flat delivery fee
+                const total = subtotal + deliveryFee;
+                
+                if (subtotalElement) subtotalElement.textContent = `Ksh ${subtotal.toLocaleString()}`;
+                if (deliveryFeeElement) deliveryFeeElement.textContent = `Ksh ${deliveryFee.toLocaleString()}`;
+                if (totalElement) totalElement.textContent = `Ksh ${total.toLocaleString()}`;
+                
+                // Initialize button handlers
+                initButtonHandlers();
+            }
+            
+            // Initialize button handlers
+            function initButtonHandlers() {
+                // Quantity controls
+                document.querySelectorAll('.quantity-btn').forEach(button => {
+                    button.addEventListener('click', async function() {
+                        const id = this.dataset.id;
+                        const type = this.dataset.type;
+                        const size = this.dataset.size || null;
+                        const quantityElement = this.parentElement.querySelector('.quantity');
+                        let quantity = parseInt(quantityElement.textContent);
+                        
+                        if (this.classList.contains('plus')) {
+                            quantity++;
+                        } else if (this.classList.contains('minus')) {
+                            quantity = Math.max(1, quantity - 1);
+                        }
+                        
+                        // Update the appropriate cart based on item type
+                        if (type === 'meat') {
+                            await updateButcheryCartItem(id, quantity, size);
+                        } else {
+                            await updateCartItem(id, quantity, type, size);
+                        }
+                        
+                        // Reload the cart
+                        await loadCarts();
+                    });
+                });
+                
+                // Remove buttons
+                document.querySelectorAll('.remove-btn').forEach(button => {
+                    button.addEventListener('click', async function() {
+                        const id = this.dataset.id;
+                        const type = this.dataset.type;
+                        const size = this.dataset.size || null;
+                        
+                        // Remove from the appropriate cart
+                        if (type === 'meat') {
+                            await removeFromButcheryCart(id, size);
+                        } else {
+                            await removeCartItem(id, type, size);
+                        }
+                        
+                        // Reload the cart
+                        await loadCarts();
+                    });
+                });
+            }
+            
+            // Butchery cart functions
+            async function updateButcheryCartItem(menuItemId, quantity, size = null) {
+                try {
+                    const response = await fetch('https://aticas-backend.onrender.com/api/cart/butchery/update', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('userToken') || ''}`
+                        },
+                        body: JSON.stringify({
+                            menuItemId,
+                            quantity,
+                            size
+                        })
+                    });
+                    return await response.json();
+                } catch (error) {
+                    console.error('Error updating butchery cart:', error);
+                    throw error;
+                }
+            }
+            
+            async function removeFromButcheryCart(menuItemId, size = null) {
+                try {
+                    const response = await fetch('https://aticas-backend.onrender.com/api/cart/butchery/remove', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('userToken') || ''}`
+                        },
+                        body: JSON.stringify({
+                            menuItemId,
+                            size
+                        })
+                    });
+                    return await response.json();
+                } catch (error) {
+                    console.error('Error removing from butchery cart:', error);
+                    throw error;
+                }
+            }
+            
+            // Initialize the cart
+            loadCarts();
+        });
+    </script>
 </body>
 </html>

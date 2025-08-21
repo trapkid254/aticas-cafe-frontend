@@ -47,13 +47,19 @@
         <h2 class="typewriter-on-scroll">Our Meats</h2>
         <div class="menu-filter">
             <button class="filter-btn active" data-category="all">All</button>
-            <button class="filter-btn" data-category="breakfast">Beef</button>
+            <button class="filter-btn" data-category="beef">Beef</button>
+            <button class="filter-btn" data-category="chicken">Chicken</button>
+            <button class="filter-btn" data-category="goat">Goat</button>
             <button class="filter-btn" data-category="lunch">Goat Meat(chevon)</button>
             <button class="filter-btn" data-category="dinner">Chicken</button>
             <button class="filter-btn" data-category="drinks">Ready Made</button>
         </div>
         <div class="menu-items" id="menuItems">
-            <!-- Items will be loaded from localStorage via JavaScript -->
+            <!-- Butchery items will be loaded here by JavaScript -->
+        </div>
+        <div id="loadingIndicator" style="text-align: center; padding: 2rem;">
+            <div class="spinner"></div>
+            <p>Loading meats...</p>
         </div>
     </section>
 
@@ -86,6 +92,101 @@
 
     <div id="toast" class="toast"></div>
     <script src="js/script.js"></script>
-    <script src="js/butchery.js"></script>
+    <script src="js/butchery-cart.js"></script>
+    <script>
+        // Initialize butchery menu
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuContainer = document.getElementById('menuItems');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const filterButtons = document.querySelectorAll('.filter-btn');
+
+            // Function to fetch and display butchery items
+            async function fetchAndDisplayMeats(category = 'all') {
+                try {
+                    loadingIndicator.style.display = 'block';
+                    const response = await fetch('https://aticas-backend.onrender.com/api/meats');
+                    if (!response.ok) throw new Error('Failed to fetch meats');
+                    
+                    const meats = await response.json();
+                    displayMeats(meats, category);
+                } catch (error) {
+                    console.error('Error:', error);
+                    menuContainer.innerHTML = `
+                        <div class="error-message">
+                            <p>Failed to load meats. Please try again later.</p>
+                            <button onclick="window.location.reload()">Retry</button>
+                        </div>
+                    `;
+                } finally {
+                    loadingIndicator.style.display = 'none';
+                }
+            }
+
+            // Function to display meats
+            function displayMeats(meats, category) {
+                const filteredMeats = category === 'all' 
+                    ? meats 
+                    : meats.filter(meat => 
+                        meat.category?.toLowerCase() === category.toLowerCase() ||
+                        meat.name.toLowerCase().includes(category.toLowerCase())
+                    );
+
+                if (filteredMeats.length === 0) {
+                    menuContainer.innerHTML = `
+                        <div class="empty-menu-message">
+                            <i class="fas fa-utensils"></i>
+                            <p>No meats found in this category.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                menuContainer.innerHTML = filteredMeats.map(meat => `
+                    <div class="menu-item" data-category="${meat.category?.toLowerCase() || 'other'}">
+                        <div class="menu-item-image">
+                            <img src="${meat.image || 'images/default-meat.jpg'}" alt="${meat.name}">
+                            ${meat.isSpecial ? '<span class="special-badge">Special</span>' : ''}
+                        </div>
+                        <div class="menu-item-details">
+                            <h3>${meat.name}</h3>
+                            <p class="menu-item-description">${meat.description || 'Fresh and delicious meat'}</p>
+                            <div class="menu-item-footer">
+                                <span class="price">Ksh ${meat.price?.toFixed(2) || '0.00'}</span>
+                                <button class="add-to-cart-btn" data-id="${meat._id}" data-name="${meat.name}" data-price="${meat.price}">
+                                    <i class="fas fa-plus"></i> Add to Cart
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Add event listeners to the add to cart buttons
+                document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const item = {
+                            _id: this.dataset.id,
+                            name: this.dataset.name,
+                            price: parseFloat(this.dataset.price),
+                            type: 'meat'
+                        };
+                        addToCart(item);
+                    });
+                });
+            }
+
+            // Filter buttons event listeners
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    const category = this.dataset.category;
+                    fetchAndDisplayMeats(category);
+                });
+            });
+
+            // Initial load
+            fetchAndDisplayMeats();
+        });
+    </script>
 </body>
 </html>
