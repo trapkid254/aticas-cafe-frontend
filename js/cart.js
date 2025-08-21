@@ -1,23 +1,17 @@
 // Fetch menu item details
-async function fetchMenuItem(menuItemId, itemType) {
+async function fetchMenuItem(menuItemId, itemType = 'food') {
     try {
-        let url = `https://aticas-backend.onrender.com/api/`;
-        if (itemType === 'MealOfDay') {
-            url += 'meals';
-        } else if (itemType === 'meat') {
-            url += 'meats';
-        } else {
-            url += 'menu';
+        const endpoint = itemType === 'meat' 
+            ? `https://aticas-backend.onrender.com/api/meats/${menuItemId}`
+            : `/api/menu/${menuItemId}`;
+            
+        const response = await fetch(endpoint);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch ${itemType} item`);
         }
-        url += `/${menuItemId}`;
-        
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Failed to fetch menu item');
-        
-        const data = await response.json();
-        return data;
+        return await response.json();
     } catch (error) {
-        console.error('Error fetching menu item:', error);
+        console.error(`Error fetching ${itemType} item:`, error);
         return null;
     }
 }
@@ -152,88 +146,92 @@ async function fetchCart() {
 }
 
 // Update or add item in cart
-async function updateCartItem(menuItemId, quantity, itemType, selectedSize = null) {
-    const userId = getUserId();
-    const token = getUserToken();
-    
-    if (userId && token) {
-        try {
-            const response = await fetch(`https://aticas-backend.onrender.com/api/cart/items`, {
-                method: 'PATCH',
-                headers: { 
-                    'Content-Type': 'application/json', 
-                    'Authorization': `Bearer ${token}`
+async function updateCartItem(menuItemId, quantity, itemType = 'food', selectedSize = null) {
+    try {
+        // If it's a butchery item, use the butchery cart endpoint
+        if (itemType === 'meat') {
+            const response = await fetch('https://aticas-backend.onrender.com/api/butchery/cart/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getUserToken() || ''}`
                 },
-                body: JSON.stringify({ 
-                    menuItemId, 
+                body: JSON.stringify({
+                    menuItemId,
                     quantity,
-                    itemType,
-                    selectedSize: selectedSize || undefined
+                    size: selectedSize?.size
                 })
             });
             
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to update cart item');
+                throw new Error('Failed to update butchery cart');
             }
             
-            return await response.json();
-        } catch (err) {
-            console.error('Error updating cart item:', err);
-            throw err;
-        }
-    } else {
-        // Guest: update localStorage cart
-        let cart = getGuestCart();
-        if (!cart.items) cart.items = [];
-        
-        const idx = cart.items.findIndex(i => 
-            i.menuItem._id === menuItemId && 
-            i.itemType === itemType &&
-            ((selectedSize && i.selectedSize && i.selectedSize.size === selectedSize.size) || 
-             (!selectedSize && !i.selectedSize))
-        );
-        
-        if (idx > -1) {
-            if (quantity < 1) {
-                cart.items.splice(idx, 1);
-            } else {
-                cart.items[idx].quantity = quantity;
-        }
-        
-        if (item.selectedSize) {
-            cartItem.dataset.size = item.selectedSize.size;
+            const result = await response.json();
+            updateCartCount();
+            return result;
         }
 
-        cartItem.innerHTML = `
-            <img src="${image}" alt="${name}">
-            <div class="cart-item-details">
-                <h3>${name}</h3>
-                <span class="price">Ksh ${(price * item.quantity).toLocaleString()}</span>
-                <div class="quantity-controls">
-                    <button class="quantity-btn minus" data-id="${id}" data-type="${itemType}" 
-                        data-size="${selectedSize ? selectedSize.size : ''}">-</button>
-                    <span class="quantity">${item.quantity}</span>
-                    <button class="quantity-btn plus" data-id="${id}" data-type="${itemType}" 
-                        data-size="${selectedSize ? selectedSize.size : ''}">+</button>
-                </div>
-            </div>
-            <button class="remove-btn" data-id="${id}" data-type="${itemType}" 
-                data-size="${selectedSize ? selectedSize.size : ''}">
-                <i class="fas fa-trash"></i>
-            </button>
-        `;
-        cartContainer.appendChild(cartItem);
-                        <button class="quantity-btn plus" data-id="${id}" data-type="${itemType}" 
-                            data-size="${selectedSize ? selectedSize.size : ''}">+</button>
-                    </div>
-                </div>
-                <button class="remove-btn" data-id="${id}" data-type="${itemType}" 
-                    data-size="${selectedSize ? selectedSize.size : ''}">
-                    <i class="fas fa-trash"></i>
-                </button>
-            `;
-            cartContainer.appendChild(cartItem);
+        // For cafeteria items, use the regular cart endpoint
+        const userId = getUserId();
+        const token = getUserToken();
+        
+        if (userId && token) {
+            const response = await fetch(`/api/cart/${userId}/items`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ menuItemId, quantity, itemType, selectedSize })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to update cart');
+            }
+            
+            const result = await response.json();
+            updateCartCount();
+            return result;
+        } else {
+            // Handle guest cart in localStorage
+            const cart = getGuestCart();
+            const itemIndex = cart.items.findIndex(item => 
+                item.menuItem === menuItemId && 
+                item.itemType === itemType &&
+                JSON.stringify(item.selectedSize) === JSON.stringify(selectedSize)
+            );
+            
+            if (itemIndex !== -1) {
+                if (quantity <= 0) {
+                    cart.items.splice(itemIndex, 1);
+                } else {
+                    cart.items[itemIndex].quantity = quantity;
+                }
+            } else if (quantity > 0) {
+                const menuItem = await fetchMenuItem(menuItemId, itemType);
+                if (menuItem) {
+                    cart.items.push({
+                        menuItem: menuItemId,
+                        itemType,
+                        quantity,
+                        selectedSize,
+                        name: menuItem.name,
+                        price: selectedSize ? selectedSize.price : menuItem.price,
+                        image: menuItem.image
+                    });
+                }
+            }
+            
+            setGuestCart(cart);
+            updateCartCount();
+            return cart;
+        }
+    } catch (error) {
+        console.error('Error updating cart item:', error);
+        throw error;
+    }
+}
         });
 
         // Initialize button handlers after cart is rendered

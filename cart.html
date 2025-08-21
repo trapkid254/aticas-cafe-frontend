@@ -277,27 +277,47 @@
     </footer>
 
     <script src="js/script.js"></script>
-    <script src="js/cart.js"></script>
+    <script src="js/cart-fixed.js"></script>
     <script>
         // Unified cart functionality
         document.addEventListener('DOMContentLoaded', async function() {
+            // Function to fetch cafeteria cart
+            async function fetchCart() {
+                const userId = localStorage.getItem('userId');
+                const token = localStorage.getItem('userToken');
+                
+                if (userId && token) {
+                    return fetch(`/api/cart/${userId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                } else {
+                    // For guests, return empty cart
+                    return { json: () => ({ items: [], total: 0 }), ok: true };
+                }
+            }
+            
             // Load both carts
             async function loadCarts() {
                 try {
-                    // Load cafeteria cart
-                    const cart1 = await (await fetchCart()).json();
-                    
-                    // Load butchery cart
-                    const cart2 = await fetch('https://aticas-backend.onrender.com/api/butchery/cart', {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('userToken') || ''}`
-                        }
-                    }).then(res => res.json());
+                    const [cafeteriaCart, butcheryCart] = await Promise.all([
+                        // Load cafeteria cart
+                        fetchCart().then(res => res.json()).catch(() => ({ items: [], total: 0 })),
+                        // Load butchery cart
+                        fetch('https://aticas-backend.onrender.com/api/butchery/cart', {
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('userToken') || ''}`
+                            }
+                        }).then(res => res.ok ? res.json() : { items: [], total: 0 })
+                          .catch(() => ({ items: [], total: 0 }))
+                    ]);
                     
                     // Combine both carts
                     const combinedCart = {
-                        items: [...(cart1?.items || []), ...(cart2?.items || [])],
-                        total: (cart1?.total || 0) + (cart2?.total || 0)
+                        items: [
+                            ...(cafeteriaCart?.items?.map(item => ({ ...item, itemType: item.itemType || 'food' })) || []),
+                            ...(butcheryCart?.items || [])
+                        ],
+                        total: (cafeteriaCart?.total || 0) + (butcheryCart?.total || 0)
                     };
                     
                     displayCombinedCart(combinedCart);
