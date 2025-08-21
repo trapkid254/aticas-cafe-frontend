@@ -90,13 +90,20 @@
     <script>
         document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            console.log('Login form submitted');
 
             const employmentNumber = document.getElementById('employmentNumber').value;
             const password = document.getElementById('password').value;
             const errorDiv = document.getElementById('login-error');
-            errorDiv.textContent = ''; // Clear previous errors
+            const loginBtn = document.querySelector('.login-btn');
+            
+            // Clear previous errors and update button state
+            errorDiv.textContent = '';
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Logging in...';
 
             try {
+                console.log('Attempting login with:', { employmentNumber });
                 const response = await fetch('https://aticas-backend.onrender.com/api/admin/login', {
                     method: 'POST',
                     mode: 'cors',
@@ -116,31 +123,52 @@
 
                 const data = await response.json();
 
+                console.log('Login response:', data);
+                
                 if (data.success && data.admin) {
-                    // Store token and admin data
-                    console.log('Storing token:', data.token);
-                    console.log('Admin type:', data.admin.adminType);
-                    
-                    localStorage.setItem('adminToken', data.token);
-                    localStorage.setItem('isAdminLoggedIn', 'true');
-                    localStorage.setItem('adminType', data.admin.adminType);
-                    
-                    // Verify storage
-                    console.log('Stored token:', localStorage.getItem('adminToken'));
-                    console.log('Stored admin type:', localStorage.getItem('adminType'));
-                    
-                    // Redirect based on admin type
-                    if (data.admin.adminType === 'cafeteria') {
-                        window.location.href = '/admin/index.html';
-                    } else {
-                        window.location.href = '/butchery-admin/index.html';
+                    try {
+                        // Store token and admin data
+                        console.log('Storing token and admin data...');
+                        localStorage.setItem('adminToken', data.token);
+                        localStorage.setItem('isAdminLoggedIn', 'true');
+                        localStorage.setItem('adminType', data.admin.adminType);
+                        
+                        // Verify storage
+                        const storedToken = localStorage.getItem('adminToken');
+                        const storedType = localStorage.getItem('adminType');
+                        console.log('Stored token exists:', !!storedToken);
+                        console.log('Stored admin type:', storedType);
+                        
+                        // Redirect based on admin type
+                        const redirectPath = data.admin.adminType === 'cafeteria' 
+                            ? '/admin/index.html' 
+                            : '/butchery-admin/index.html';
+                        console.log('Redirecting to:', redirectPath);
+                        window.location.href = redirectPath;
+                        
+                    } catch (storageError) {
+                        console.error('Storage error:', storageError);
+                        throw new Error('Failed to store login information');
                     }
                 } else {
                     errorDiv.textContent = data.error || 'Invalid credentials. Please try again.';
                 }
             } catch (error) {
                 console.error('Login error:', error);
-                errorDiv.textContent = 'An error occurred during login. Please try again.';
+                const errorMessage = error.message || 'An error occurred during login. Please try again.';
+                console.error('Error details:', errorMessage);
+                errorDiv.textContent = errorMessage;
+                
+                // Re-enable the login button on error
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Login';
+                
+                // Log additional debug info
+                console.log('Login error details:', {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack
+                });
             }
         });
     </script>
