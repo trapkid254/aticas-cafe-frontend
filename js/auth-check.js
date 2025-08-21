@@ -12,13 +12,21 @@ document.addEventListener('DOMContentLoaded', function() {
     } else if (currentPath.startsWith('/admin/') || currentPath.startsWith('/butchery-admin/')) {
         basePath = ''; // Production path
     }
+    
+    // Ensure consistent path comparison by normalizing paths
+    const normalizePath = (path) => {
+        // Remove leading/trailing slashes and add exactly one leading slash
+        return '/' + path.replace(/^\/+|\/+$/g, '');
+    };
 
     // If on login page and already logged in, redirect to appropriate dashboard
     if (isLoginPage && adminToken && adminType) {
         const redirectTo = adminType === 'butchery' 
             ? `${basePath}/butchery-admin/index.html` 
             : `${basePath}/admin/index.html`;
-        if (window.location.pathname !== redirectTo) {
+        const currentNormalized = normalizePath(window.location.pathname);
+        const redirectNormalized = normalizePath(redirectTo);
+        if (currentNormalized !== redirectNormalized) {
             window.location.href = redirectTo;
         }
         return;
@@ -30,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ? `${basePath}/butchery-admin/butcheryadmin-login.html`
             : `${basePath}/admin/admin-login.html`;
         
-        if (!window.location.pathname.endsWith(loginPath)) {
+        if (normalizePath(window.location.pathname) !== normalizePath(loginPath)) {
             window.location.href = loginPath;
         }
         return;
