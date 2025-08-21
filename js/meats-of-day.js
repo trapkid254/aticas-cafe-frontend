@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to fetch meats of the day from the API
     async function fetchMeatsOfDay() {
         try {
-            const response = await fetch('/api/meats');
+            const response = await fetch('https://aticas-backend.onrender.com/api/meats');
             if (!response.ok) {
                 throw new Error('Failed to fetch meats of the day');
             }
