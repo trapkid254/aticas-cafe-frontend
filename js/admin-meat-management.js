@@ -233,30 +233,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 console.log('Request body:', requestBody);
 
-                // Create a simple, clean payload
+                // Create a simple, clean payload with only the fields the server expects
                 const cleanPayload = {
-                    name: payload.name,
-                    price: payload.price,
-                    description: payload.description,
-                    quantity: payload.quantity,
-                    category: payload.category,
-                    adminType: payload.adminType,
-                    image: payload.image
+                    name: String(payload.name || ''),
+                    price: Number(payload.price || 0),
+                    description: String(payload.description || ''),
+                    quantity: Number(payload.quantity || 1),
+                    category: String(payload.category || 'beef'),
+                    image: String(payload.image || '')
                 };
                 
                 // Log the payload being sent
                 console.log('Sending clean payload:', cleanPayload);
                 
-                // Create the request with proper headers
+                // Create a new headers object
+                const headers = new Headers();
+                headers.append('Authorization', `Bearer ${token}`);
+                headers.append('Content-Type', 'application/json');
+                headers.append('Accept', 'application/json');
+                
+                // Create the request with explicit headers
                 const response = await fetch(requestUrl, {
                     method,
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
+                    headers,
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    credentials: 'same-origin',
                     body: JSON.stringify(cleanPayload)
                 });
+                
+                console.log('Request headers:', Object.fromEntries(headers.entries()));
 
                 console.log('Response status:', response.status, response.statusText);
                 console.log('Response headers:');
