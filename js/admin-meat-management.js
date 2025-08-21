@@ -176,21 +176,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('Please select an image');
             }
             
-            // Create form data object
-            const formData = new FormData();
-            formData.append('name', name);
-            formData.append('price', priceNum);
-            formData.append('description', description);
-            formData.append('quantity', parseInt(quantity) || 1);
-            formData.append('category', category);
-            formData.append('adminType', 'butchery');
+            // Create request payload
+            const payload = {
+                name,
+                price: priceNum,
+                description,
+                quantity: parseInt(quantity) || 1,
+                category,
+                adminType: 'butchery'
+            };
             
-            // If editing and no new image, keep the existing one
+            // If editing and no new image, keep the existing image
             if (editId && !file) {
                 const existingMeat = meatItems.find(m => m._id === editId);
                 if (existingMeat?.image) {
-                    formData.append('image', existingMeat.image);
+                    payload.image = existingMeat.image;
                 }
+            }
+            
+            // If we have a file, convert it to base64
+            if (file) {
+                payload.image = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsDataURL(file);
+                });
             }
 
             const token = getToken();
@@ -207,40 +217,46 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Request method:', method);
 
             try {
-                // If we have a file, append it to the form data
-                if (file) {
-                    console.log('Appending file:', file.name, file.type, file.size);
-                    formData.append('image', file);
-                }
-                
-                // Log form data entries
-                for (let pair of formData.entries()) {
-                    console.log('FormData:', pair[0], pair[1]);
-                }
-                
+                console.log('Sending payload:', JSON.stringify(payload, null, 2));
+
                 const response = await fetch(requestUrl, {
                     method,
                     headers: {
                         'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/json'
-                        // Don't set Content-Type header - let the browser set it with the correct boundary
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
                     },
-                    body: formData,
-                    credentials: 'same-origin' // Only send credentials for same-origin requests
+                    body: JSON.stringify(payload),
+                    credentials: 'same-origin'
                 });
 
                 let responseData;
+                let responseText;
                 try {
-                    responseData = await response.json();
+                    responseText = await response.text();
+                    responseData = responseText ? JSON.parse(responseText) : {};
                 } catch (e) {
-                    console.error('Failed to parse JSON response:', e);
+                    console.error('Failed to parse JSON response. Response text:', responseText);
                     throw new Error('Invalid response from server');
                 }
                 
                 if (!response.ok) {
                     console.error('Server responded with status:', response.status);
+                    console.error('Response headers:', Object.fromEntries(response.headers.entries()));
                     console.error('Response data:', responseData);
-                    const errorMessage = responseData?.message || `Server error: ${response.status} ${response.statusText}`;
+                    
+                    // Try to extract a meaningful error message
+                    let errorMessage = 'Failed to save meat';
+                    if (responseData && typeof responseData === 'object') {
+                        errorMessage = responseData.message || 
+                                     responseData.error || 
+                                     JSON.stringify(responseData);
+                    } else if (responseText) {
+                        errorMessage = responseText.length > 100 ? 
+                                     `${responseText.substring(0, 100)}...` : 
+                                     responseText;
+                    }
+                    
                     throw new Error(errorMessage);
                 }
 
