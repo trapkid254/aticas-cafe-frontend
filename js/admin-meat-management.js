@@ -233,14 +233,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 console.log('Request body:', requestBody);
 
-                // Create a simple request with minimal headers
+                // Create a simple, clean payload
+                const cleanPayload = {
+                    name: payload.name,
+                    price: payload.price,
+                    description: payload.description,
+                    quantity: payload.quantity,
+                    category: payload.category,
+                    adminType: payload.adminType,
+                    image: payload.image
+                };
+                
+                // Log the payload being sent
+                console.log('Sending clean payload:', cleanPayload);
+                
+                // Create the request with proper headers
                 const response = await fetch(requestUrl, {
                     method,
                     headers: {
                         'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
-                    body: requestBody
+                    body: JSON.stringify(cleanPayload)
                 });
 
                 console.log('Response status:', response.status, response.statusText);
