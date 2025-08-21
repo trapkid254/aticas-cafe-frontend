@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     await addToCartApi(item);
                     showToast(`${item.name} added to cart!`);
-                    fetchMenuItems();
+                    fetchMeatItems();
                 }
             });
         });
@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 await addToCartApi(updatedItem, selectedOption);
                 showToast(`${item.name} (${selectedOption.size}) added to cart!`);
                 priceOptionsModal.style.display = 'none';
-                fetchMenuItems();
+                fetchMeatItems();
             }
         };
 
@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    fetchMenuItems();
+    fetchMeatItems();
 
     filterButtons.forEach(button => {
         button.addEventListener('click', function() {
