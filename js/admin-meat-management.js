@@ -170,33 +170,28 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Handle image file
-            let imageData = '';
             const file = imageInput.files[0];
             
-            if (file) {
-                // If new image is uploaded
-                imageData = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result);
-                    reader.readAsDataURL(file);
-                });
-            } else if (editId) {
-                // If editing and no new image, keep the existing one
-                const existingMeat = meatItems.find(m => m._id === editId);
-                imageData = existingMeat?.image || '';
-            } else {
+            if (!file && !editId) {
                 throw new Error('Please select an image');
             }
             
-            const meatData = {
-                name,
-                price: priceNum,
-                description,
-                quantity: parseInt(quantity) || 1,
-                category,
-                image: imageData,  // This will be the base64 string of the image
-                adminType: 'butchery'  // Set default admin type for butchery
-            };
+            // Create form data object
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('price', priceNum);
+            formData.append('description', description);
+            formData.append('quantity', parseInt(quantity) || 1);
+            formData.append('category', category);
+            formData.append('adminType', 'butchery');
+            
+            // If editing and no new image, keep the existing one
+            if (editId && !file) {
+                const existingMeat = meatItems.find(m => m._id === editId);
+                if (existingMeat?.image) {
+                    formData.append('image', existingMeat.image);
+                }
+            }
 
             const token = getToken();
             if (!token) {
@@ -213,20 +208,16 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Request payload:', meatData);
 
             try {
-                // Prepare form data for file upload
-                const formData = new FormData();
-                Object.keys(meatData).forEach(key => {
-                    formData.append(key, meatData[key]);
-                });
-                
-                // If we have a file, append it separately
+                // If we have a file, append it to the form data
                 if (file) {
-                    formData.append('imageFile', file);
+                    console.log('Appending file:', file.name, file.type, file.size);
+                    formData.append('image', file);
                 }
                 
-                console.log('Sending request to:', requestUrl);
-                console.log('Using method:', method);
-                console.log('Has file:', !!file);
+                // Log form data entries
+                for (let pair of formData.entries()) {
+                    console.log('FormData:', pair[0], pair[1]);
+                }
                 
                 const response = await fetch(requestUrl, {
                     method,
@@ -234,7 +225,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         'Authorization': `Bearer ${token}`
                         // Don't set Content-Type header - let the browser set it with the correct boundary
                     },
-                    body: formData
+                    body: formData,
+                    credentials: 'include' // Include cookies if needed
                 });
 
                 let responseData;
