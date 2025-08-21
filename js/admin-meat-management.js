@@ -205,7 +205,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             console.log('Submitting form to:', requestUrl);
             console.log('Request method:', method);
-            console.log('Request payload:', meatData);
 
             try {
                 // If we have a file, append it to the form data
