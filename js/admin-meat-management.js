@@ -107,11 +107,11 @@ document.addEventListener('DOMContentLoaded', function() {
             return '';
         }
         
-        // Ensure the token has the Bearer prefix
-        const formattedToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
-        console.log('Formatted token:', formattedToken.substring(0, 15) + '...');
+        // Remove any existing 'Bearer ' prefix to prevent duplication
+        const cleanToken = token.replace(/^Bearer\s+/i, '');
+        console.log('Cleaned token:', cleanToken.substring(0, 15) + '...');
         
-        return formattedToken;
+        return cleanToken;
     }
     
     function openAddModal(type) {
@@ -224,6 +224,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     formData.append('imageFile', file);
                 }
                 
+                console.log('Sending request to:', requestUrl);
+                console.log('Using method:', method);
+                console.log('Has file:', !!file);
+                
                 const response = await fetch(requestUrl, {
                     method,
                     headers: {
@@ -233,10 +237,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     body: formData
                 });
 
-                const responseData = await response.json();
+                let responseData;
+                try {
+                    responseData = await response.json();
+                } catch (e) {
+                    console.error('Failed to parse JSON response:', e);
+                    throw new Error('Invalid response from server');
+                }
                 
                 if (!response.ok) {
-                    const errorMessage = responseData?.message || 'Failed to save meat. Please try again.';
+                    console.error('Server responded with status:', response.status);
+                    console.error('Response data:', responseData);
+                    const errorMessage = responseData?.message || `Server error: ${response.status} ${response.statusText}`;
                     throw new Error(errorMessage);
                 }
 
@@ -246,14 +258,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 showToast(editId ? 'Meat updated successfully!' : 'Meat added successfully!', 'success');
                 
             } catch (error) {
-                console.error('Error saving meat:', error);
+                console.error('Error saving meat:', {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack
+                });
                 const errorMessage = error.message || 'Failed to save meat. Please try again.';
                 showToast(errorMessage, 'error');
                 
-                // Only show alert for critical errors
-                if (!error.message || error.message.includes('Failed to fetch')) {
-                    alert(`Error: ${errorMessage}\n\nPlease check your connection and try again.`);
-                }
+                // Show alert for all errors with more details
+                alert(`Error: ${errorMessage}\n\nPlease check the console for more details.`);
             }
         } finally {
             isSubmitting = false;
