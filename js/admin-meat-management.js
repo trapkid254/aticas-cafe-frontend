@@ -217,17 +217,36 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Request method:', method);
 
             try {
-                console.log('Sending payload:', JSON.stringify(payload, null, 2));
+                // Ensure payload is a valid object
+                if (!payload || typeof payload !== 'object') {
+                    throw new Error('Invalid payload format');
+                }
 
+                // Log the payload being sent
+                const requestBody = JSON.stringify(payload);
+                console.log('Sending request to:', requestUrl);
+                console.log('Request method:', method);
+                console.log('Request headers:', {
+                    'Authorization': `Bearer ${token.substring(0, 10)}...`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                });
+                console.log('Request body:', requestBody);
+
+                // Create a simple request with minimal headers
                 const response = await fetch(requestUrl, {
                     method,
                     headers: {
                         'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/json',
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(payload),
-                    credentials: 'same-origin'
+                    body: requestBody
+                });
+
+                console.log('Response status:', response.status, response.statusText);
+                console.log('Response headers:');
+                response.headers.forEach((value, key) => {
+                    console.log(`  ${key}: ${value}`);
                 });
 
                 let responseData;
