@@ -209,9 +209,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    menuSearch.addEventListener('input', function() {
-        displayMenuItems(document.querySelector('.filter-btn.active')?.dataset.category || 'all', menuSearch.value);
-    });
+    if (menuSearch) {
+        menuSearch.addEventListener('input', function() {
+            displayMenuItems(document.querySelector('.filter-btn.active')?.dataset.category || 'all', menuSearch.value);
+        });
+    }
 
     fetchMenuItems();
 
