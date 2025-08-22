@@ -26,35 +26,52 @@ document.addEventListener('DOMContentLoaded', function() {
     let menuItems = [];
     let mealsOfDay = [];
 
-    // Helper to get correct admin token
-    function getCurrentAdminToken() {
-        if (window.location.pathname.includes('butchery-admin')) {
-            return localStorage.getItem('butcheryAdminToken') || '';
-        }
-        return localStorage.getItem('adminToken') || '';
+    // Helper to get admin token and type
+    function getAdminAuth() {
+        const adminType = localStorage.getItem('adminType') || 'cafeteria';
+        const token = localStorage.getItem('adminToken') || '';
+        return { token, adminType };
     }
 
     // Fetch menu items from API
     async function fetchMenuItems() {
         try {
+            const { token, adminType } = getAdminAuth();
             const res = await fetch('https://aticas-backend.onrender.com/api/menu', {
-                headers: { 'Authorization': getCurrentAdminToken() }
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'X-Admin-Type': adminType
+                }
             });
+            
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            
             const data = await res.json();
             menuItems = Array.isArray(data) ? data : data.data || [];
             renderMenuMeals();
         } catch (err) {
             console.error('Failed to load menu meals:', err);
-            menuMealsList.innerHTML = '<p style="color:#888;">Failed to load menu meals.</p>';
+            menuMealsList.innerHTML = `<p style="color:#ff4444;">Error: ${err.message || 'Failed to load menu items'}</p>`;
         }
     }
 
     // Fetch meals of the day from API
     async function fetchMealsOfDay() {
         try {
+            const { token, adminType } = getAdminAuth();
             const res = await fetch('https://aticas-backend.onrender.com/api/meals', {
-                headers: { 'Authorization': getCurrentAdminToken() }
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'X-Admin-Type': adminType
+                }
             });
+            
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            
             const data = await res.json();
             mealsOfDay = Array.isArray(data) ? data : data.data || [];
             renderMealsOfDay();
@@ -143,10 +160,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Remove meal from Menu (by id)
     window.removeMenuMeal = async function(id) {
+        if (!confirm('Are you sure you want to remove this meal from the menu?')) return;
+        
         try {
-            await fetch('https://aticas-backend.onrender.com/api/menu/' + id, {
+            const { token, adminType } = getAdminAuth();
+            const response = await fetch(`https://aticas-backend.onrender.com/api/menu/${id}`, {
                 method: 'DELETE',
-                headers: { 'Authorization': getCurrentAdminToken() }
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'X-Admin-Type': adminType
+                }
             });
             fetchMenuItems();
             fetchMealsOfDay();
@@ -275,71 +298,57 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // Add Meal Form submit
-    addMealForm.onsubmit = async function(e) {
+    addMealForm.onsubmit = async (e) => {
         e.preventDefault();
         if (isSubmitting) return;
         isSubmitting = true;
         
-        const imageInput = document.getElementById('mealImage');
-        const file = imageInput.files && imageInput.files[0];
-        const useExistingImage = imageInput.getAttribute('data-existing') || '';
+        const { token, adminType } = getAdminAuth();
+        const formData = new FormData(addMealForm);
+        const mealData = {
+            name: formData.get('name'),
+            description: formData.get('description'),
+            price: parseFloat(formData.get('price')),
+            category: formData.get('category'),
+            quantity: parseInt(formData.get('quantity')) || 0,
+            isAvailable: formData.get('isAvailable') === 'on',
+            adminType, // Include admin type
+            priceOptions: []
+        };
         
-        // Collect price options
-        const priceOptions = [];
+        // Add price options if any
         const priceOptionItems = priceOptionsWrapper.querySelectorAll('.price-option-item');
         priceOptionItems.forEach(item => {
             const size = item.querySelector('.price-option-size').value.trim();
             const price = parseFloat(item.querySelector('.price-option-price').value);
             if (size && !isNaN(price)) {
-                priceOptions.push({ size, price });
+                mealData.priceOptions.push({ size, price });
             }
         });
 
+        const imageInput = document.getElementById('mealImage');
+        const file = imageInput.files && imageInput.files[0];
+        const useExistingImage = imageInput.getAttribute('data-existing') || '';
+        
         const processMeal = async (imageData) => {
             try {
                 let url, method;
-                const baseMeal = {
-                    name: document.getElementById('mealName').value,
-                    description: document.getElementById('mealDescription')?.value || '',
-                    price: parseFloat(document.getElementById('mealPrice').value),
-                    image: imageData,
-                    priceOptions: priceOptions
-                };
-
-                if (addType === 'menu' || addType === 'edit') {
-                    baseMeal.category = mealCategory?.value || '';
-                    baseMeal.quantity = parseInt(mealQuantity.value, 10) || 0;
-                }
-
-                if (addType === 'menu') {
-                    url = 'https://aticas-backend.onrender.com/api/menu';
-                    method = 'POST';
-                } else if (addType === 'edit') {
+                if (editId) {
                     url = `https://aticas-backend.onrender.com/api/menu/${editId}`;
                     method = 'PUT';
-                } else if (addType === 'mod') {
-                    const quantity = parseInt(modMealQuantity.value, 10) || 10;
-                    if (!baseMeal.name || !baseMeal.price || !baseMeal.image) {
-                        throw new Error('Please fill in all fields for Meal of the Day');
-                    }
-                    url = 'https://aticas-backend.onrender.com/api/meals';
-                    method = 'POST';
-                    baseMeal.quantity = quantity;
-                } else if (addType === 'mod-edit') {
-                    url = `https://aticas-backend.onrender.com/api/meals/${editId}`;
-                    method = 'PUT';
-                    baseMeal.quantity = parseInt(modMealQuantity.value, 10) || 0;
                 } else {
-                    throw new Error(`Unknown addType: ${addType}`);
+                    url = 'https://aticas-backend.onrender.com/api/menu';
+                    method = 'POST';
                 }
 
                 const response = await fetch(url, {
                     method,
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': getCurrentAdminToken()
+                        'Authorization': `Bearer ${token}`,
+                        'X-Admin-Type': adminType
                     },
-                    body: JSON.stringify(baseMeal)
+                    body: JSON.stringify(mealData)
                 });
 
                 if (!response.ok) throw new Error('API request failed');

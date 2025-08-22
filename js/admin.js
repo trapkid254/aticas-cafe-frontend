@@ -39,15 +39,33 @@ document.addEventListener('DOMContentLoaded', function() {
     let topSellingChart = null;
 
     // --- API Fetch Functions ---
-    const fetchFromApi = async (endpoint) => {
+    const fetchFromApi = async (endpoint, options = {}) => {
         const url = new URL(`https://aticas-backend.onrender.com${endpoint}`);
         
-        // Add type parameter for order-related and dashboard endpoints
-        if (endpoint.startsWith('/api/orders') || endpoint.startsWith('/api/dashboard')) {
+        // Add admin type to headers for all requests
+        const headers = {
+            'Authorization': `Bearer ${adminToken}`,
+            'Content-Type': 'application/json',
+            'X-Admin-Type': adminType  // Add admin type to headers
+        };
+        
+        // Add type parameter for relevant endpoints
+        const shouldAddTypeParam = [
+            '/api/orders', 
+            '/api/dashboard',
+            '/api/menu',
+            '/api/meats',
+            '/api/employees',
+            '/api/payments'
+        ].some(prefix => endpoint.startsWith(prefix));
+        
+        if (shouldAddTypeParam) {
             url.searchParams.append('type', adminType);
         }
         
         const response = await fetch(url, {
+            ...options,
+            headers: { ...headers, ...(options.headers || {}) },
             headers: getAuthHeaders()
         });
         
@@ -77,8 +95,11 @@ document.addEventListener('DOMContentLoaded', function() {
             contentArea.insertBefore(loadingDiv, contentArea.firstChild);
 
             try {
-                // Fetch dashboard stats from the new endpoint
-                const response = await fetchFromApi('/api/dashboard/stats');
+                // Get admin type from localStorage
+                const adminType = localStorage.getItem('adminType') || 'cafeteria';
+                
+                // Fetch dashboard stats with admin type
+                const response = await fetchFromApi(`/api/dashboard/stats?adminType=${adminType}`);
                 
                 // Remove loading indicator
                 if (loadingDiv.parentNode) {
@@ -86,19 +107,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 // Update dashboard stats
-                if (response.stats) {
-                    const stats = response.stats;
-                    
-                    // Update dashboard cards
-                    const todayOrdersEl = document.getElementById('todayOrders');
-                    const totalRevenueEl = document.getElementById('totalRevenue');
-                    const pendingOrdersEl = document.getElementById('pendingOrders');
-                    const completedOrdersEl = document.getElementById('completedOrders');
-                    
-                    if (todayOrdersEl) todayOrdersEl.textContent = stats.todayOrders?.toLocaleString() || '0';
-                    if (totalRevenueEl) totalRevenueEl.textContent = `Ksh ${(stats.todayRevenue || 0).toLocaleString()}`;
-                    if (pendingOrdersEl) pendingOrdersEl.textContent = stats.pendingOrders?.toLocaleString() || '0';
-                    if (completedOrdersEl) completedOrdersEl.textContent = stats.completedOrders?.toLocaleString() || '0';
+                const stats = response.stats;
+                const isButchery = adminType === 'butchery';
+                
+                // Update dashboard cards
+                const todayOrdersEl = document.getElementById('todayOrders');
+                const totalRevenueEl = document.getElementById('totalRevenue');
+                const pendingOrdersEl = document.getElementById('pendingOrders');
+                const completedOrdersEl = document.getElementById('completedOrders');
+                
+                // Update card titles based on admin type
+                const cardTitles = document.querySelectorAll('.dashboard-card h3');
+                if (cardTitles.length >= 4) {
+                    cardTitles[0].textContent = isButchery ? "Today's Meat Orders" : "Today's Orders";
+                    cardTitles[1].textContent = isButchery ? "Today's Meat Revenue" : "Today's Revenue";
+                    cardTitles[2].textContent = isButchery ? "Pending Meat Orders" : "Pending Orders";
+                    cardTitles[3].textContent = isButchery ? "Completed Meat Orders" : "Completed Orders";
+                }
+                
+                // Update card values
+                if (todayOrdersEl) todayOrdersEl.textContent = stats.todayOrders?.toLocaleString() || '0';
+                if (totalRevenueEl) totalRevenueEl.textContent = `Ksh ${(stats.todayRevenue || 0).toLocaleString()}`;
+                if (pendingOrdersEl) pendingOrdersEl.textContent = stats.pendingOrders?.toLocaleString() || '0';
+                if (completedOrdersEl) completedOrdersEl.textContent = stats.completedOrders?.toLocaleString() || '0';
+                
+                // Update page title
+                const pageTitle = document.querySelector('.admin-content h2');
+                if (pageTitle) {
+                    pageTitle.textContent = isButchery ? 'Butchery Admin Dashboard' : 'Cafeteria Admin Dashboard';
                 }
 
                 // Render recent orders if available
@@ -240,9 +276,16 @@ const errorDiv = document.createElement('div');
         const ctx = document.getElementById('topSellingChart');
         if (!ctx) return;
 
+        // Get admin type
+        const adminType = localStorage.getItem('adminType') || 'cafeteria';
+        const isButchery = adminType === 'butchery';
+
+        // Filter menu items by admin type if needed
+        const filteredMenuItems = menuItems.filter(item => item.adminType === adminType);
+
         // If no orders or menu items, don't show the chart
-        if (!orders || orders.length === 0 || !menuItems || menuItems.length === 0) {
-            ctx.parentElement.innerHTML = '<p>No data available for top selling items</p>';
+        if (!orders || orders.length === 0 || filteredMenuItems.length === 0) {
+            ctx.parentElement.innerHTML = `<p>No ${isButchery ? 'meat' : 'menu'} items data available for top selling items</p>`;
             return;
         }
 
@@ -263,23 +306,6 @@ const errorDiv = document.createElement('div');
         // Sort and get top 5 items
         const sortedItems = Object.entries(itemSales)
             .sort(([, a], [, b]) => b - a)
-            .slice(0, 5);
-
-        if (sortedItems.length === 0) {
-            ctx.parentElement.innerHTML = '<p>No sales data available</p>';
-            return;
-        }
-
-        // Get item names and quantities
-        const labels = sortedItems.map(([id, _]) => {
-            const menuItem = menuItems.find(item => item._id === id);
-            return menuItem ? menuItem.name : 'Unknown Item';
-        });
-        
-        const data = sortedItems.map(([_, quantity]) => quantity);
-
-        // Destroy existing chart if it exists
-        if (topSellingChart) topSellingChart.destroy();
         
         // Create new chart
         topSellingChart = new Chart(ctx, {
@@ -308,7 +334,7 @@ const errorDiv = document.createElement('div');
                     },
                     title: {
                         display: true,
-                        text: 'Top Selling Items',
+                        text: isButchery ? 'Top Selling Meat Items' : 'Top Selling Menu Items',
                         font: {
                             size: 16
                         }
@@ -322,9 +348,13 @@ const errorDiv = document.createElement('div');
         const ctx = document.getElementById('revenueChart');
         if (!ctx) return;
 
+        // Get admin type
+        const adminType = localStorage.getItem('adminType') || 'cafeteria';
+        const isButchery = adminType === 'butchery';
+
         // If no orders, don't show the chart
         if (!orders || orders.length === 0) {
-            ctx.parentElement.innerHTML = '<p>No revenue data available</p>';
+            ctx.parentElement.innerHTML = `<p>No ${isButchery ? 'meat' : 'revenue'} data available</p>`;
             return;
         }
 
@@ -398,7 +428,7 @@ const errorDiv = document.createElement('div');
                     },
                     title: {
                         display: true,
-                        text: 'Monthly Revenue',
+                        text: isButchery ? 'Meat Sales Trends' : 'Revenue Trends',
                         font: {
                             size: 16
                         }
