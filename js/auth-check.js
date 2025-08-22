@@ -1,5 +1,18 @@
+// DEBUG MODE - Set to false to re-enable auth checks
+const DEBUG_MODE = true;
+
 // Check authentication and redirect if not logged in
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== AUTH CHECK STARTED ===');
+    console.log('Debug mode:', DEBUG_MODE ? 'ON (redirects disabled)' : 'OFF');
+    
+    if (DEBUG_MODE) {
+        console.log('Debug mode is ON - Auth redirects are disabled');
+        console.log('LocalStorage adminToken:', localStorage.getItem('adminToken') ? 'Exists' : 'Not found');
+        console.log('LocalStorage adminData:', localStorage.getItem('adminData') || 'Not found');
+        return; // Stop further execution in debug mode
+    }
+    
     // Prevent redirect loops
     const redirecting = sessionStorage.getItem('authRedirecting');
     if (redirecting) {
