@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     async function fetchMeatsOfDay() {
         try {
-            const res = await fetch('https://aticas-backend.onrender.com/api/meats', {
+            const res = await fetch('https://aticas-backend.onrender.com/api/menu', {
                 headers: { 'Authorization': getToken() }
             });
             
@@ -63,7 +63,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('Response was not JSON');
             }
             
-            meatsOfDay = await res.json();
+            const allMenuItems = await res.json();
+            // Filter for meat items (assuming meat items have category 'meat' or similar)
+            meatsOfDay = allMenuItems.filter(item => item.category && item.category.toLowerCase() === 'meat');
             renderMeatsOfDay();
         } catch (err) {
             console.error('Failed to load meats of day:', err);
