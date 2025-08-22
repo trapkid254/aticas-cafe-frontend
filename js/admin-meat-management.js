@@ -28,13 +28,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Functions
     async function fetchMeatItems() {
         try {
-            const res = await fetch('https://aticas-backend.onrender.com/api/meats', {
+            const res = await fetch('https://aticas-backend.onrender.com/api/menu', {
                 headers: { 'Authorization': getToken() }
             });
             if (!res.ok) {
                 throw new Error(`HTTP error! status: ${res.status}`);
             }
-            meatItems = await res.json();
+            const allMenuItems = await res.json();
+            // Filter for meat items (assuming meat items have category 'meat' or similar)
+            meatItems = allMenuItems.filter(item => item.category && item.category.toLowerCase() === 'meat');
             renderMeatMenu();
         } catch (err) {
             console.error('Failed to load meat menu:', err);
