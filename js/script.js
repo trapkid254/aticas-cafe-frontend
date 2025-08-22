@@ -1,0 +1,363 @@
+// Toggle mobile menu
+document.addEventListener('DOMContentLoaded', function() {
+    const hamburgerMenu = document.getElementById('hamburgerMenu');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const loginBtn = document.getElementById('loginBtn');
+    
+    // Check if user is logged in
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+    
+    if (isLoggedIn && loginBtn) {
+        loginBtn.textContent = 'Logout';
+        if (isAdmin) {
+            // Add admin link to mobile menu
+            const adminLink = document.createElement('a');
+            adminLink.href = 'admin/index.html';
+            adminLink.textContent = 'Admin Panel';
+            mobileMenu.appendChild(adminLink);
+        }
+    }
+    
+    if (hamburgerMenu && mobileMenu) {
+        hamburgerMenu.addEventListener('click', function() {
+            mobileMenu.classList.toggle('open');
+        });
+    }
+    
+    if (loginBtn) {
+        loginBtn.addEventListener('click', function() {
+            if (loginBtn.textContent === 'Login') {
+                // Redirect to login page or show login modal
+                window.location.href = 'login.html';
+            } else {
+                // Logout logic
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('isAdmin');
+                localStorage.removeItem('userToken');
+                localStorage.removeItem('userId');
+                loginBtn.textContent = 'Login';
+                window.location.href = 'index.html';
+            }
+        });
+    }
+    
+    // Close mobile menu when clicking outside
+    if (mobileMenu && hamburgerMenu) {
+        document.addEventListener('click', function(event) {
+            const isClickInsideMenu = mobileMenu.contains(event.target);
+            const isClickOnHamburger = hamburgerMenu.contains(event.target);
+
+            if (mobileMenu.classList.contains('open') && !isClickInsideMenu && !isClickOnHamburger) {
+                mobileMenu.classList.remove('open');
+            }
+        });
+    }
+    
+    // --- CART LOGIC REFACTOR ---
+    // Helper to get userId from token or localStorage
+    function getUserId() {
+        // First try to get from localStorage
+        const userId = localStorage.getItem('userId');
+        if (userId) return userId;
+        
+        // If not found, try to decode from JWT
+        const token = localStorage.getItem('userToken');
+        if (token) {
+            try {
+                const decoded = JSON.parse(atob(token.split('.')[1]));
+                return decoded.userId;
+            } catch (err) {
+                console.error('Error decoding JWT:', err);
+                return null;
+            }
+        }
+        return null;
+    }
+
+    async function fetchCartItems() {
+        const userId = getUserId();
+        if (!userId) {
+            // For guests, use localStorage
+            const guestCart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
+            return guestCart.items || [];
+        }
+        
+        try {
+            const res = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
+                headers: { 
+                    'Authorization': `Bearer ${localStorage.getItem('userToken') || ''}`
+                }
+            });
+            
+            if (!res.ok) {
+                console.error('Failed to fetch cart:', res.status, res.statusText);
+                return [];
+            }
+            
+            const cart = await res.json();
+            return cart.items || [];
+        } catch (err) {
+            console.error('Error fetching cart items:', err);
+            return [];
+        }
+    }
+
+    async function addToCart(itemOrId, quantity = 1, selectedSize = null) {
+        const userId = getUserId();
+        const isLoggedIn = !!userId;
+        
+        const menuItem = typeof itemOrId === 'object' ? itemOrId : null;
+        const menuItemId = menuItem ? menuItem._id : itemOrId;
+        const itemType = menuItem ? (menuItem.category ? 'Menu' : 'MealOfDay') : 'Menu';
+        
+        if (isLoggedIn) {
+            try {
+                // For logged-in users, use the PATCH endpoint
+                const response = await fetch(`https://aticas-backend.onrender.com/api/cart/items`, {
+                    method: 'PATCH',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+                    },
+                    body: JSON.stringify({
+                        menuItemId,
+                        quantity,
+                        itemType,
+                        selectedSize: selectedSize || undefined
+                    })
+                });
+                
+                if (response.ok) {
+                    await updateCartCount();
+                    showToast('Item added to cart!');
+                    return true;
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    console.error('Failed to add item to cart:', response.status, errorData);
+                    showToast('Failed to add item to cart', 'error');
+                    return false;
+                }
+            } catch (err) {
+                console.error('Error adding to cart:', err);
+                showToast('Error adding to cart', 'error');
+                return false;
+            }
+        } else {
+            // Guest: update localStorage cart
+            let guestCart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
+            
+            // Find if item already exists in cart
+            const existingItemIndex = guestCart.items.findIndex(item => 
+                item.menuItem._id === menuItemId && 
+                item.itemType === itemType
+            );
+            
+            if (existingItemIndex >= 0) {
+                // Update quantity if item exists
+                guestCart.items[existingItemIndex].quantity += quantity;
+            } else {
+                // Add new item to cart
+                guestCart.items.push({
+                    menuItem: {
+                        _id: menuItemId,
+                        name: menuItem?.name || 'Unknown Item',
+                        price: menuItem?.price || 0,
+                        image: menuItem?.image || '',
+                        category: menuItem?.category || ''
+                    },
+                    quantity,
+                    itemType,
+                    selectedSize: selectedSize || undefined
+                });
+            }
+            
+            localStorage.setItem('guestCart', JSON.stringify(guestCart));
+            await updateCartCount();
+            showToast('Item added to cart!');
+            return true;
+        }
+    }
+
+    async function updateCartCount() {
+        const cartCountElements = document.querySelectorAll('.cart-count');
+        const userId = getUserId();
+        const isLoggedIn = !!userId;
+        
+        try {
+            let count = 0;
+            
+            if (isLoggedIn) {
+                // For logged-in users, fetch from backend
+                const response = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const cart = await response.json();
+                    count = cart.items?.reduce((total, item) => total + (item.quantity || 1), 0) || 0;
+                }
+            } else {
+                // For guests, use localStorage
+                const guestCart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
+                count = guestCart.items?.reduce((total, item) => total + (item.quantity || 1), 0) || 0;
+            }
+            
+            // Update all cart count elements
+            cartCountElements.forEach(element => {
+                if (element) {
+                    element.textContent = count > 0 ? count : '';
+                    element.style.display = count > 0 ? 'flex' : 'none';
+                }
+            });
+            
+            return count;
+        } catch (err) {
+            console.error('Error updating cart count:', err);
+            cartCountElements.forEach(element => {
+                if (element) element.style.display = 'none';
+            });
+            return 0;
+        }
+    }
+
+    // Initialize cart on page load
+    function initializeCart() {
+        updateCartCount();
+        
+        // Listen for auth changes
+        const originalSetItem = localStorage.setItem;
+        localStorage.setItem = function(key) {
+            originalSetItem.apply(this, arguments);
+            if (key === 'userToken' || key === 'userId') {
+                updateCartCount();
+            }
+        };
+    }
+
+    // Make functions available globally if needed
+    window.addToCart = addToCart;
+    window.updateCartCount = updateCartCount;
+    window.fetchCartItems = fetchCartItems;
+
+    // Initialize when DOM is loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeCart);
+    } else {
+        initializeCart();
+    }
+
+    // Refactor renderMealsOfDayHomepage to use addToCart API
+    async function renderMealsOfDayHomepage() {
+        const container = document.getElementById('mealsOfDayContainer');
+        if (!container) return;
+        try {
+            const res = await fetch('https://aticas-backend.onrender.com/api/meals');
+            if (!res.ok) {
+                console.error('Failed to fetch meals:', res.status, res.statusText);
+                container.innerHTML = '<p style="color:#888;">Failed to load meals of the day. Please try again later.</p>';
+                return;
+            }
+            const mealsOfDay = await res.json();
+            if (!mealsOfDay.length) {
+                container.innerHTML = '<p style="color:#888;">No meals of the day available.</p>';
+                return;
+            }
+            container.innerHTML = mealsOfDay.map(meal => {
+                const outOfStock = meal.quantity === 0;
+                const lowStock = meal.quantity > 0 && meal.quantity <= 3;
+                const imageUrl = meal.image && meal.image.trim() !== "" 
+                    ? meal.image 
+                    : "images/varied menu.jpeg";
+                
+                let quantityClass = '';
+                let quantityText = `Available: ${meal.quantity ?? 10}`;
+                
+                if (outOfStock) {
+                    quantityClass = 'out-of-stock';
+                    quantityText = 'Out of Stock';
+                } else if (lowStock) {
+                    quantityClass = 'low-stock';
+                    quantityText = `Low Stock: ${meal.quantity}`;
+                }
+                
+                return `
+                <div class="meal-card">
+                    <img src="${imageUrl}" alt="${meal.name}">
+                    <h3>${meal.name}</h3>
+                    <p class="meal-qty ${quantityClass}">${quantityText}</p>
+                    <span class="price">Ksh ${Number(meal.price).toLocaleString()}</span>
+                    <button class="add-to-cart" data-id="${meal._id}" ${outOfStock ? 'disabled style=\"background:#ccc;cursor:not-allowed;\"' : ''}>${outOfStock ? 'Out of Stock' : 'Add to Cart'}</button>
+                </div>
+                `;
+            }).join('');
+            
+            // Attach event listeners
+            const addToCartButtons = container.querySelectorAll('.add-to-cart');
+            addToCartButtons.forEach(button => {
+                button.addEventListener('click', async function() {
+                    const itemId = this.dataset.id;
+                    const meal = mealsOfDay.find(m => m._id === itemId);
+                    if (!meal || meal.quantity === 0) {
+                        alert('Sorry, this item is out of stock!');
+                        return;
+                    }
+                    await addToCart(meal, 1);
+                    await updateCartCount();
+                    showToast(`${meal.name} added to cart!`);
+                    renderMealsOfDayHomepage();
+                });
+            });
+        } catch (err) {
+            container.innerHTML = '<p style="color:#888;">Failed to load meals of the day.</p>';
+        }
+    }
+
+    renderMealsOfDayHomepage();
+});
+
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.className = 'toast show';
+    setTimeout(() => {
+        toast.className = 'toast';
+    }, 2000);
+}
+
+// Typewriter on scroll effect
+(function() {
+    function typewriterEffect(element, speed = 22) {
+        const text = element.textContent;
+        element.textContent = '';
+        let i = 0;
+        function type() {
+            if (i < text.length) {
+                element.textContent += text.charAt(i);
+                i++;
+                setTimeout(type, speed);
+            }
+        }
+        type();
+    }
+    const observer = new window.IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const el = entry.target;
+                if (!el.dataset.typed) {
+                    el.dataset.typed = 'true';
+                    typewriterEffect(el);
+                }
+                obs.unobserve(el);
+            }
+        });
+    }, { threshold: 0.2 });
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.typewriter-on-scroll').forEach(el => {
+            observer.observe(el);
+        });
+    });
+})();

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu - ATICAS CAFE'</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Algerian font is not available on Google Fonts, so we use a similar decorative font as fallback -->
+    <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <img src="images/1b.jpg" alt="Cafeteria Logo" class="logo">
+            <span class="cafeteria-name">ATICAS BUTCHERY</span>
+        </div>
+        <div class="navbar-center">
+            <div class="moving-text">Welcome to <b>Aticas Butchery</b>.Your Hospitality Partner-Enjoy our freshly butchered Beef,Goat meat(Chevon) and Chicken at affordable prices! Open from Mon - Sat @ 6:00am - 12:00am</div>
+        </div>
+        <div class="navbar-right">
+            <a href="cart.html" class="cart-icon"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cartCount">0</span></a>
+            <button class="login-btn" id="loginBtn">Login</button>
+            <div class="hamburger-menu" id="hamburgerMenu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="index.html"><i class="fas fa-home"></i> Home</a>
+        <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
+        <a href="menu.html"><i class="fas fa-utensils"></i> Menu</a>
+        <a href="butchery.html"><i class="fas fa-double-knives"></i> Butchery</a>
+        <a href="our-services.html"><i class="fas fa-concierge-bell"></i> Our Services</a>
+        <a href="orders.html"><i class="fas fa-receipt"></i> My Orders</a>
+        <a href="contact.html"><i class="fas fa-envelope"></i> Contact</a>
+        <a href="gallery.html"><i class="fas fa-gallery"></i> Gallery</a>
+    </div>
+
+    <!-- Menu Content -->
+    <section class="menu-section">
+        <h2 class="typewriter-on-scroll">Our Meats</h2>
+        <div class="menu-filter">
+            <button class="filter-btn active" data-category="all">All</button>
+            <button class="filter-btn" data-category="beef">Beef</button>
+            <button class="filter-btn" data-category="chicken">Chicken</button>
+            <button class="filter-btn" data-category="goat">Goat</button>
+            <button class="filter-btn" data-category="lunch">Goat Meat(chevon)</button>
+            <button class="filter-btn" data-category="dinner">Chicken</button>
+            <button class="filter-btn" data-category="drinks">Ready Made</button>
+        </div>
+        <div class="menu-items" id="menuItems">
+            <!-- Butchery items will be loaded here by JavaScript -->
+        </div>
+        <div id="loadingIndicator" style="text-align: center; padding: 2rem;">
+            <div class="spinner"></div>
+            <p>Loading meats...</p>
+        </div>
+    </section>
+
+    <!-- Size/Price Options Modal -->
+    <div id="price-options-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3 id="modal-item-name"></h3>
+            <div id="modal-price-options"></div>
+            <button id="modal-add-to-cart-btn" class="add-to-cart-btn">Add to Cart</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="social-icons">
+            <a href="#"><i class="fab fa-facebook"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-linkedin"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+        </div>
+        <p class="built-by">
+            Proudly built with <i class="fas fa-heart" style="color:red"></i>
+        </p>
+        <p class="copyright">
+            &copy; 2025 Aticas Butchery. All rights reserved.
+        </p>
+    </footer>
+
+    <div id="toast" class="toast"></div>
+    <script src="js/script.js"></script>
+    <script src="js/butchery-cart.js"></script>
+    <script>
+        // Initialize butchery menu
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuContainer = document.getElementById('menuItems');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const filterButtons = document.querySelectorAll('.filter-btn');
+
+            // Function to fetch and display butchery items
+            async function fetchAndDisplayMeats(category = 'all') {
+                try {
+                    loadingIndicator.style.display = 'block';
+                    const response = await fetch('https://aticas-backend.onrender.com/api/meats');
+                    if (!response.ok) throw new Error('Failed to fetch meats');
+                    
+                    const meats = await response.json();
+                    displayMeats(meats, category);
+                } catch (error) {
+                    console.error('Error:', error);
+                    menuContainer.innerHTML = `
+                        <div class="error-message">
+                            <p>Failed to load meats. Please try again later.</p>
+                            <button onclick="window.location.reload()">Retry</button>
+                        </div>
+                    `;
+                } finally {
+                    loadingIndicator.style.display = 'none';
+                }
+            }
+
+            // Function to display meats
+            function displayMeats(meats, category) {
+                const filteredMeats = category === 'all' 
+                    ? meats 
+                    : meats.filter(meat => 
+                        meat.category?.toLowerCase() === category.toLowerCase() ||
+                        meat.name.toLowerCase().includes(category.toLowerCase())
+                    );
+
+                if (filteredMeats.length === 0) {
+                    menuContainer.innerHTML = `
+                        <div class="empty-menu-message">
+                            <i class="fas fa-utensils"></i>
+                            <p>No meats found in this category.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                menuContainer.innerHTML = filteredMeats.map(meat => `
+                    <div class="menu-item" data-category="${meat.category?.toLowerCase() || 'other'}">
+                        <div class="menu-item-image">
+                            <img src="${meat.image || 'images/default-meat.jpg'}" alt="${meat.name}">
+                            ${meat.isSpecial ? '<span class="special-badge">Special</span>' : ''}
+                        </div>
+                        <div class="menu-item-details">
+                            <h3>${meat.name}</h3>
+                            <p class="menu-item-description">${meat.description || 'Fresh and delicious meat'}</p>
+                            <div class="menu-item-footer">
+                                <span class="price">Ksh ${meat.price?.toFixed(2) || '0.00'}</span>
+                                <button class="add-to-cart-btn" data-id="${meat._id}" data-name="${meat.name}" data-price="${meat.price}">
+                                    <i class="fas fa-plus"></i> Add to Cart
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Add event listeners to the add to cart buttons
+                document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const item = {
+                            _id: this.dataset.id,
+                            name: this.dataset.name,
+                            price: parseFloat(this.dataset.price),
+                            type: 'meat'
+                        };
+                        addToCart(item);
+                    });
+                });
+            }
+
+            // Filter buttons event listeners
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    const category = this.dataset.category;
+                    fetchAndDisplayMeats(category);
+                });
+            });
+
+            // Initial load
+            fetchAndDisplayMeats();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookings - ATICAS CAFE' Admin</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Admin Navbar -->
+    <nav class="admin-navbar">
+        <div class="admin-navbar-left">
+            <img src="../images/aticas.png" alt="Cafeteria Logo" class="logo">
+            <span class="cafeteria-name">ATICAS CAFE' - Admin</span>
+        </div>
+        <div class="admin-navbar-right">
+            <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+        <div class="admin-navbar-tabs">
+            <a href="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
+            <a href="bookings.html" class="active"><i class="fas fa-calendar-check"></i> Bookings</a>
+            <a href="menu-management.html"><i class="fas fa-utensils"></i> Menu Management</a>
+            <a href="employees.html"><i class="fas fa-users-cog"></i> Employees</a>
+            <a href="admins.html"><i class="fas fa-user-shield"></i> Admins</a>
+            <a href="reports.html"><i class="fas fa-chart-line"></i> Reports</a>
+            <a href="payments.html"><i class="fas fa-credit-card"></i> Payments</a>
+            <a href="place-order.html"><i class="fas fa-phone"></i> Place Order for Customer</a>
+        </div>
+    </nav>
+    <!-- Admin Sidebar -->
+    <div class="admin-sidebar">
+        <a href="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
+        <a href="bookings.html" class="active"><i class="fas fa-calendar-check"></i> Bookings</a>
+        <a href="menu-management.html"><i class="fas fa-utensils"></i> Menu Management</a>
+        <a href="employees.html"><i class="fas fa-users"></i> Employees</a>
+        <a href="reports.html"><i class="fas fa-chart-bar"></i> Reports</a>
+        <a href="admins.html"><i class="fas fa-user-shield"></i> Admins</a>
+        <a href="payments.html"><i class="fas fa-money-bill-wave"></i> Payments</a>
+        <a href="place-order.html"><i class="fas fa-phone"></i> Place Order for Customer</a>
+    </div>
+    <!-- Admin Content -->
+    <div class="admin-content">
+        <h2 style="margin-bottom: 2rem;">Bookings</h2>
+        <div id="loading" style="text-align:center;margin:2rem 0;font-size:1.2rem;display:none;">Loading bookings...</div>
+        <div id="errorMsg" style="color:#e74c3c;text-align:center;margin-bottom:1.5rem;"></div>
+        <table class="recent-orders" id="bookingsTable">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Event/Package</th>
+                    <th>Date</th>
+                    <th>Guests/People</th>
+                    <th>Location/Pickup</th>
+                    <th>Notes</th>
+                    <th>Created At</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Bookings will be loaded here by JS -->
+            </tbody>
+        </table>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        const tableBody = document.querySelector('#bookingsTable tbody');
+        const loading = document.getElementById('loading');
+        const errorMsg = document.getElementById('errorMsg');
+        loading.style.display = 'block';
+        try {
+            const res = await fetch('https://aticas-backend.onrender.com/api/bookings', {
+                headers: { 'Authorization': localStorage.getItem('adminToken') || '' }
+            });
+            const data = await res.json();
+            loading.style.display = 'none';
+            if (!data.success) {
+                errorMsg.textContent = data.error || 'Failed to fetch bookings.';
+                return;
+            }
+            if (!data.bookings.length) {
+                tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center;">No bookings found.</td></tr>';
+                return;
+            }
+            tableBody.innerHTML = data.bookings.map(b => `
+                <tr>
+                    <td>${b.type === 'catering' ? 'Catering' : 'Tour'}</td>
+                    <td>${b.name || ''}</td>
+                    <td>${b.phone || ''}</td>
+                    <td>${b.email || ''}</td>
+                    <td>${b.type === 'catering' ? (b.eventType || '') : (b.package || '')}</td>
+                    <td>${b.date ? new Date(b.date).toLocaleDateString() : ''}</td>
+                    <td>${b.type === 'catering' ? (b.guests || '') : (b.people || '')}</td>
+                    <td>${b.type === 'catering' ? (b.location || '') : (b.pickup || '')}</td>
+                    <td>${b.notes || ''}</td>
+                    <td>${b.createdAt ? new Date(b.createdAt).toLocaleString() : ''}</td>
+                </tr>
+            `).join('');
+        } catch (err) {
+            loading.style.display = 'none';
+            errorMsg.textContent = 'Failed to load bookings.';
+        }
+    });
+    </script>
+    <script src="../js/admin.js"></script>
+    <script src="../js/script.js"></script>
+</body>
+</html> 
