@@ -10,8 +10,12 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Auth Check - Admin Data:', adminData);
     console.log('Auth Check - Admin Type:', adminType);
     
-    const currentPath = window.location.pathname;
-    const isLoginPage = currentPath.endsWith('login.html') || currentPath.includes('-login.html');
+    // Get current path and clean it up
+    let currentPath = window.location.pathname;
+    // Remove any trailing slashes and .html if present for comparison
+    currentPath = currentPath.replace(/\/$/, '').replace(/\.html$/, '');
+    
+    const isLoginPage = currentPath.endsWith('login') || currentPath.includes('-login');
     
     console.log('Auth Check - Current Path:', currentPath);
     console.log('Auth Check - Is Login Page:', isLoginPage);
@@ -22,6 +26,13 @@ document.addEventListener('DOMContentLoaded', function() {
         basePath = '/frontend';
     }
     
+    // Function to get the correct login path
+    const getLoginPath = (isButchery = false) => {
+        return isButchery 
+            ? `${basePath}/butchery-admin/butcheryadmin-login` 
+            : `${basePath}/admin/admin-login`;
+    };
+    
     // Normalize paths for comparison
     const normalizePath = (path) => {
         // Remove leading/trailing slashes and add exactly one leading slash
@@ -29,21 +40,28 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // If on login page and already logged in, redirect to appropriate dashboard
-    if (isLoginPage && adminToken && adminType) {
+    if (isLoginPage && adminToken && adminData && adminType) {
         console.log('Auth Check - Already logged in, checking redirection...');
-        const redirectTo = adminType === 'butchery' 
-            ? `${basePath}/butchery-admin/index.html` 
-            : `${basePath}/admin/index.html`;
+        const isButchery = adminType === 'butchery';
+        const redirectTo = isButchery 
+            ? `${basePath}/butchery-admin/index` 
+            : `${basePath}/admin/index`;
         
-        const currentNormalized = normalizePath(currentPath);
-        const redirectNormalized = normalizePath(redirectTo);
+        // Add .html if not in the URL
+        const finalRedirect = window.location.pathname.endsWith('.html') 
+            ? `${redirectTo}.html` 
+            : redirectTo;
+            
+        // Prevent redirect loop by checking if we're already on the target page
+        const currentPage = window.location.pathname.replace(/\/$/, '');
+        const targetPage = finalRedirect.replace(/\/$/, '');
         
-        console.log('Auth Check - Current path normalized:', currentNormalized);
-        console.log('Auth Check - Redirect path normalized:', redirectNormalized);
+        console.log('Auth Check - Current page:', currentPage);
+        console.log('Auth Check - Target page:', targetPage);
         
-        if (currentNormalized !== redirectNormalized) {
-            console.log('Auth Check - Redirecting to:', redirectTo);
-            window.location.replace(redirectTo); // Use replace to prevent adding to history
+        if (currentPage !== targetPage) {
+            console.log('Auth Check - Redirecting to:', finalRedirect);
+            window.location.replace(finalRedirect);
         } else {
             console.log('Auth Check - Already on the correct dashboard');
         }
@@ -62,12 +80,15 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Determine which login page to redirect to based on the current path
         const isButcheryPath = currentPath.includes('butchery-admin');
-        const loginPath = isButcheryPath
-            ? `${basePath}/butchery-admin/butcheryadmin-login.html`
-            : `${basePath}/admin/admin-login.html`;
+        const loginPath = getLoginPath(isButcheryPath);
         
-        console.log('Auth Check - Redirecting to login page:', loginPath);
-        window.location.replace(loginPath); // Use replace to prevent adding to history
+        // Add .html if the current URL has .html
+        const finalLoginPath = window.location.pathname.endsWith('.html')
+            ? `${loginPath}.html`
+            : loginPath;
+        
+        console.log('Auth Check - Redirecting to login page:', finalLoginPath);
+        window.location.replace(finalLoginPath);
         return;
     }
 
@@ -86,11 +107,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Only redirect if we're on the wrong admin section
     if ((isCafeteriaAdmin && isOnButcheryPath) || (isButcheryAdmin && isOnCafeteriaPath)) {
         const redirectTo = isCafeteriaAdmin 
-            ? `${basePath}/admin/index.html`
-            : `${basePath}/butchery-admin/index.html`;
+            ? `${basePath}/admin/index`
+            : `${basePath}/butchery-admin/index`;
             
-        console.log('Auth Check - Redirecting to correct admin section:', redirectTo);
-        window.location.replace(redirectTo); // Use replace to prevent adding to history
+        // Add .html if the current URL has .html
+        const finalRedirect = window.location.pathname.endsWith('.html')
+            ? `${redirectTo}.html`
+            : redirectTo;
+            
+        console.log('Auth Check - Redirecting to correct admin section:', finalRedirect);
+        window.location.replace(finalRedirect);
         return;
     }
     
