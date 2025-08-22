@@ -158,20 +158,50 @@
                     throw new Error(data.error || 'Login failed');
                 }
 
-                // Store the token and admin data
-                localStorage.setItem('adminToken', data.token);
-                // Store the admin type in the admin data object
-                const adminData = {
-                    ...data.admin,
-                    adminType: data.admin.adminType || adminType
-                };
-                localStorage.setItem('adminData', JSON.stringify(adminData));
+                // Validate the response data
+                if (!data.token || !data.admin) {
+                    throw new Error('Invalid server response: Missing token or admin data');
+                }
 
-                // Redirect based on admin type
-                if (adminData.adminType === 'cafeteria') {
-                    window.location.href = '/admin/index.html';
-                } else {
-                    window.location.href = '/butchery-admin/index.html';
+                // Store the token and admin data atomically
+                try {
+                    const adminData = {
+                        ...data.admin,
+                        adminType: data.admin.adminType || adminType,
+                        lastLogin: new Date().toISOString()
+                    };
+                    
+                    // Store both items in a single transaction
+                    localStorage.setItem('adminToken', data.token);
+                    localStorage.setItem('adminData', JSON.stringify(adminData));
+                    
+                    // Add a small delay to ensure localStorage is written
+                    setTimeout(() => {
+                        try {
+                            // Verify the data was stored correctly
+                            const storedToken = localStorage.getItem('adminToken');
+                            const storedData = localStorage.getItem('adminData');
+                            
+                            if (storedToken !== data.token || !storedData) {
+                                throw new Error('Failed to store authentication data');
+                            }
+                            
+                            // Redirect based on admin type with full path to avoid any base path issues
+                            const basePath = window.location.pathname.includes('/frontend/') ? '/frontend' : '';
+                            const redirectPath = adminData.adminType === 'cafeteria' 
+                                ? `${basePath}/admin/index.html` 
+                                : `${basePath}/butchery-admin/index.html`;
+                                
+                            console.log('Login successful, redirecting to:', redirectPath);
+                            window.location.href = redirectPath;
+                        } catch (storageError) {
+                            console.error('Storage error:', storageError);
+                            errorDiv.textContent = 'Failed to store authentication data. Please try again.';
+                        }
+                    }, 100); // Small delay to ensure localStorage is written
+                } catch (error) {
+                    console.error('Login processing error:', error);
+                    throw error; // Re-throw to be caught by the outer catch
                 }
 
             } catch (error) {
