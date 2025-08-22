@@ -1,48 +1,18 @@
 // Check authentication and redirect if not logged in
 document.addEventListener('DOMContentLoaded', function() {
     // Prevent redirect loops
-    if (sessionStorage.getItem('authRedirecting')) {
+    const redirecting = sessionStorage.getItem('authRedirecting');
+    if (redirecting) {
+        console.log('Auth Check - Preventing redirect loop');
         sessionStorage.removeItem('authRedirecting');
         return;
     }
 
     console.log('Auth check running...');
     
-    const adminToken = localStorage.getItem('adminToken');
-    const adminData = JSON.parse(localStorage.getItem('adminData') || '{}');
-    const adminType = adminData?.adminType; // Use optional chaining
-    
-    console.log('Auth Check - Admin Token:', adminToken ? 'Exists' : 'Missing');
-    console.log('Auth Check - Admin Data:', adminData);
-    console.log('Auth Check - Admin Type:', adminType);
-    
-    // Validate stored data
-    if (adminToken && (!adminData || typeof adminData !== 'object' || !adminType)) {
-        console.log('Invalid admin data structure, clearing storage and redirecting to login');
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminData');
-        
-        // Determine which login page to redirect to based on current path
-        let currentPath = window.location.pathname;
-        const isButcheryPath = currentPath.includes('butchery-admin');
-        const loginPath = isButcheryPath 
-            ? '/butchery-admin/butcheryadmin-login' 
-            : '/admin/admin-login';
-        
-        sessionStorage.setItem('authRedirecting', 'true');
-        window.location.replace(loginPath);
-        return;
-    }
-    
-    // Get current path and clean it up
-    let currentPath = window.location.pathname;
-    // Remove any trailing slashes and .html if present for comparison
-    currentPath = currentPath.replace(/\/$/, '').replace(/\.html$/, '');
-    
-    const isLoginPage = currentPath.endsWith('login') || currentPath.includes('-login');
-    
-    console.log('Auth Check - Current Path:', currentPath);
-    console.log('Auth Check - Is Login Page:', isLoginPage);
+    // Get current path and clean it up first
+    const currentPath = window.location.pathname;
+    const cleanPath = currentPath.replace(/\/$/, '').replace(/\.html$/, '').toLowerCase();
     
     // Handle different path formats (development vs production)
     let basePath = '';
@@ -50,42 +20,65 @@ document.addEventListener('DOMContentLoaded', function() {
         basePath = '/frontend';
     }
     
+    // Get auth data
+    const adminToken = localStorage.getItem('adminToken');
+    const adminData = JSON.parse(localStorage.getItem('adminData') || '{}');
+    const adminType = adminData?.adminType; // Use optional chaining
+    
+    console.log('Auth Check - Current Path:', currentPath);
+    console.log('Auth Check - Clean Path:', cleanPath);
+    console.log('Auth Check - Admin Token:', adminToken ? 'Exists' : 'Missing');
+    console.log('Auth Check - Admin Type:', adminType);
+    
+    // Helper function to redirect to login
+    const redirectToLogin = () => {
+        const isButcheryPath = cleanPath.includes('butchery-admin');
+        const loginPath = isButcheryPath 
+            ? `${basePath}/butchery-admin/butcheryadmin-login` 
+            : `${basePath}/admin/admin-login`;
+            
+        console.log('Auth Check - Redirecting to login:', loginPath);
+        sessionStorage.setItem('authRedirecting', 'true');
+        window.location.replace(loginPath);
+    };
+    
+    // Validate stored data
+    if (adminToken && (!adminData || typeof adminData !== 'object' || !adminType)) {
+        console.log('Invalid admin data structure, clearing storage');
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminData');
+        redirectToLogin();
+        return;
+    }
+    
+    const isLoginPage = cleanPath.endsWith('login') || cleanPath.includes('-login');
+    console.log('Auth Check - Is Login Page:', isLoginPage);
+    
+    // Helper function to get dashboard path
+    const getDashboardPath = (isButchery) => {
+        return isButchery 
+            ? `${basePath}/butchery-admin/index`
+            : `${basePath}/admin/index`;
+    };
+    
     // Function to get the correct login path
     const getLoginPath = (isButchery = false) => {
         return isButchery 
             ? `${basePath}/butchery-admin/butcheryadmin-login` 
             : `${basePath}/admin/admin-login`;
     };
-    
-    // Improved path comparison function
-    const arePathsEqual = (path1, path2) => {
-        const normalize = (path) => {
-            return (path || '').replace(/^\/+|\/+$/g, '')
-                             .replace(/\.html$/g, '')
-                             .toLowerCase();
-        };
-        return normalize(path1) === normalize(path2);
-    };
 
     // If on login page and already logged in, redirect to appropriate dashboard
     if (isLoginPage && adminToken && adminData && adminType) {
         console.log('Auth Check - Already logged in, checking redirection...');
         const isButchery = adminType === 'butchery';
-        const redirectTo = isButchery 
-            ? `${basePath}/butchery-admin/index` 
-            : `${basePath}/admin/index`;
+        const targetPath = getDashboardPath(isButchery);
         
-        // Normalize paths for comparison
-        const currentPage = window.location.pathname;
-        const targetPage = redirectTo;
-        
-        console.log('Auth Check - Current page:', currentPage);
-        console.log('Auth Check - Target page:', targetPage);
-        
-        if (!arePathsEqual(currentPage, targetPage)) {
-            console.log('Auth Check - Redirecting to:', redirectTo);
+        // Only redirect if we're not already on the target page
+        if (!cleanPath.endsWith(targetPath.replace(basePath, '').replace(/^\/+/, ''))) {
+            console.log('Auth Check - Redirecting to dashboard:', targetPath);
             sessionStorage.setItem('authRedirecting', 'true');
-            window.location.replace(redirectTo);
+            window.location.replace(targetPath);
         } else {
             console.log('Auth Check - Already on the correct dashboard');
         }
@@ -102,37 +95,20 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Determine which login page to redirect to based on the current path
-        const isButcheryPath = currentPath.includes('butchery-admin');
-        const loginPath = getLoginPath(isButcheryPath);
-        
-        console.log('Auth Check - Redirecting to login page:', loginPath);
-        sessionStorage.setItem('authRedirecting', 'true');
-        window.location.replace(loginPath);
+        redirectToLogin();
         return;
     }
 
     // Check if user is on the correct admin page based on their type
-    const isCafeteriaAdmin = adminType === 'cafeteria';
-    const isButcheryAdmin = adminType === 'butchery';
-    
-    console.log('Auth Check - Admin Type:', { isCafeteriaAdmin, isButcheryAdmin });
-    
-    // Check if we're already on the correct path
-    const isOnCafeteriaPath = currentPath.includes('/admin/');
-    const isOnButcheryPath = currentPath.includes('/butchery-admin/');
-    
-    console.log('Auth Check - Current Path:', currentPath);
+    const isButchery = adminType === 'butchery';
+    const shouldBeOnButchery = cleanPath.includes('butchery-admin');
     
     // Only redirect if we're on the wrong admin section
-    if ((isCafeteriaAdmin && isOnButcheryPath) || (isButcheryAdmin && isOnCafeteriaPath)) {
-        const redirectTo = isCafeteriaAdmin 
-            ? `${basePath}/admin/index`
-            : `${basePath}/butchery-admin/index`;
-            
-        console.log('Auth Check - Redirecting to correct admin section:', redirectTo);
+    if (isButchery !== shouldBeOnButchery) {
+        const targetPath = getDashboardPath(isButchery);
+        console.log('Auth Check - Redirecting to correct admin section:', targetPath);
         sessionStorage.setItem('authRedirecting', 'true');
-        window.location.replace(redirectTo);
+        window.location.replace(targetPath);
         return;
     }
     
