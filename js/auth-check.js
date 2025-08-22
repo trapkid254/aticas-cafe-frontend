@@ -1,7 +1,8 @@
 // Check authentication and redirect if not logged in
 document.addEventListener('DOMContentLoaded', function() {
     const adminToken = localStorage.getItem('adminToken');
-    const adminType = localStorage.getItem('adminType');
+    const adminData = JSON.parse(localStorage.getItem('adminData') || '{}');
+    const adminType = adminData.adminType; // Get adminType from adminData instead of directly from localStorage
     const currentPath = window.location.pathname;
     const isLoginPage = currentPath.endsWith('login.html') || currentPath.includes('-login.html');
     

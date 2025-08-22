@@ -160,10 +160,15 @@
 
                 // Store the token and admin data
                 localStorage.setItem('adminToken', data.token);
-                localStorage.setItem('adminData', JSON.stringify(data.admin));
+                // Store the admin type in the admin data object
+                const adminData = {
+                    ...data.admin,
+                    adminType: data.admin.adminType || adminType
+                };
+                localStorage.setItem('adminData', JSON.stringify(adminData));
 
                 // Redirect based on admin type
-                if (adminType === 'cafeteria') {
+                if (adminData.adminType === 'cafeteria') {
                     window.location.href = '/admin/index.html';
                 } else {
                     window.location.href = '/butchery-admin/index.html';
