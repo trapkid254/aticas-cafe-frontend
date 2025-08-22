@@ -49,11 +49,25 @@ document.addEventListener('DOMContentLoaded', function() {
             const res = await fetch('https://aticas-backend.onrender.com/api/meats', {
                 headers: { 'Authorization': getToken() }
             });
+            
+            if (!res.ok) {
+                const errorText = await res.text();
+                console.error('Server responded with status:', res.status, errorText);
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            
+            const contentType = res.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await res.text();
+                console.error('Expected JSON but got:', contentType, text);
+                throw new Error('Response was not JSON');
+            }
+            
             meatsOfDay = await res.json();
             renderMeatsOfDay();
         } catch (err) {
             console.error('Failed to load meats of day:', err);
-            meatsOfDayList.innerHTML = '<p>Failed to load meats of day</p>';
+            meatsOfDayList.innerHTML = `<p>Failed to load meats of day: ${err.message}</p>`;
         }
     }
     
