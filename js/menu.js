@@ -11,11 +11,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function fetchMenuItems() {
         try {
-            const res = await fetch('https://aticas-backend.onrender.com/api/menu');
+            const token = localStorage.getItem('adminToken');
+            const headers = {};
+            
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+            
+            const res = await fetch('https://aticas-backend.onrender.com/api/menu', {
+                headers: headers
+            });
+            
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            
             menuItems = await res.json();
             displayMenuItems();
         } catch (err) {
-            menuContainer.innerHTML = '<div class="empty-menu-message">Failed to load menu items.</div>';
+            console.error('Error fetching menu items:', err);
+            menuContainer.innerHTML = `
+                <div class="empty-menu-message">
+                    Failed to load menu items. ${err.message || ''}
+                    <button onclick="window.location.reload()" style="margin-top: 10px; padding: 5px 10px;">
+                        Retry
+                    </button>
+                </div>`;
         }
     }
 
