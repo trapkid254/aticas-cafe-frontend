@@ -276,8 +276,7 @@
         </p>
     </footer>
 
-    <script src="js/script.js"></script>
-    <script src="js/cart-fixed.js"></script>
+    <script src="js/cart.js"></script>
     <script>
         // Unified cart functionality
         document.addEventListener('DOMContentLoaded', async function() {
@@ -303,7 +302,7 @@
                         // Load cafeteria cart
                         fetchCart().then(res => res.json()).catch(() => ({ items: [], total: 0 })),
                         // Load butchery cart
-                        fetch('https://aticas-backend.onrender.com/api/butchery/cart', {
+                        fetch('https://aticas-backend.onrender.com/api/cart/butchery', {
                             headers: {
                                 'Authorization': `Bearer ${localStorage.getItem('userToken') || ''}`
                             }
