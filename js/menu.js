@@ -11,16 +11,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function fetchMenuItems() {
         try {
-            const token = localStorage.getItem('adminToken');
-            const headers = {};
+            // First try to fetch without authentication
+            let res = await fetch('https://aticas-backend.onrender.com/api/menu');
             
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
+            // If unauthorized, try with admin token if available
+            if (res.status === 401) {
+                const token = localStorage.getItem('adminToken');
+                if (token) {
+                    res = await fetch('https://aticas-backend.onrender.com/api/menu', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                }
             }
-            
-            const res = await fetch('https://aticas-backend.onrender.com/api/menu', {
-                headers: headers
-            });
             
             if (!res.ok) {
                 throw new Error(`HTTP error! status: ${res.status}`);
