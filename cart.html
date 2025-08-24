@@ -365,6 +365,7 @@
             
             // Display combined cart items
             function displayCombinedCart(combinedCart) {
+                console.log('Displaying cart:', combinedCart);
                 const cartContainer = document.getElementById('cartContainer');
                 const cartSummary = document.getElementById('cartSummary');
                 const subtotalElement = document.getElementById('subtotal');
@@ -388,9 +389,12 @@
                 let cartHTML = '';
                 
                 combinedCart.items.forEach(item => {
-                    const isButchery = item.itemType === 'meat';
-                    const itemTotal = item.quantity * (item.selectedSize?.price || item.price || 0);
+                    const isButchery = item.itemType === 'meat' || item.itemType === 'MealOfDay';
+                    const itemPrice = item.selectedSize?.price || item.menuItem?.price || item.price || 0;
+                    const itemTotal = item.quantity * itemPrice;
                     subtotal += itemTotal;
+                    
+                    console.log('Processing cart item:', { item, itemPrice, itemTotal, subtotal });
                     
                     cartHTML += `
                         <div class="cart-item" data-id="${item.menuItem}" data-type="${item.itemType}" 
@@ -427,9 +431,11 @@
                 const deliveryFee = 200; // Flat delivery fee
                 const total = subtotal + deliveryFee;
                 
-                if (subtotalElement) subtotalElement.textContent = `Ksh ${subtotal.toLocaleString()}`;
-                if (deliveryFeeElement) deliveryFeeElement.textContent = `Ksh ${deliveryFee.toLocaleString()}`;
-                if (totalElement) totalElement.textContent = `Ksh ${total.toLocaleString()}`;
+                console.log('Cart totals:', { subtotal, deliveryFee, total });
+                
+                if (subtotalElement) subtotalElement.textContent = `Ksh ${subtotal.toLocaleString('en-US')}`;
+                if (deliveryFeeElement) deliveryFeeElement.textContent = `Ksh ${deliveryFee.toLocaleString('en-US')}`;
+                if (totalElement) totalElement.textContent = `Ksh ${total.toLocaleString('en-US')}`;
                 
                 // Initialize button handlers
                 initButtonHandlers();

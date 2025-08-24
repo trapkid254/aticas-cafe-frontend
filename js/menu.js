@@ -82,8 +82,14 @@ document.addEventListener('DOMContentLoaded', function() {
     async function addToCartApi(menuItem, selectedSize = null) {
         const userId = getUserId();
         const isLoggedIn = !!userId;
-        const menuItemId = menuItem._id;
-        const itemType = menuItem.category ? 'Menu' : 'MealOfDay';
+        // Use either _id or id property, whichever exists
+        const menuItemId = menuItem._id || menuItem.id;
+        if (!menuItemId) {
+            console.error('Menu item is missing ID:', menuItem);
+            showToast('Error: Invalid menu item', 'error');
+            return false;
+        }
+        const itemType = menuItem.category || menuItem.type || 'food';
 
         if (isLoggedIn) {
             try {
@@ -92,11 +98,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 let existingItem = null;
                 if (cart.items) {
-                    existingItem = cart.items.find(item => 
-                        item.menuItem._id === menuItemId && 
-                        item.itemType === itemType &&
-                        ((selectedSize && item.selectedSize?.size === selectedSize.size) || (!selectedSize && !item.selectedSize))
-                    );
+                    existingItem = cart.items.find(item => {
+                        const itemId = item.menuItem?._id || item.menuItem?.id;
+                        return itemId === menuItemId && 
+                               item.itemType === itemType &&
+                               ((selectedSize && item.selectedSize?.size === selectedSize.size) || (!selectedSize && !item.selectedSize));
+                    });
                 }
                 
                 const newQuantity = existingItem ? (existingItem.quantity + 1) : 1;
@@ -110,9 +117,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     body: JSON.stringify({ 
                         menuItemId, 
+                        itemType: itemType,
                         quantity: newQuantity, 
-                        itemType,
-                        selectedSize: selectedSize || undefined
+                        selectedSize: selectedSize || null,
+                        price: selectedSize ? selectedSize.price : (menuItem.price || 0)
                     })
                 });
                 
@@ -134,26 +142,29 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             // Guest cart handling
             try {
-                let cart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
+                let cart = JSON.parse(localStorage.getItem('guestCart') || '{"items": [], "total": 0}');
                 if (typeof cart === 'string') {
                     cart = JSON.parse(cart);
                 }
                 
-                const existingItemIndex = cart.items.findIndex(i =>
-                    i.menuItem._id === menuItem._id &&
-                    i.itemType === itemType &&
-                    (selectedSize ? i.selectedSize && i.selectedSize.size === selectedSize.size : !i.selectedSize)
-                );
+                const existingItemIndex = cart.items.findIndex(i => {
+                    const itemId = i.menuItem?._id || i.menuItem?.id;
+                    const menuItemId = menuItem._id || menuItem.id;
+                    return itemId === menuItemId &&
+                           i.itemType === itemType &&
+                           (selectedSize ? i.selectedSize && i.selectedSize.size === selectedSize.size : !i.selectedSize);
+                });
 
                 if (existingItemIndex > -1) {
                     cart.items[existingItemIndex].quantity += 1;
                 } else {
                     cart.items.push({
                         menuItem: {
-                            _id: menuItem._id,
+                            _id: menuItemId,
+                            id: menuItemId,
                             name: menuItem.name,
-                            price: selectedSize ? selectedSize.price : menuItem.price,
-                            image: menuItem.image,
+                            price: selectedSize ? selectedSize.price : (menuItem.price || 0),
+                            image: menuItem.image || 'images/default-food.jpg',
                             category: menuItem.category
                         },
                         quantity: 1,
@@ -161,8 +172,20 @@ document.addEventListener('DOMContentLoaded', function() {
                         selectedSize
                     });
                 }
+                // Calculate total
+                cart.total = cart.items.reduce((total, item) => {
+                    return total + (item.quantity * (item.selectedSize?.price || item.menuItem?.price || 0));
+                }, 0);
+                
+                // Save back to localStorage
                 localStorage.setItem('guestCart', JSON.stringify(cart));
-                if (window.updateCartCount) await window.updateCartCount();
+                
+                // Update cart count and show success
+                await updateCartCount();
+                showToast('Item added to cart!');
+                
+                // Log the updated cart for debugging
+                console.log('Updated guest cart:', cart);
                 return true;
             } catch (err) {
                 console.error('Error adding to guest cart:', err);
