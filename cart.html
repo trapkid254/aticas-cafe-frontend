@@ -280,48 +280,46 @@
     <script>
         // Unified cart functionality
         document.addEventListener('DOMContentLoaded', async function() {
-            // Function to fetch cafeteria cart
+            // Function to fetch cart
             async function fetchCart() {
                 const userId = localStorage.getItem('userId');
                 const token = localStorage.getItem('userToken');
                 
                 if (userId && token) {
-                    return fetch(`/api/cart/${userId}`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
+                    try {
+                        const response = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error('Failed to fetch cart');
+                        }
+                        
+                        const cart = await response.json();
+                        // Ensure items have itemType
+                        const items = (cart.items || []).map(item => ({
+                            ...item,
+                            itemType: item.itemType || 'food'
+                        }));
+                        
+                        return { items, total: cart.total || 0 };
+                    } catch (error) {
+                        console.error('Error fetching cart:', error);
+                        return { items: [], total: 0 };
+                    }
                 } else {
                     // For guests, return empty cart
-                    return { json: () => ({ items: [], total: 0 }), ok: true };
+                    return { items: [], total: 0 };
                 }
             }
             
-            // Load both carts
+            // Load cart
             async function loadCarts() {
                 try {
-                    const [cafeteriaCart, butcheryCart] = await Promise.all([
-                        // Load cafeteria cart
-                        fetchCart().then(res => res.json()).catch(() => ({ items: [], total: 0 })),
-                        // Load butchery cart
-                        fetch('https://aticas-backend.onrender.com/api/cart/butchery', {
-                            headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('userToken') || ''}`
-                            }
-                        }).then(res => res.ok ? res.json() : { items: [], total: 0 })
-                          .catch(() => ({ items: [], total: 0 }))
-                    ]);
-                    
-                    // Combine both carts
-                    const combinedCart = {
-                        items: [
-                            ...(cafeteriaCart?.items?.map(item => ({ ...item, itemType: item.itemType || 'food' })) || []),
-                            ...(butcheryCart?.items || [])
-                        ],
-                        total: (cafeteriaCart?.total || 0) + (butcheryCart?.total || 0)
-                    };
-                    
-                    displayCombinedCart(combinedCart);
+                    const cart = await fetchCart();
+                    displayCombinedCart(cart);
                 } catch (error) {
-                    console.error('Error loading carts:', error);
+                    console.error('Error loading cart:', error);
                     // Show error message to user
                     const cartContainer = document.getElementById('cartContainer');
                     if (cartContainer) {
