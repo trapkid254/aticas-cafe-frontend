@@ -292,16 +292,21 @@
                 
                 if (userId && token) {
                     try {
-                        // First try to get the regular cart
+                        console.log('Fetching cart from API...');
                         const response = await fetch(`https://aticas-backend.onrender.com/api/cart/`, {
                             headers: { 
                                 'Authorization': `Bearer ${token}`,
                                 'Content-Type': 'application/json'
-                            }
+                            },
+                            credentials: 'include'  // Important for sessions/cookies
                         });
                         
+                        console.log('Cart API response status:', response.status);
+                        
                         if (!response.ok) {
-                            throw new Error('Failed to fetch cart');
+                            const errorText = await response.text();
+                            console.error('Failed to fetch cart:', response.status, errorText);
+                            throw new Error(`Failed to fetch cart: ${response.status} ${errorText}`);
                         }
                         
                         const cart = await response.json();
@@ -327,24 +332,45 @@
                 }
             }
             
+            // Debug function to check localStorage state
+            function debugLocalStorage() {
+                console.group('LocalStorage Debug');
+                console.log('userId:', localStorage.getItem('userId'));
+                console.log('userToken:', localStorage.getItem('userToken') ? 'Token exists' : 'No token');
+                
+                const guestCart = localStorage.getItem('guestCart');
+                console.log('guestCart:', guestCart ? JSON.parse(guestCart) : 'No guest cart');
+                
+                console.groupEnd();
+            }
+            
             // Load cart
             async function loadCarts() {
+                console.log('Loading cart data...');
+                debugLocalStorage(); // Show current localStorage state
+                
                 try {
                     let cart = { items: [], total: 0 };
                     const userId = localStorage.getItem('userId');
                     const token = localStorage.getItem('userToken');
                     
+                    console.log('Auth status:', { userId: !!userId, token: !!token });
+                    
                     if (userId && token) {
-                        // For logged-in users
+                        console.log('Fetching cart from server...');
                         cart = await fetchCart();
+                        console.log('Server cart response:', JSON.parse(JSON.stringify(cart)));
                     } else {
-                        // For guests
+                        console.log('Loading guest cart from localStorage...');
                         const guestCart = getGuestCart();
+                        console.log('Guest cart from localStorage:', JSON.parse(JSON.stringify(guestCart)));
                         cart = {
-                            items: guestCart.items || [],
-                            total: guestCart.total || 0
+                            items: Array.isArray(guestCart.items) ? guestCart.items : [],
+                            total: typeof guestCart.total === 'number' ? guestCart.total : 0
                         };
                     }
+                    
+                    console.log('Final cart data to display:', JSON.parse(JSON.stringify(cart)));
                     
                     displayCombinedCart(cart);
                 } catch (error) {
@@ -365,15 +391,20 @@
             
             // Display combined cart items
             function displayCombinedCart(combinedCart) {
-                console.log('Displaying cart:', combinedCart);
+                console.group('Displaying Cart');
+                console.log('Raw cart data:', JSON.parse(JSON.stringify(combinedCart)));
+                
                 const cartContainer = document.getElementById('cartContainer');
                 const cartSummary = document.getElementById('cartSummary');
                 const subtotalElement = document.getElementById('subtotal');
                 const deliveryFeeElement = document.getElementById('deliveryFee');
                 const totalElement = document.getElementById('total');
                 
+                console.log('DOM Elements:', { cartContainer, cartSummary, subtotalElement, deliveryFeeElement, totalElement });
+                
                 if (!combinedCart?.items?.length) {
-                    cartContainer.innerHTML = `
+                    console.log('Cart is empty or has no items');
+                    const emptyCartHTML = `
                         <div class="empty-cart">
                             <i class="fas fa-shopping-cart"></i>
                             <p>Your cart is empty</p>
@@ -381,16 +412,25 @@
                             <a href="butchery.html" class="btn" style="margin-top: 10px;">Visit Butchery</a>
                         </div>
                     `;
+                    console.log('Setting empty cart HTML');
+                    cartContainer.innerHTML = emptyCartHTML;
                     if (cartSummary) cartSummary.style.display = 'none';
+                    console.groupEnd();
                     return;
                 }
                 
                 let subtotal = 0;
                 let cartHTML = '';
                 
-                combinedCart.items.forEach(item => {
+                console.log(`Processing ${combinedCart.items.length} cart items`);
+                
+                combinedCart.items.forEach((item, index) => {
+                    console.group(`Item ${index + 1}`);
+                    console.log('Raw item data:', JSON.parse(JSON.stringify(item)));
+                    
                     // Handle both direct properties and nested menuItem properties
                     const itemData = item.menuItem || item;
+                    console.log('Processed item data:', JSON.parse(JSON.stringify(itemData)));
                     const isButchery = item.itemType === 'Meat' || item.type === 'meat' || item.itemType === 'meat';
                     const itemName = itemData.name || 'Unknown Item';
                     const itemImage = itemData.image || (isButchery ? 'images/default-meat.jpg' : 'images/default-food.jpg');
@@ -403,7 +443,7 @@
                     cartHTML += `
                         <div class="cart-item" data-id="${itemData._id || itemData.id}" data-type="${item.itemType || 'Menu'}" 
                              ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>
-                            <img src="${itemImage}" alt="${itemName}">
+                            <img src="${itemImage}" alt="${itemName}" onerror="this.src='images/default-food.jpg';">
                             <div class="cart-item-details">
                                 <h3>${itemName} ${isButchery ? '<span class="butchery-badge">Butchery</span>' : ''}</h3>
                                 ${item.selectedSize ? `<p>Size: ${item.selectedSize.size}</p>` : ''}
@@ -423,8 +463,7 @@
                                 ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>
                                 <i class="fas fa-trash"></i>
                             </button>
-                        </div>
-                    `;
+                        </div>`;
                 });
                 
                 cartContainer.innerHTML = cartHTML;
@@ -436,9 +475,28 @@
                 
                 console.log('Cart totals:', { subtotal, deliveryFee, total });
                 
-                if (subtotalElement) subtotalElement.textContent = `Ksh ${subtotal.toLocaleString('en-US')}`;
-                if (deliveryFeeElement) deliveryFeeElement.textContent = `Ksh ${deliveryFee.toLocaleString('en-US')}`;
-                if (totalElement) totalElement.textContent = `Ksh ${total.toLocaleString('en-US')}`;
+                if (subtotalElement) {
+                    subtotalElement.textContent = 'Ksh ' + subtotal.toLocaleString('en-US');
+                    console.log('Updated subtotal element:', subtotalElement.textContent);
+                } else {
+                    console.error('Subtotal element not found');
+                }
+                
+                if (deliveryFeeElement) {
+                    deliveryFeeElement.textContent = 'Ksh ' + deliveryFee.toLocaleString('en-US');
+                    console.log('Updated delivery fee element:', deliveryFeeElement.textContent);
+                } else {
+                    console.error('Delivery fee element not found');
+                }
+                
+                if (totalElement) {
+                    totalElement.textContent = 'Ksh ' + total.toLocaleString('en-US');
+                    console.log('Updated total element:', totalElement.textContent);
+                } else {
+                    console.error('Total element not found');
+                }
+                
+                console.groupEnd(); // End of displayCombinedCart group
                 
                 // Initialize button handlers
                 initButtonHandlers();
@@ -578,9 +636,33 @@
             window.loadCarts = loadCarts;
             window.displayCombinedCart = displayCombinedCart;
             
-            // Initialize the cart and navigation
+            // Initialize when DOM is fully loaded
             document.addEventListener('DOMContentLoaded', () => {
-                // Initialize cart
+                console.log('DOM loaded, initializing cart...');
+                
+                // Add debug button
+                const debugButton = document.createElement('button');
+                debugButton.textContent = 'Debug Cart';
+                debugButton.style.position = 'fixed';
+                debugButton.style.bottom = '20px';
+                debugButton.style.right = '20px';
+                debugButton.style.zIndex = '1000';
+                debugButton.style.padding = '10px 20px';
+                debugButton.style.backgroundColor = '#f44336';
+                debugButton.style.color = 'white';
+                debugButton.style.border = 'none';
+                debugButton.style.borderRadius = '4px';
+                debugButton.style.cursor = 'pointer';
+                debugButton.onclick = async () => {
+                    console.group('=== DEBUG CART ===');
+                    debugLocalStorage();
+                    console.log('Reloading cart...');
+                    await loadCarts();
+                    console.groupEnd();
+                };
+                document.body.appendChild(debugButton);
+                
+                // Initial load
                 loadCarts();
                 
                 // Initialize navigation buttons
