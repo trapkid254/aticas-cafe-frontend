@@ -89,7 +89,8 @@ document.addEventListener('DOMContentLoaded', function() {
             showToast('Error: Invalid menu item', 'error');
             return false;
         }
-        const itemType = menuItem.category || menuItem.type || 'food';
+        // Determine item type - backend expects 'Menu' or 'Meat'
+        const itemType = (menuItem.category === 'meat' || menuItem.type === 'meat') ? 'Meat' : 'Menu';
 
         if (isLoggedIn) {
             try {
@@ -117,9 +118,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     body: JSON.stringify({ 
                         menuItemId, 
-                        itemType: itemType,
+                        itemType: itemType, // Should be 'Menu' or 'Meat'
                         quantity: newQuantity, 
-                        selectedSize: selectedSize || null,
+                        selectedSize: selectedSize || undefined,
                         price: selectedSize ? selectedSize.price : (menuItem.price || 0)
                     })
                 });
@@ -142,9 +143,18 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             // Guest cart handling
             try {
-                let cart = JSON.parse(localStorage.getItem('guestCart') || '{"items": [], "total": 0}');
-                if (typeof cart === 'string') {
-                    cart = JSON.parse(cart);
+                let cart = { items: [], total: 0 };
+                try {
+                    const cartData = localStorage.getItem('guestCart');
+                    if (cartData) {
+                        cart = JSON.parse(cartData);
+                        // Ensure cart has required structure
+                        if (!cart.items) cart.items = [];
+                        if (cart.total === undefined) cart.total = 0;
+                    }
+                } catch (e) {
+                    console.error('Error parsing guest cart:', e);
+                    cart = { items: [], total: 0 };
                 }
                 
                 const existingItemIndex = cart.items.findIndex(i => {

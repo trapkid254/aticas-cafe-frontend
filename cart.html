@@ -389,34 +389,37 @@
                 let cartHTML = '';
                 
                 combinedCart.items.forEach(item => {
-                    const isButchery = item.itemType === 'meat' || item.itemType === 'MealOfDay';
-                    const itemPrice = item.selectedSize?.price || item.menuItem?.price || item.price || 0;
+                    // Handle both direct properties and nested menuItem properties
+                    const itemData = item.menuItem || item;
+                    const isButchery = item.itemType === 'Meat' || item.type === 'meat' || item.itemType === 'meat';
+                    const itemName = itemData.name || 'Unknown Item';
+                    const itemImage = itemData.image || (isButchery ? 'images/default-meat.jpg' : 'images/default-food.jpg');
+                    const itemPrice = item.selectedSize?.price || itemData.price || 0;
                     const itemTotal = item.quantity * itemPrice;
                     subtotal += itemTotal;
                     
-                    console.log('Processing cart item:', { item, itemPrice, itemTotal, subtotal });
+                    console.log('Processing cart item:', { item, itemData, itemPrice, itemTotal, subtotal });
                     
                     cartHTML += `
-                        <div class="cart-item" data-id="${item.menuItem}" data-type="${item.itemType}" 
+                        <div class="cart-item" data-id="${itemData._id || itemData.id}" data-type="${item.itemType || 'Menu'}" 
                              ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>
-                            <img src="${item.image || (isButchery ? 'images/default-meat.jpg' : 'images/default-food.jpg')}" 
-                                 alt="${item.name}">
+                            <img src="${itemImage}" alt="${itemName}">
                             <div class="cart-item-details">
-                                <h3>${item.name} ${isButchery ? '<span class="butchery-badge">Butchery</span>' : ''}</h3>
+                                <h3>${itemName} ${isButchery ? '<span class="butchery-badge">Butchery</span>' : ''}</h3>
                                 ${item.selectedSize ? `<p>Size: ${item.selectedSize.size}</p>` : ''}
-                                <p class="price">Ksh ${(item.selectedSize?.price || item.price || 0).toLocaleString()}</p>
+                                <p class="price">Ksh ${itemPrice.toLocaleString('en-US')} x ${item.quantity}</p>
                                 <div class="quantity-controls">
-                                    <button class="quantity-btn minus" data-id="${item.menuItem}" 
-                                        data-type="${item.itemType}" 
+                                    <button class="quantity-btn minus" data-id="${itemData._id || itemData.id}" 
+                                        data-type="${item.itemType || 'Menu'}" 
                                         ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>-</button>
                                     <span class="quantity">${item.quantity}</span>
-                                    <button class="quantity-btn plus" data-id="${item.menuItem}" 
-                                        data-type="${item.itemType}" 
+                                    <button class="quantity-btn plus" data-id="${itemData._id || itemData.id}" 
+                                        data-type="${item.itemType || 'Menu'}" 
                                         ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>+</button>
                                 </div>
                             </div>
-                            <button class="remove-btn" data-id="${item.menuItem}" 
-                                data-type="${item.itemType}" 
+                            <button class="remove-btn" data-id="${itemData._id || itemData.id}" 
+                                data-type="${item.itemType || 'Menu'}" 
                                 ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>
                                 <i class="fas fa-trash"></i>
                             </button>
