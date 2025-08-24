@@ -218,6 +218,63 @@ function initButtonHandlers() {
     });
 }
 
+// Remove item from cart
+async function removeCartItem(menuItemId, itemType = 'food', size = null) {
+    console.log('Removing cart item:', { menuItemId, itemType, size });
+    try {
+        const userId = getUserId();
+        const token = getUserToken();
+        const isButchery = itemType === 'meat' || itemType === 'butchery';
+        
+        if (userId && token) {
+            // For logged-in users
+            const response = await fetch(`https://aticas-backend.onrender.com/api/cart/items/${menuItemId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    itemType: isButchery ? 'Meat' : 'Menu',
+                    size: size || undefined
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to remove item from cart');
+            }
+            
+            await updateCartCount();
+            return await response.json();
+        } else {
+            // For guests
+            const guestCart = getGuestCart();
+            guestCart.items = guestCart.items.filter(item => 
+                !(item.menuItem === menuItemId && 
+                  (item.itemType || 'food') === itemType &&
+                  (!size || item.selectedSize?.size === size)
+                )
+            );
+            
+            // Recalculate total
+            guestCart.total = guestCart.items.reduce((sum, item) => {
+                const price = item.selectedSize?.price || item.price || 0;
+                return sum + (price * item.quantity);
+            }, 0);
+            
+            setGuestCart(guestCart);
+            await updateCartCount();
+            return guestCart;
+        }
+    } catch (error) {
+        console.error('Error removing item from cart:', error);
+        throw error;
+    }
+}
+
+// Make function available globally
+window.removeCartItem = removeCartItem;
+
 // Initialize cart functionality when DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('DOM loaded, initializing cart...');
