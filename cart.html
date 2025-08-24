@@ -278,6 +278,11 @@
 
     <script src="js/cart.js"></script>
     <script>
+        // Global cart functions that need to be accessible
+        window.updateCartItem = updateCartItem;
+        window.removeCartItem = removeCartItem;
+        window.getGuestCart = getGuestCart;
+        window.setGuestCart = setGuestCart;
         // Unified cart functionality
         document.addEventListener('DOMContentLoaded', async function() {
             // Function to fetch cart
@@ -316,7 +321,18 @@
             // Load cart
             async function loadCarts() {
                 try {
-                    const cart = await fetchCart();
+                    let cart;
+                    const userId = localStorage.getItem('userId');
+                    const token = localStorage.getItem('userToken');
+                    
+                    if (userId && token) {
+                        // For logged-in users
+                        cart = await fetchCart();
+                    } else {
+                        // For guests
+                        cart = getGuestCart();
+                    }
+                    
                     displayCombinedCart(cart);
                 } catch (error) {
                     console.error('Error loading cart:', error);
@@ -406,10 +422,49 @@
                 initButtonHandlers();
             }
             
-            // Initialize button handlers
+            // Initialize button handlers with event delegation
             function initButtonHandlers() {
-                // Quantity controls
-                document.querySelectorAll('.quantity-btn').forEach(button => {
+                const cartContainer = document.getElementById('cartContainer');
+                if (!cartContainer) return;
+
+                // Handle quantity controls and remove buttons with event delegation
+                cartContainer.addEventListener('click', async (e) => {
+                    const button = e.target.closest('.quantity-btn, .remove-btn, .btn');
+                    if (!button) return;
+
+                    const id = button.dataset.id;
+                    const type = button.dataset.type || 'food';
+                    const size = button.dataset.size || null;
+
+                    // Handle quantity controls
+                    if (button.classList.contains('quantity-btn')) {
+                        const quantityElement = button.parentElement.querySelector('.quantity');
+                        if (!quantityElement) return;
+
+                        let quantity = parseInt(quantityElement.textContent);
+                        
+                        if (button.classList.contains('plus')) {
+                            quantity++;
+                        } else if (button.classList.contains('minus')) {
+                            quantity = Math.max(1, quantity - 1);
+                        }
+                        
+                        try {
+                            await updateCartItem(id, quantity, type, size);
+                            await loadCarts();
+                        } catch (error) {
+                            console.error('Error updating cart:', error);
+                        }
+                    } 
+                    // Handle remove buttons
+                    else if (button.classList.contains('remove-btn')) {
+                        try {
+                            await removeCartItem(id, type, size);
+                            await loadCarts();
+                        } catch (error) {
+                            console.error('Error removing item:', error);
+                        }
+                    }
                     button.addEventListener('click', async function() {
                         const id = this.dataset.id;
                         const type = this.dataset.type;
@@ -497,8 +552,39 @@
                 }
             }
             
-            // Initialize the cart
-            loadCarts();
+            // Initialize the cart and navigation
+            document.addEventListener('DOMContentLoaded', () => {
+                // Initialize cart
+                loadCarts();
+                
+                // Initialize navigation buttons
+                const loginBtn = document.getElementById('loginBtn');
+                const menuBtn = document.querySelector('a[href="menu.html"]');
+                
+                if (loginBtn) {
+                    loginBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        window.location.href = 'login.html';
+                    });
+                }
+                
+                if (menuBtn) {
+                    menuBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        window.location.href = 'menu.html';
+                    });
+                }
+                
+                // Initialize mobile menu toggle
+                const hamburger = document.getElementById('hamburgerMenu');
+                const mobileMenu = document.getElementById('mobileMenu');
+                
+                if (hamburger && mobileMenu) {
+                    hamburger.addEventListener('click', () => {
+                        mobileMenu.style.display = mobileMenu.style.display === 'flex' ? 'none' : 'flex';
+                    });
+                }
+            });
         });
     </script>
 </body>
