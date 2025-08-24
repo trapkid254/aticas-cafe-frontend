@@ -254,7 +254,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const container = document.getElementById('mealsOfDayContainer');
         if (!container) return;
         try {
-            const res = await fetch('https://aticas-backend.onrender.com/api/meals');
+            // First try to fetch without authentication
+            let res = await fetch('https://aticas-backend.onrender.com/api/meals');
+            
+            // If unauthorized, try with admin token if available
+            if (res.status === 401) {
+                const token = localStorage.getItem('adminToken');
+                if (token) {
+                    res = await fetch('https://aticas-backend.onrender.com/api/meals', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                }
+            }
+            
             if (!res.ok) {
                 console.error('Failed to fetch meals:', res.status, res.statusText);
                 container.innerHTML = '<p style="color:#888;">Failed to load meals of the day. Please try again later.</p>';
