@@ -26,6 +26,7 @@ function getUserToken() {
 
 // Function to update cart count in the UI
 async function updateCartCount() {
+    console.log('Updating cart count...');
     const cartCountElements = document.querySelectorAll('.cart-count');
     const userId = getUserId();
     const token = getUserToken();
@@ -99,6 +100,7 @@ function setGuestCart(cart) {
 
 // Update or add item in cart
 async function updateCartItem(menuItemId, quantity, itemType = 'food', selectedSize = null) {
+    console.log('Updating cart item:', { menuItemId, quantity, itemType, selectedSize });
     try {
         const userId = getUserId();
         const token = getUserToken();
@@ -217,7 +219,20 @@ function initButtonHandlers() {
 }
 
 // Initialize cart functionality when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('DOM loaded, initializing cart...');
+    
+    // Initialize button handlers
+    initButtonHandlers();
+    
+    // Update cart count on page load
+    await updateCartCount();
+    
+    // If there's a displayCartItems function, call it
+    if (typeof window.displayCartItems === 'function') {
+        console.log('Calling displayCartItems...');
+        await window.displayCartItems();
+    }
     // Initialize button handlers
     initButtonHandlers();
     
