@@ -431,6 +431,36 @@
             }
             
             // Display combined cart items
+            function normalizeCartItem(item) {
+                // Handle both formats:
+                // 1. { menuItem: {...}, quantity: 1, itemType: 'Menu', ... }
+                // 2. { _id: '...', name: '...', price: 100, quantity: 1, ... }
+                
+                const isNewFormat = item.menuItem && item.quantity !== undefined;
+                
+                if (isNewFormat) {
+                    return {
+                        id: item.menuItem._id || item.menuItem.id,
+                        name: item.menuItem.name,
+                        price: item.menuItem.price,
+                        quantity: item.quantity,
+                        image: item.menuItem.image || 'images/default-food.jpg',
+                        itemType: item.itemType || 'Menu',
+                        selectedSize: item.selectedSize
+                    };
+                } else {
+                    return {
+                        id: item._id || item.id,
+                        name: item.name,
+                        price: item.price,
+                        quantity: item.quantity || 1,
+                        image: item.image || 'images/default-food.jpg',
+                        itemType: item.itemType || 'Menu',
+                        selectedSize: item.selectedSize
+                    };
+                }
+            }
+            
             function displayCombinedCart(combinedCart) {
                 console.group('Displaying Cart');
                 console.log('Raw cart data:', JSON.parse(JSON.stringify(combinedCart)));
@@ -441,9 +471,26 @@
                 const deliveryFeeElement = document.getElementById('deliveryFee');
                 const totalElement = document.getElementById('total');
                 
-                console.log('DOM Elements:', { cartContainer, cartSummary, subtotalElement, deliveryFeeElement, totalElement });
+                if (!cartContainer) {
+                    console.error('Cart container not found!');
+                    return;
+                }
                 
-                if (!combinedCart?.items?.length) {
+                console.log('DOM Elements:', { 
+                    cartContainer: !!cartContainer,
+                    cartSummary: !!cartSummary,
+                    subtotalElement: !!subtotalElement,
+                    deliveryFeeElement: !!deliveryFeeElement,
+                    totalElement: !!totalElement
+                });
+                
+                // Normalize cart items
+                const normalizedItems = combinedCart.items ? 
+                    combinedCart.items.map(normalizeCartItem) : [];
+                
+                console.log('Normalized cart items:', normalizedItems);
+                
+                if (!normalizedItems.length) {
                     console.log('Cart is empty or has no items');
                     const emptyCartHTML = `
                         <div class="empty-cart">
@@ -465,24 +512,21 @@
                 
                 console.log(`Processing ${combinedCart.items.length} cart items`);
                 
-                combinedCart.items.forEach((item, index) => {
+                normalizedItems.forEach((item, index) => {
                     console.group(`Item ${index + 1}`);
-                    console.log('Raw item data:', JSON.parse(JSON.stringify(item)));
+                    console.log('Item data:', JSON.parse(JSON.stringify(item)));
                     
-                    // Handle both direct properties and nested menuItem properties
-                    const itemData = item.menuItem || item;
-                    console.log('Processed item data:', JSON.parse(JSON.stringify(itemData)));
-                    const isButchery = item.itemType === 'Meat' || item.type === 'meat' || item.itemType === 'meat';
-                    const itemName = itemData.name || 'Unknown Item';
-                    const itemImage = itemData.image || (isButchery ? 'images/default-meat.jpg' : 'images/default-food.jpg');
-                    const itemPrice = item.selectedSize?.price || itemData.price || 0;
+                    const isButchery = item.itemType === 'Meat' || item.itemType === 'meat';
+                    const itemName = item.name || 'Unknown Item';
+                    const itemImage = item.image || (isButchery ? 'images/default-meat.jpg' : 'images/default-food.jpg');
+                    const itemPrice = item.selectedSize?.price || item.price || 0;
                     const itemTotal = item.quantity * itemPrice;
                     subtotal += itemTotal;
                     
                     console.log('Processing cart item:', { item, itemData, itemPrice, itemTotal, subtotal });
                     
                     cartHTML += `
-                        <div class="cart-item" data-id="${itemData._id || itemData.id}" data-type="${item.itemType || 'Menu'}" 
+                        <div class="cart-item" data-id="${item.id}" data-type="${item.itemType}" 
                              ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>
                             <img src="${itemImage}" alt="${itemName}" onerror="this.src='images/default-food.jpg';">
                             <div class="cart-item-details">
@@ -490,17 +534,17 @@
                                 ${item.selectedSize ? `<p>Size: ${item.selectedSize.size}</p>` : ''}
                                 <p class="price">Ksh ${itemPrice.toLocaleString('en-US')} x ${item.quantity}</p>
                                 <div class="quantity-controls">
-                                    <button class="quantity-btn minus" data-id="${itemData._id || itemData.id}" 
-                                        data-type="${item.itemType || 'Menu'}" 
+                                    <button class="quantity-btn minus" data-id="${item.id}" 
+                                        data-type="${item.itemType}" 
                                         ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>-</button>
                                     <span class="quantity">${item.quantity}</span>
-                                    <button class="quantity-btn plus" data-id="${itemData._id || itemData.id}" 
-                                        data-type="${item.itemType || 'Menu'}" 
+                                    <button class="quantity-btn plus" data-id="${item.id}" 
+                                        data-type="${item.itemType}" 
                                         ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>+</button>
                                 </div>
                             </div>
-                            <button class="remove-btn" data-id="${itemData._id || itemData.id}" 
-                                data-type="${item.itemType || 'Menu'}" 
+                            <button class="remove-btn" data-id="${item.id}" 
+                                data-type="${item.itemType}" 
                                 ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>
                                 <i class="fas fa-trash"></i>
                             </button>
