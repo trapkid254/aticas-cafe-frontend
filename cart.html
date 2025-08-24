@@ -334,41 +334,82 @@
             
             // Debug function to check localStorage state
             function debugLocalStorage() {
-                console.group('LocalStorage Debug');
+                console.group('=== LocalStorage Debug ===');
                 console.log('userId:', localStorage.getItem('userId'));
                 console.log('userToken:', localStorage.getItem('userToken') ? 'Token exists' : 'No token');
                 
-                const guestCart = localStorage.getItem('guestCart');
-                console.log('guestCart:', guestCart ? JSON.parse(guestCart) : 'No guest cart');
+                const guestCartStr = localStorage.getItem('guestCart');
+                console.log('guestCart raw:', guestCartStr);
+                
+                if (guestCartStr) {
+                    try {
+                        const guestCart = JSON.parse(guestCartStr);
+                        console.log('guestCart parsed:', guestCart);
+                        console.log('guestCart items type:', Array.isArray(guestCart.items) ? 'Array' : typeof guestCart.items);
+                        console.log('guestCart items count:', guestCart.items?.length || 0);
+                        console.log('guestCart items:', guestCart.items);
+                    } catch (e) {
+                        console.error('Error parsing guestCart:', e);
+                    }
+                } else {
+                    console.log('No guest cart found in localStorage');
+                }
                 
                 console.groupEnd();
             }
             
+            // Get guest cart from localStorage
+            function getGuestCart() {
+                try {
+                    const guestCartStr = localStorage.getItem('guestCart');
+                    if (!guestCartStr) return { items: [], total: 0 };
+                    
+                    const guestCart = JSON.parse(guestCartStr);
+                    
+                    // Ensure the cart has the correct structure
+                    if (!guestCart.items || !Array.isArray(guestCart.items)) {
+                        console.warn('Invalid guest cart structure, resetting...');
+                        return { items: [], total: 0 };
+                    }
+                    
+                    return {
+                        items: guestCart.items || [],
+                        total: typeof guestCart.total === 'number' ? guestCart.total : 0
+                    };
+                } catch (e) {
+                    console.error('Error getting guest cart:', e);
+                    return { items: [], total: 0 };
+                }
+            }
+            
             // Load cart
             async function loadCarts() {
-                console.log('Loading cart data...');
-                debugLocalStorage(); // Show current localStorage state
+                console.log('=== Loading cart data ===');
+                debugLocalStorage();
                 
                 try {
                     let cart = { items: [], total: 0 };
                     const userId = localStorage.getItem('userId');
                     const token = localStorage.getItem('userToken');
                     
-                    console.log('Auth status:', { userId: !!userId, token: !!token });
+                    console.log('Auth status:', { 
+                        isLoggedIn: !!(userId && token),
+                        userId: userId ? 'exists' : 'missing',
+                        token: token ? 'exists' : 'missing'
+                    });
                     
                     if (userId && token) {
                         console.log('Fetching cart from server...');
                         cart = await fetchCart();
-                        console.log('Server cart response:', JSON.parse(JSON.stringify(cart)));
+                        console.log('Server cart response:', cart);
                     } else {
                         console.log('Loading guest cart from localStorage...');
-                        const guestCart = getGuestCart();
-                        console.log('Guest cart from localStorage:', JSON.parse(JSON.stringify(guestCart)));
-                        cart = {
-                            items: Array.isArray(guestCart.items) ? guestCart.items : [],
-                            total: typeof guestCart.total === 'number' ? guestCart.total : 0
-                        };
+                        cart = getGuestCart();
+                        console.log('Guest cart loaded:', cart);
                     }
+                    
+                    console.log('Final cart to display:', cart);
+                    displayCombinedCart(cart);
                     
                     console.log('Final cart data to display:', JSON.parse(JSON.stringify(cart)));
                     
