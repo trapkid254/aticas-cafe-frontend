@@ -283,8 +283,15 @@
         window.removeCartItem = removeCartItem;
         window.getGuestCart = getGuestCart;
         window.setGuestCart = setGuestCart;
+
         // Unified cart functionality
-        document.addEventListener('DOMContentLoaded', async function() {
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load cart immediately when DOM is ready
+            setTimeout(() => {
+                console.log('DOM ready, loading cart...');
+                loadCarts();
+            }, 100);
+
             // Function to fetch cart
             async function fetchCart() {
                 const userId = localStorage.getItem('userId');
@@ -734,11 +741,9 @@
             // Make sure cart functions are available globally
             window.loadCarts = loadCarts;
             window.displayCombinedCart = displayCombinedCart;
-            
-            // Initialize when DOM is fully loaded
-            document.addEventListener('DOMContentLoaded', () => {
-                console.log('DOM loaded, initializing cart...');
-                
+
+            // Initialize navigation buttons and UI elements
+            function initializeUI() {
                 // Add debug button
                 const debugButton = document.createElement('button');
                 debugButton.textContent = 'Debug Cart';
@@ -760,38 +765,39 @@
                     console.groupEnd();
                 };
                 document.body.appendChild(debugButton);
-                
-                // Initial load
-                loadCarts();
-                
+
                 // Initialize navigation buttons
                 const loginBtn = document.getElementById('loginBtn');
                 const menuBtn = document.querySelector('a[href="menu.html"]');
-                
+
                 if (loginBtn) {
                     loginBtn.addEventListener('click', (e) => {
                         e.preventDefault();
                         window.location.href = 'login.html';
                     });
                 }
-                
+
                 if (menuBtn) {
                     menuBtn.addEventListener('click', (e) => {
                         e.preventDefault();
                         window.location.href = 'menu.html';
                     });
                 }
-                
+
                 // Initialize mobile menu toggle
                 const hamburger = document.getElementById('hamburgerMenu');
                 const mobileMenu = document.getElementById('mobileMenu');
-                
+
                 if (hamburger && mobileMenu) {
                     hamburger.addEventListener('click', () => {
                         mobileMenu.style.display = mobileMenu.style.display === 'flex' ? 'none' : 'flex';
                     });
                 }
-            });
+            }
+
+            // Initialize everything when DOM is loaded
+            initializeUI();
+            loadCarts();
         });
     </script>
 </body>
