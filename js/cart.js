@@ -31,34 +31,34 @@ async function updateCartCount() {
     const userId = getUserId();
     const token = getUserToken();
     let count = 0;
-    
+
     try {
         if (userId && token) {
             const response = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            
+
             if (response.ok) {
                 const cart = await response.json();
                 count = cart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
             }
         } else {
-            const guestCart = getGuestCart();
+            const guestCart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
             count = guestCart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
         }
     } catch (error) {
         console.error('Error updating cart count:', error);
-        const guestCart = getGuestCart();
+        const guestCart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
         count = guestCart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
     }
-    
+
     cartCountElements.forEach(element => {
         if (element) {
             element.textContent = count;
             element.style.display = count > 0 ? 'flex' : 'none';
         }
     });
-    
+
     return count;
 }
 

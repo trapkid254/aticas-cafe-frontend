@@ -10,11 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeModalBtn = priceOptionsModal?.querySelector('.close-modal');
     const menuSearch = document.getElementById('menuSearch');
 
-    // Cart state
-    let cart = JSON.parse(localStorage.getItem('butcheryCart')) || [];
-    
     // Initialize
-    updateCartCount();
     fetchMeatItems();
 
     async function fetchMeatItems() {
@@ -36,34 +32,191 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function updateCartCount() {
-        const count = cart.reduce((total, item) => total + item.quantity, 0);
-        const cartCount = document.getElementById('cartCount');
-        if (cartCount) cartCount.textContent = count;
+    // Helper functions from menu.js/cart.js
+    function getUserId() {
+        const userId = localStorage.getItem('userId');
+        if (userId) return userId;
+
+        const token = localStorage.getItem('userToken');
+        if (token) {
+            try {
+                const decoded = JSON.parse(atob(token.split('.')[1]));
+                return decoded.userId;
+            } catch (err) {
+                console.error('Error decoding JWT:', err);
+                return null;
+            }
+        }
+        return null;
     }
 
-    async function addToCart(meatItem, selectedOption) {
-        // Check if already in cart
-        const existingItem = cart.find(item => item.id === meatItem._id);
-        
-        if (existingItem) {
-            existingItem.quantity += 1;
-        } else {
-            cart.push({
-                id: meatItem._id,
-                name: meatItem.name,
-                price: selectedOption ? selectedOption.price : meatItem.price,
-                image: meatItem.image || 'images/placeholder-meat.jpg',
-                quantity: 1,
-                size: selectedOption ? selectedOption.size : null
-            });
+    async function updateCartCount() {
+        console.log('Updating cart count...');
+        const cartCountElements = document.querySelectorAll('.cart-count');
+        const userId = getUserId();
+        const token = localStorage.getItem('userToken');
+        let count = 0;
+
+        try {
+            if (userId && token) {
+                const response = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const cart = await response.json();
+                    count = cart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
+                }
+            } else {
+                const guestCart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
+                count = guestCart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
+            }
+        } catch (error) {
+            console.error('Error updating cart count:', error);
+            const guestCart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
+            count = guestCart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
         }
-        
-        localStorage.setItem('butcheryCart', JSON.stringify(cart));
-        updateCartCount();
-        
-        // Show success message
-        showToast(`${meatItem.name} added to cart!`);
+
+        cartCountElements.forEach(element => {
+            if (element) {
+                element.textContent = count;
+                element.style.display = count > 0 ? 'flex' : 'none';
+            }
+        });
+
+        return count;
+    }
+
+    async function addToCartApi(meatItem, selectedSize = null) {
+        const userId = getUserId();
+        const isLoggedIn = !!userId;
+        const meatItemId = meatItem._id || meatItem.id;
+        if (!meatItemId) {
+            console.error('Meat item is missing ID:', meatItem);
+            showToast('Error: Invalid meat item', 'error');
+            return false;
+        }
+
+        const itemType = 'Meat';
+
+        if (isLoggedIn) {
+            try {
+                const cart = await fetchCart();
+                let existingItem = null;
+                if (cart.items) {
+                    existingItem = cart.items.find(item => {
+                        const itemId = item.menuItem?._id || item.menuItem?.id;
+                        return itemId === meatItemId &&
+                               item.itemType === itemType &&
+                               ((selectedSize && item.selectedSize?.size === selectedSize.size) || (!selectedSize && !item.selectedSize));
+                    });
+                }
+
+                const newQuantity = existingItem ? (existingItem.quantity + 1) : 1;
+
+                const response = await fetch('https://aticas-backend.onrender.com/api/cart/items', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+                    },
+                    body: JSON.stringify({
+                        menuItemId: meatItemId,
+                        itemType: itemType,
+                        quantity: newQuantity,
+                        selectedSize: selectedSize || undefined,
+                        price: selectedSize ? selectedSize.price : (meatItem.price || 0)
+                    })
+                });
+
+                if (response.ok) {
+                    await updateCartCount();
+                    showToast('Item added to cart!');
+                    return true;
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    console.error('Failed to add item to cart:', response.status, errorData);
+                    showToast('Failed to add item to cart', 'error');
+                    return false;
+                }
+            } catch (err) {
+                console.error('Error adding to cart:', err);
+                showToast('Error adding to cart', 'error');
+                return false;
+            }
+        } else {
+            try {
+                let cart = { items: [], total: 0 };
+                try {
+                    const cartData = localStorage.getItem('guestCart');
+                    if (cartData) {
+                        cart = JSON.parse(cartData);
+                        if (!cart.items) cart.items = [];
+                        if (cart.total === undefined) cart.total = 0;
+                    }
+                } catch (e) {
+                    console.error('Error parsing guest cart:', e);
+                    cart = { items: [], total: 0 };
+                }
+
+                const existingItemIndex = cart.items.findIndex(i => {
+                    const itemId = i.menuItem?._id || i.menuItem?.id;
+                    const menuItemId = meatItem._id || meatItem.id;
+                    return itemId === menuItemId &&
+                           i.itemType === itemType &&
+                           (selectedSize ? i.selectedSize && i.selectedSize.size === selectedSize.size : !i.selectedSize);
+                });
+
+                if (existingItemIndex > -1) {
+                    cart.items[existingItemIndex].quantity += 1;
+                } else {
+                    cart.items.push({
+                        menuItem: {
+                            _id: meatItemId,
+                            id: meatItemId,
+                            name: meatItem.name,
+                            price: selectedSize ? selectedSize.price : (meatItem.price || 0),
+                            image: meatItem.image || 'images/default-meat.jpg',
+                            category: meatItem.category
+                        },
+                        quantity: 1,
+                        itemType,
+                        selectedSize
+                    });
+                }
+
+                cart.total = cart.items.reduce((total, item) => {
+                    return total + (item.quantity * (item.selectedSize?.price || item.menuItem?.price || 0));
+                }, 0);
+
+                localStorage.setItem('guestCart', JSON.stringify(cart));
+                await updateCartCount();
+                showToast('Item added to cart!');
+                return true;
+            } catch (err) {
+                console.error('Error adding to guest cart:', err);
+                showToast('Error adding to cart', 'error');
+                return false;
+            }
+        }
+    }
+
+    async function fetchCart() {
+        const userId = getUserId();
+        if (!userId) return { items: [] };
+
+        try {
+            const res = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('userToken') || ''}`
+                }
+            });
+            if (!res.ok) return { items: [] };
+            return await res.json();
+        } catch (err) {
+            console.error('Error fetching cart:', err);
+            return { items: [] };
+        }
     }
 
     // Add search functionality if search input exists
@@ -142,7 +295,7 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             menuContainer.appendChild(menuItem);
         });
-        document.querySelectorAll('.add-to-cart').forEach(button => {
+        document.querySelectorAll('.add-to-cart-btn').forEach(button => {
             button.addEventListener('click', async function() {
                 const itemId = this.dataset.id;
                 const item = meatItems.find(i => i._id === itemId);
@@ -186,8 +339,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (selectedOptionEl) {
                 const selectedSizeValue = selectedOptionEl.value;
                 const selectedOption = item.priceOptions.find(p => p.size === selectedSizeValue);
-                const updatedItem = { ...item, price: selectedOption.price };
-                await addToCartApi(updatedItem, selectedOption);
+                await addToCartApi(item, selectedOption);
                 showToast(`${item.name} (${selectedOption.size}) added to cart!`);
                 priceOptionsModal.style.display = 'none';
                 fetchMeatItems();

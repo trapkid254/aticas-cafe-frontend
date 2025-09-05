@@ -363,17 +363,22 @@
                 try {
                     const guestCartStr = localStorage.getItem('guestCart');
                     if (!guestCartStr) return { items: [], total: 0 };
-                    
+
                     const guestCart = JSON.parse(guestCartStr);
-                    
+
                     // Ensure the cart has the correct structure
                     if (!guestCart.items || !Array.isArray(guestCart.items)) {
                         console.warn('Invalid guest cart structure, resetting...');
                         return { items: [], total: 0 };
                     }
-                    
+
+                    // Ensure each item has the correct structure
+                    const validItems = guestCart.items.filter(item => {
+                        return item && item.menuItem && (item.menuItem._id || item.menuItem.id);
+                    });
+
                     return {
-                        items: guestCart.items || [],
+                        items: validItems,
                         total: typeof guestCart.total === 'number' ? guestCart.total : 0
                     };
                 } catch (e) {
@@ -430,27 +435,31 @@
             
             // Display combined cart items
             function normalizeCartItem(item) {
-                // Handle both formats:
-                // 1. { menuItem: {...}, quantity: 1, itemType: 'Menu', ... }
-                // 2. { _id: '...', name: '...', price: 100, quantity: 1, ... }
-                
+                // Handle multiple formats:
+                // 1. API format: { menuItem: {...}, quantity: 1, itemType: 'Menu', selectedSize: {...} }
+                // 2. Guest cart format: { menuItem: {...}, quantity: 1, itemType: 'Menu', selectedSize: {...} }
+                // 3. Legacy format: { _id: '...', name: '...', price: 100, quantity: 1, ... }
+
                 const isNewFormat = item.menuItem && item.quantity !== undefined;
-                
+
                 if (isNewFormat) {
+                    // Handle API and guest cart format
+                    const menuItem = item.menuItem;
                     return {
-                        id: item.menuItem._id || item.menuItem.id,
-                        name: item.menuItem.name,
-                        price: item.menuItem.price,
+                        id: menuItem._id || menuItem.id,
+                        name: menuItem.name,
+                        price: item.selectedSize ? item.selectedSize.price : (menuItem.price || 0),
                         quantity: item.quantity,
-                        image: item.menuItem.image || 'images/default-food.jpg',
+                        image: menuItem.image || 'images/default-food.jpg',
                         itemType: item.itemType || 'Menu',
                         selectedSize: item.selectedSize
                     };
                 } else {
+                    // Handle legacy format
                     return {
                         id: item._id || item.id,
                         name: item.name,
-                        price: item.price,
+                        price: item.selectedSize ? item.selectedSize.price : (item.price || 0),
                         quantity: item.quantity || 1,
                         image: item.image || 'images/default-food.jpg',
                         itemType: item.itemType || 'Menu',
