@@ -293,7 +293,7 @@
                 if (userId && token) {
                     try {
                         console.log('Fetching cart from API...');
-                        const response = await fetch(`https://aticas-backend.onrender.com/api/cart/`, {
+                        const response = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
                             headers: { 
                                 'Authorization': `Bearer ${token}`,
                                 'Content-Type': 'application/json'
@@ -408,11 +408,9 @@
                         console.log('Guest cart loaded:', cart);
                     }
                     
-                    console.log('Final cart to display:', cart);
-                    displayCombinedCart(cart);
-                    
                     console.log('Final cart data to display:', JSON.parse(JSON.stringify(cart)));
                     
+                    // Display the cart
                     displayCombinedCart(cart);
                 } catch (error) {
                     console.error('Error loading cart:', error);
@@ -516,14 +514,21 @@
                     console.group(`Item ${index + 1}`);
                     console.log('Item data:', JSON.parse(JSON.stringify(item)));
                     
-                    const isButchery = item.itemType === 'Meat' || item.itemType === 'meat';
+                    const isButchery = item.itemType === 'Meat' || item.itemType === 'meat' || item.itemType === 'MealOfDay';
                     const itemName = item.name || 'Unknown Item';
                     const itemImage = item.image || (isButchery ? 'images/default-meat.jpg' : 'images/default-food.jpg');
                     const itemPrice = item.selectedSize?.price || item.price || 0;
                     const itemTotal = item.quantity * itemPrice;
                     subtotal += itemTotal;
                     
-                    console.log('Processing cart item:', { item, itemData, itemPrice, itemTotal, subtotal });
+                    console.log('Processing cart item:', { 
+                        item, 
+                        itemPrice, 
+                        itemTotal, 
+                        subtotal,
+                        isButchery,
+                        itemType: item.itemType
+                    });
                     
                     cartHTML += `
                         <div class="cart-item" data-id="${item.id}" data-type="${item.itemType}" 
