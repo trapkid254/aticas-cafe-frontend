@@ -290,14 +290,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log('Calling displayCartItems...');
         await window.displayCartItems();
     }
-    // Initialize button handlers
-    initButtonHandlers();
-    
-    // Update cart count on page load
-    updateCartCount();
-    
-    // If there's a displayCartItems function, call it
-    if (typeof window.displayCartItems === 'function') {
-        window.displayCartItems();
-    }
 });

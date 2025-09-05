@@ -394,23 +394,73 @@
                 }
             }
             
+            // Migrate guest cart to server cart
+            async function migrateGuestCartToServer() {
+                const userId = localStorage.getItem('userId');
+                const token = localStorage.getItem('userToken');
+                const guestCart = getGuestCart();
+
+                if (!userId || !token || !guestCart.items || guestCart.items.length === 0) {
+                    return false;
+                }
+
+                try {
+                    console.log('Migrating guest cart to server...');
+
+                    // Add each guest cart item to server cart
+                    for (const item of guestCart.items) {
+                        const response = await fetch('https://aticas-backend.onrender.com/api/cart/items', {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                menuItemId: item.menuItem._id || item.menuItem.id || item.menuItem,
+                                itemType: item.itemType || 'Menu',
+                                quantity: item.quantity,
+                                selectedSize: item.selectedSize
+                            })
+                        });
+
+                        if (!response.ok) {
+                            console.error('Failed to migrate item:', item);
+                        }
+                    }
+
+                    // Clear guest cart after successful migration
+                    localStorage.removeItem('guestCart');
+                    console.log('Guest cart migrated successfully');
+                    return true;
+                } catch (error) {
+                    console.error('Error migrating guest cart:', error);
+                    return false;
+                }
+            }
+
             // Load cart
             async function loadCarts() {
                 console.log('=== Loading cart data ===');
                 debugLocalStorage();
-                
+
                 try {
                     let cart = { items: [], total: 0 };
                     const userId = localStorage.getItem('userId');
                     const token = localStorage.getItem('userToken');
-                    
-                    console.log('Auth status:', { 
+
+                    console.log('Auth status:', {
                         isLoggedIn: !!(userId && token),
                         userId: userId ? 'exists' : 'missing',
                         token: token ? 'exists' : 'missing'
                     });
-                    
+
                     if (userId && token) {
+                        // Check if we need to migrate guest cart
+                        const guestCart = getGuestCart();
+                        if (guestCart.items && guestCart.items.length > 0) {
+                            await migrateGuestCartToServer();
+                        }
+
                         console.log('Fetching cart from server...');
                         cart = await fetchCart();
                         console.log('Server cart response:', cart);
@@ -419,9 +469,9 @@
                         cart = getGuestCart();
                         console.log('Guest cart loaded:', cart);
                     }
-                    
+
                     console.log('Final cart data to display:', JSON.parse(JSON.stringify(cart)));
-                    
+
                     // Display the cart
                     displayCombinedCart(cart);
                 } catch (error) {
