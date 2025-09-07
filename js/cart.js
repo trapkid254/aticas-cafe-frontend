@@ -1,16 +1,40 @@
 // Fetch menu item details
 async function fetchMenuItem(menuItemId, itemType = 'food') {
     try {
+        // Validate menuItemId
+        if (!menuItemId) {
+            console.error('fetchMenuItem: menuItemId is required');
+            return null;
+        }
+
+        // Convert to string and validate format (MongoDB ObjectId should be 24 hex characters)
+        const itemIdStr = String(menuItemId);
+        if (itemIdStr.length !== 24 || !/^[0-9a-fA-F]{24}$/.test(itemIdStr)) {
+            console.error(`fetchMenuItem: Invalid menuItemId format: ${itemIdStr}`);
+            return null;
+        }
+
         const baseUrl = 'https://aticas-backend.onrender.com';
         const endpoint = itemType === 'meat' || itemType === 'butchery'
-            ? `${baseUrl}/api/meats/${menuItemId}`
-            : `${baseUrl}/api/menu/${menuItemId}`;
+            ? `${baseUrl}/api/meats/${itemIdStr}`
+            : `${baseUrl}/api/menu/${itemIdStr}`;
+        
+        console.log(`fetchMenuItem: Fetching ${itemType} item from ${endpoint}`);
         
         const response = await fetch(endpoint);
-        if (!response.ok) throw new Error(`Failed to fetch ${itemType} item`);
-        return await response.json();
+        if (!response.ok) {
+            if (response.status === 404) {
+                console.error(`fetchMenuItem: ${itemType} item not found with ID: ${itemIdStr}`);
+                return null;
+            }
+            throw new Error(`Failed to fetch ${itemType} item: ${response.status} ${response.statusText}`);
+        }
+        
+        const item = await response.json();
+        console.log(`fetchMenuItem: Successfully fetched ${itemType} item:`, item);
+        return item;
     } catch (error) {
-        console.error(`Error fetching ${itemType} item:`, error);
+        console.error(`Error fetching ${itemType} item with ID ${menuItemId}:`, error);
         return null;
     }
 }
@@ -158,6 +182,9 @@ async function updateCartItem(menuItemId, quantity, itemType = 'food', selectedS
                         price: selectedSize ? selectedSize.price : menuItem.price,
                         image: menuItem.image
                     });
+                } else {
+                    console.error(`updateCartItem: Failed to fetch menu item with ID: ${menuItemId}`);
+                    throw new Error(`Menu item not found: ${menuItemId}`);
                 }
             }
 
