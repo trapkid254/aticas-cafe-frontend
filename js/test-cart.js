@@ -1,14 +1,19 @@
 // Test script for cart functionality
 console.log('=== Starting Cart Functionality Tests ===');
 
-// Import cart functions from cart.js
-const { 
-    updateCartCount, 
-    updateCartItem, 
-    removeCartItem, 
-    getGuestCart, 
-    setGuestCart 
-} = window;
+// Wait for cart functions to be available
+function waitForCartFunctions() {
+    return new Promise((resolve) => {
+        const checkFunctions = () => {
+            if (window.updateCartCount && window.updateCartItem && window.removeCartItem) {
+                resolve();
+            } else {
+                setTimeout(checkFunctions, 100);
+            }
+        };
+        checkFunctions();
+    });
+}
 
 // Test 1: Test updateCartCount function
 async function testUpdateCartCount() {
@@ -113,12 +118,26 @@ async function runAllTests() {
     }
 }
 
-// Run tests when the page loads
+// Initialize tests when the page loads
 if (typeof window !== 'undefined') {
-    window.addEventListener('load', () => {
-        setTimeout(runAllTests, 1000); // Wait a bit for the page to load
+    window.addEventListener('load', async () => {
+        try {
+            await waitForCartFunctions();
+            console.log('All cart functions are available, starting tests...');
+            await runAllTests();
+        } catch (error) {
+            console.error('Error initializing tests:', error);
+        }
     });
 }
 
-// Make functions available globally for testing
-window.runCartTests = runAllTests;
+// Make runAllTests available globally for manual testing
+window.runCartTests = async () => {
+    try {
+        await waitForCartFunctions();
+        return await runAllTests();
+    } catch (error) {
+        console.error('Error running cart tests:', error);
+        return false;
+    }
+};
