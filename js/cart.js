@@ -133,8 +133,8 @@ function calculateDeliveryFee(distance) {
 // Guest cart helpers
 function getGuestCart(isButchery = false) {
     const key = isButchery ? 'butcheryGuestCart' : 'cafeteriaGuestCart';
-    const cart = JSON.parse(localStorage.getItem(key) || '{"items":[],"total":0}');
-    return cart;
+    const cartData = localStorage.getItem(key) || '{"items":[],"total":0}';
+    return JSON.parse(cartData);
 }
 
 function setGuestCart(cart, isButchery = false) {
