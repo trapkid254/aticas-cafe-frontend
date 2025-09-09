@@ -374,20 +374,18 @@
                     }
 
                     // Ensure each item has the correct structure
-                    const validItems = guestCart.items.filter(item => {
-                        return item && item.menuItem && (item.menuItem._id || item.menuItem.id);
+                    let validItems = guestCart.items.filter(item => {
+                        return item && item.menuItem && (item.menuItem._id || item.itemType === 'butchery' || item.menuItem.id);
                     });
 
                     // Filter items based on type
-                    if (isButchery) {
-                        validItems = validItems.filter(item => 
-                            item.itemType === 'Meat' || item.itemType === 'meat' || item.itemType === 'butchery'
-                        );
-                    } else {
-                        validItems = validItems.filter(item => 
-                            item.itemType !== 'Meat' && item.itemType !== 'meat' && item.itemType !== 'butchery'
-                        );
-                    }
+                    validItems = validItems.filter(item => {
+                        if (isButchery) {
+                            return item.itemType === 'Meat' || item.itemType === 'meat' || item.itemType === 'butchery';
+                        } else {
+                            return item.itemType !== 'Meat' && item.itemType !== 'meat' && item.itemType !== 'butchery';
+                        }
+                    });
                     // Recalculate total
                     const total = validItems.reduce((sum, item) => {
                         const price = item.selectedSize?.price || item.price || 0;
