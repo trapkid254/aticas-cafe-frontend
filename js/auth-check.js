@@ -1,71 +1,13 @@
-// DEBUG MODE - Set to false to re-enable auth checks
-const DEBUG_MODE = true;
-
-// Store the original error handler
-const originalOnError = window.onerror;
-
-// Add a global error handler to catch any uncaught exceptions
+// Global error handler
 window.onerror = function(message, source, lineno, colno, error) {
-    // Ignore errors from test files
-    if (source && source.includes('test-')) {
-        return false; // Let the error propagate to the default handler
-    }
-    
-    console.error('=== GLOBAL ERROR HANDLER ===');
-    console.error('Message:', message);
-    console.error('Source:', source);
-    console.error('Line:', lineno, 'Column:', colno);
-    console.error('Error object:', error);
-    
-    // Call the original error handler if it exists
-    if (typeof originalOnError === 'function') {
-        return originalOnError(message, source, lineno, colno, error);
-    }
-    
+    console.error('Error:', message, 'at', source, lineno + ':' + colno);
     return true; // Prevents the default error handler
 };
 
 // Check authentication and redirect if not logged in
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('=== AUTH CHECK STARTED ===');
-    console.log('Debug mode:', DEBUG_MODE ? 'ON (redirects disabled)' : 'OFF');
-    console.log('Current URL:', window.location.href);
-    
-    // Log all localStorage content
-    console.log('=== LOCAL STORAGE DUMP ===');
-    Object.keys(localStorage).forEach(key => {
-        console.log(`${key}:`, localStorage.getItem(key));
-    });
-    
-    if (DEBUG_MODE) {
-        console.log('=== DEBUG MODE ACTIVE ===');
-        console.log('Auth redirects are disabled');
-        console.log('Page loaded successfully');
+    // Authentication check logic
         
-        // Add a button to clear auth data
-        const debugDiv = document.createElement('div');
-        debugDiv.style.position = 'fixed';
-        debugDiv.style.top = '10px';
-        debugDiv.style.right = '10px';
-        debugDiv.style.padding = '10px';
-        debugDiv.style.background = '#ffeb3b';
-        debugDiv.style.border = '1px solid #ffc107';
-        debugDiv.style.zIndex = '9999';
-        debugDiv.style.borderRadius = '4px';
-        debugDiv.style.fontFamily = 'Arial, sans-serif';
-        debugDiv.innerHTML = `
-            <div><strong>DEBUG MODE ACTIVE</strong></div>
-            <button onclick="localStorage.clear(); sessionStorage.clear(); location.reload();" 
-                    style="margin-top: 5px; padding: 5px 10px; cursor: pointer;">
-                Clear Auth Data & Reload
-            </button>
-        `;
-        document.body.appendChild(debugDiv);
-        
-        // Don't proceed with auth checks in debug mode
-        return;
-    }
-    
     // Prevent redirect loops
     const redirecting = sessionStorage.getItem('authRedirecting');
     if (redirecting) {

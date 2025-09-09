@@ -3,14 +3,12 @@ async function fetchMenuItem(menuItemId, itemType = 'food') {
     try {
         // Validate menuItemId
         if (!menuItemId) {
-            console.error('fetchMenuItem: menuItemId is required');
             return null;
         }
 
         // Convert to string and validate format (MongoDB ObjectId should be 24 hex characters)
         const itemIdStr = String(menuItemId);
         if (itemIdStr.length !== 24 || !/^[0-9a-fA-F]{24}$/.test(itemIdStr)) {
-            console.error(`fetchMenuItem: Invalid menuItemId format: ${itemIdStr}`);
             return null;
         }
 
@@ -19,22 +17,16 @@ async function fetchMenuItem(menuItemId, itemType = 'food') {
             ? `${baseUrl}/api/meats/${itemIdStr}`
             : `${baseUrl}/api/menu/${itemIdStr}`;
         
-        console.log(`fetchMenuItem: Fetching ${itemType} item from ${endpoint}`);
-        
         const response = await fetch(endpoint);
         if (!response.ok) {
             if (response.status === 404) {
-                console.error(`fetchMenuItem: ${itemType} item not found with ID: ${itemIdStr}`);
                 return null;
             }
-            throw new Error(`Failed to fetch ${itemType} item: ${response.status} ${response.statusText}`);
+            throw new Error(`Failed to fetch ${itemType} item`);
         }
         
-        const item = await response.json();
-        console.log(`fetchMenuItem: Successfully fetched ${itemType} item:`, item);
-        return item;
+        return await response.json();
     } catch (error) {
-        console.error(`Error fetching ${itemType} item with ID ${menuItemId}:`, error);
         return null;
     }
 }
@@ -306,8 +298,6 @@ window.removeCartItem = removeCartItem;
 
 // Initialize cart functionality when DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('DOM loaded, initializing cart...');
-    
     // Initialize button handlers
     initButtonHandlers();
     
@@ -316,7 +306,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // If there's a displayCartItems function, call it
     if (typeof window.displayCartItems === 'function') {
-        console.log('Calling displayCartItems...');
         await window.displayCartItems();
     }
 });
