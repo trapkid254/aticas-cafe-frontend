@@ -533,30 +533,44 @@
             
             function displayCombinedCart(combinedCart) {
                 console.group('Displaying Cart');
-                console.log('Raw cart data:', JSON.parse(JSON.stringify(combinedCart)));
                 
                 const cartContainer = document.getElementById('cartContainer');
                 const cartSummary = document.getElementById('cartSummary');
                 const subtotalElement = document.getElementById('subtotal');
                 const deliveryFeeElement = document.getElementById('deliveryFeeDisplay');
                 const totalElement = document.getElementById('total');
+                const checkoutForm = document.getElementById('checkoutForm');
                 
                 if (!cartContainer) {
                     console.error('Cart container not found!');
                     return;
                 }
+
+                // Hide debug mode button if it exists
+                const debugBtn = document.getElementById('debugModeBtn');
+                if (debugBtn) {
+                    debugBtn.style.display = 'none';
+                }
                 
-                console.log('DOM Elements:', { 
-                    cartContainer: !!cartContainer,
-                    cartSummary: !!cartSummary,
-                    subtotalElement: !!subtotalElement,
-                    deliveryFeeElement: !!deliveryFeeElement,
-                    totalElement: !!totalElement
-                });
-                
-                // Normalize cart items
-                const normalizedItems = combinedCart.items ? 
-                    combinedCart.items.map(normalizeCartItem) : [];
+                // Normalize cart items - handle both array and object formats
+                let normalizedItems = [];
+                if (Array.isArray(combinedCart)) {
+                    normalizedItems = combinedCart.map(item => ({
+                        ...item,
+                        menuItem: item.menuItem || item.id,
+                        itemType: item.itemType || 'food',
+                        quantity: item.quantity || 1,
+                        price: item.price || (item.menuItem?.price || 0)
+                    }));
+                } else if (combinedCart && Array.isArray(combinedCart.items)) {
+                    normalizedItems = combinedCart.items.map(item => ({
+                        ...item,
+                        menuItem: item.menuItem || item.id,
+                        itemType: item.itemType || 'food',
+                        quantity: item.quantity || 1,
+                        price: item.price || (item.menuItem?.price || 0)
+                    }));
+                }
                 
                 console.log('Normalized cart items:', normalizedItems);
                 
@@ -570,9 +584,9 @@
                             <a href="butchery.html" class="btn" style="margin-top: 10px;">Visit Butchery</a>
                         </div>
                     `;
-                    console.log('Setting empty cart HTML');
                     cartContainer.innerHTML = emptyCartHTML;
                     if (cartSummary) cartSummary.style.display = 'none';
+                    if (checkoutForm) checkoutForm.style.display = 'none';
                     console.groupEnd();
                     return;
                 }
@@ -586,76 +600,57 @@
                     console.group(`Item ${index + 1}`);
                     console.log('Item data:', JSON.parse(JSON.stringify(item)));
                     
+                    // Get item details with fallbacks
                     const isButchery = item.itemType === 'Meat' || item.itemType === 'meat' || item.itemType === 'MealOfDay';
-                    const itemName = item.name || 'Unknown Item';
+                    const itemId = (item.menuItem && (item.menuItem._id || item.menuItem.id)) || item.id || index;
+                    const itemName = item.name || 'Unnamed Item';
                     const itemImage = item.image || (isButchery ? 'images/default-meat.jpg' : 'images/default-food.jpg');
-                    const itemPrice = item.selectedSize?.price || item.price || 0;
-                    const itemTotal = item.quantity * itemPrice;
+                    const itemType = item.itemType || 'food';
+                    const itemPrice = parseFloat(item.selectedSize?.price || item.price || 0);
+                    const itemTotal = itemPrice * (parseInt(item.quantity) || 1);
                     subtotal += itemTotal;
                     
-                    console.log('Processing cart item:', { 
-                        item, 
-                        itemPrice, 
-                        itemTotal, 
-                        subtotal,
-                        isButchery,
-                        itemType: item.itemType
-                    });
-                    
                     cartHTML += `
-                        <div class="cart-item" data-id="${item.id}" data-type="${item.itemType}" 
-                             ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>
-                            <img src="${itemImage}" alt="${itemName}" onerror="this.src='images/default-food.jpg';">
+                        <div class="cart-item" data-id="${itemId}" data-type="${itemType}">
+                            <div class="cart-item-image">
+                                <img src="${itemImage}" alt="${itemName}" onerror="this.src='images/default-food.jpg';">
+                            </div>
                             <div class="cart-item-details">
-                                <h3>${itemName} ${isButchery ? '<span class="butchery-badge">Butchery</span>' : ''}</h3>
-                                ${item.selectedSize ? `<p>Size: ${item.selectedSize.size}</p>` : ''}
-                                <p class="price">Ksh ${itemPrice.toLocaleString('en-US')} x ${item.quantity}</p>
+                                <h4>${itemName}</h4>
+                                ${item.selectedSize ? `<p class="item-size">Size: ${item.selectedSize.name || 'Regular'}</p>` : ''}
+                                <p class="item-price">Ksh ${itemPrice.toFixed(2)}</p>
                                 <div class="quantity-controls">
-                                    <button class="quantity-btn minus" data-id="${item.id}" 
-                                        data-type="${item.itemType}" 
-                                        ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>-</button>
-                                    <span class="quantity">${item.quantity}</span>
-                                    <button class="quantity-btn plus" data-id="${item.id}" 
-                                        data-type="${item.itemType}" 
-                                        ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>+</button>
+                                    <button type="button" class="decrease-quantity" data-id="${itemId}" data-type="${itemType}">-</button>
+                                    <span class="item-quantity">${item.quantity || 1}</span>
+                                    <button type="button" class="increase-quantity" data-id="${itemId}" data-type="${itemType}">+</button>
                                 </div>
                             </div>
-                            <button class="remove-btn" data-id="${item.id}" 
-                                data-type="${item.itemType}" 
-                                ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>
+                            <button type="button" class="remove-item" data-id="${itemId}" data-type="${itemType}">
                                 <i class="fas fa-trash"></i>
                             </button>
-                        </div>`;
+                        </div>
+                    `;
                 });
                 
+                // Update the DOM
                 cartContainer.innerHTML = cartHTML;
-                if (cartSummary) cartSummary.style.display = 'block';
                 
                 // Update summary
-                const deliveryFee = 200; // Flat delivery fee
-                const total = subtotal + deliveryFee;
+                if (subtotalElement) subtotalElement.textContent = `Ksh ${subtotal.toFixed(2)}`;
+                if (deliveryFeeElement) deliveryFeeElement.textContent = `Ksh 0`;
+                if (totalElement) totalElement.textContent = `Ksh ${subtotal.toFixed(2)}`;
                 
-                console.log('Cart totals:', { subtotal, deliveryFee, total });
-                
-                if (subtotalElement) {
-                    subtotalElement.textContent = 'Ksh ' + subtotal.toLocaleString('en-US');
-                    console.log('Updated subtotal element:', subtotalElement.textContent);
-                } else {
-                    console.error('Subtotal element not found');
-                }
-                
-                if (deliveryFeeElement) {
-                    deliveryFeeElement.textContent = 'Ksh ' + deliveryFee.toLocaleString('en-US');
-                    console.log('Updated delivery fee element:', deliveryFeeElement.textContent);
-                } else {
-                    console.error('Delivery fee element not found');
-                }
-                
-                if (totalElement) {
-                    totalElement.textContent = 'Ksh ' + total.toLocaleString('en-US');
-                    console.log('Updated total element:', totalElement.textContent);
-                } else {
-                    console.error('Total element not found');
+                // Show the cart summary and checkout form
+                if (cartSummary) cartSummary.style.display = 'block';
+                if (checkoutForm) {
+                    checkoutForm.style.display = 'block';
+                    
+                    // Update checkout form totals
+                    const checkoutSubtotal = document.getElementById('checkoutSubtotal');
+                    const checkoutTotal = document.getElementById('checkoutTotal');
+                    
+                    if (checkoutSubtotal) checkoutSubtotal.textContent = `Ksh ${subtotal.toFixed(2)}`;
+                    if (checkoutTotal) checkoutTotal.textContent = `Ksh ${subtotal.toFixed(2)}`;
                 }
                 
                 console.groupEnd(); // End of displayCombinedCart group
@@ -671,65 +666,49 @@
 
                 // Handle quantity controls and remove buttons with event delegation
                 cartContainer.addEventListener('click', async (e) => {
-                    const button = e.target.closest('.quantity-btn, .remove-btn, .btn');
-                    if (!button) return;
-
-                    const id = button.dataset.id;
-                    const type = button.dataset.type || 'food';
-                    const size = button.dataset.size || null;
-
-                    // Handle quantity controls
-                    if (button.classList.contains('quantity-btn')) {
-                        const quantityElement = button.parentElement.querySelector('.quantity');
-                        if (!quantityElement) return;
-
-                        let quantity = parseInt(quantityElement.textContent);
+                    // Handle quantity increase
+                    if (e.target.closest('.increase-quantity')) {
+                        const itemElement = e.target.closest('.cart-item');
+                        const itemId = itemElement?.dataset?.id;
+                        const itemType = itemElement?.dataset?.type || 'food';
+                        const quantityElement = itemElement?.querySelector('.item-quantity');
                         
-                        if (button.classList.contains('plus')) {
-                            quantity++;
-                        } else if (button.classList.contains('minus')) {
-                            quantity = Math.max(1, quantity - 1);
-                        }
-                        
-                        try {
-                            await updateCartItem(id, quantity, type, size);
+                        if (itemId && quantityElement) {
+                            const currentQty = parseInt(quantityElement.textContent) || 0;
+                            await updateCartItem(itemId, currentQty + 1, itemType);
                             await loadCarts();
-                        } catch (error) {
-                            console.error('Error updating cart:', error);
-                        }
-                    } 
-                    // Handle remove buttons
-                    else if (button.classList.contains('remove-btn')) {
-                        try {
-                            await removeCartItem(id, type, size);
-                            await loadCarts();
-                        } catch (error) {
-                            console.error('Error removing item:', error);
                         }
                     }
-                    button.addEventListener('click', async function() {
-                        const id = this.dataset.id;
-                        const type = this.dataset.type;
-                        const size = this.dataset.size || null;
-                        const quantityElement = this.parentElement.querySelector('.quantity');
-                        let quantity = parseInt(quantityElement.textContent);
+                    
+                    // Handle quantity decrease
+                    if (e.target.closest('.decrease-quantity')) {
+                        const itemElement = e.target.closest('.cart-item');
+                        const itemId = itemElement?.dataset?.id;
+                        const itemType = itemElement?.dataset?.type || 'food';
+                        const quantityElement = itemElement?.querySelector('.item-quantity');
                         
-                        if (this.classList.contains('plus')) {
-                            quantity++;
-                        } else if (this.classList.contains('minus')) {
-                            quantity = Math.max(1, quantity - 1);
+                        if (itemId && quantityElement) {
+                            const currentQty = parseInt(quantityElement.textContent) || 1;
+                            if (currentQty > 1) {
+                                await updateCartItem(itemId, currentQty - 1, itemType);
+                            } else {
+                                await removeCartItem(itemId, itemType);
+                            }
+                            await loadCarts();
                         }
+                    }
+                    
+                    // Handle remove item
+                    if (e.target.closest('.remove-item')) {
+                        const itemElement = e.target.closest('.cart-item');
+                        const itemId = itemElement?.dataset?.id;
+                        const itemType = itemElement?.dataset?.type || 'food';
                         
-                        // Update the appropriate cart based on item type
-                        if (type === 'meat') {
-                            await updateButcheryCartItem(id, quantity, size);
-                        } else {
-                            await updateCartItem(id, quantity, type, size);
+                        if (itemId && confirm('Are you sure you want to remove this item from your cart?')) {
+                            await removeCartItem(itemId, itemType);
+                            await loadCarts();
                         }
-                        
-                        // Reload the cart
-                        await loadCarts();
-                    });
+                    }
                 });
                 
                 // Remove buttons
