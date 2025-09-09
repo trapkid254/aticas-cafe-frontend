@@ -1,6 +1,15 @@
 // Test script for cart functionality
 console.log('=== Starting Cart Functionality Tests ===');
 
+// Import cart functions from cart.js
+const { 
+    updateCartCount, 
+    updateCartItem, 
+    removeCartItem, 
+    getGuestCart, 
+    setGuestCart 
+} = window;
+
 // Test 1: Test updateCartCount function
 async function testUpdateCartCount() {
     console.log('\n--- Test 1: updateCartCount ---');
@@ -19,8 +28,9 @@ async function testUpdateCartCount() {
 async function testAddToCart() {
     console.log('\n--- Test 2: Add Item to Cart ---');
     try {
-        // Test with a valid menu item ID (you may need to update this with a valid ID from your database)
-        const testItemId = '64f8b7e3b4d4a4e1f4d3b2a1'; // Replace with a valid ID
+        // Test with a valid menu item ID
+        // Using a sample ID - replace with actual ID from your database
+        const testItemId = '64f8b7e3b4d4a4e1f4d3b2a1';
         const result = await updateCartItem(testItemId, 1, 'food');
         console.log('Add to cart result:', result);
         console.log('✅ Test 2 Passed: Item added to cart');
@@ -110,13 +120,5 @@ if (typeof window !== 'undefined') {
     });
 }
 
-// Export for testing in Node.js
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        testUpdateCartCount,
-        testAddToCart,
-        testRemoveFromCart,
-        testCartTotal,
-        runAllTests
-    };
-}
+// Make functions available globally for testing
+window.runCartTests = runAllTests;
