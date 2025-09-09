@@ -1,13 +1,27 @@
 // DEBUG MODE - Set to false to re-enable auth checks
 const DEBUG_MODE = true;
 
+// Store the original error handler
+const originalOnError = window.onerror;
+
 // Add a global error handler to catch any uncaught exceptions
 window.onerror = function(message, source, lineno, colno, error) {
+    // Ignore errors from test files
+    if (source && source.includes('test-')) {
+        return false; // Let the error propagate to the default handler
+    }
+    
     console.error('=== GLOBAL ERROR HANDLER ===');
     console.error('Message:', message);
     console.error('Source:', source);
     console.error('Line:', lineno, 'Column:', colno);
     console.error('Error object:', error);
+    
+    // Call the original error handler if it exists
+    if (typeof originalOnError === 'function') {
+        return originalOnError(message, source, lineno, colno, error);
+    }
+    
     return true; // Prevents the default error handler
 };
 
