@@ -276,30 +276,16 @@
         </p>
     </footer>
 
-    <!-- Include cart.js -->
+    <!-- Load cart functionality first -->
     <script src="js/cart.js"></script>
+    
+    <!-- Then load auth check -->
     <script src="js/auth-check.js"></script>
     
-    <!-- Include test script (remove in production) -->
+    <!-- Finally load test script (remove in production) -->
     <script src="js/test-cart.js"></script>
-    
-    <!-- Make cart functions available globally for testing -->
-    <script>
-        // Make sure cart functions are available globally
-        window.updateCartCount = updateCartCount;
-        window.updateCartItem = updateCartItem;
-        window.removeCartItem = removeCartItem;
-        window.getGuestCart = getGuestCart;
-        window.setGuestCart = setGuestCart;
-    </script>
 
     <script>
-        // Global cart functions that need to be accessible
-        window.updateCartItem = updateCartItem;
-        window.removeCartItem = removeCartItem;
-        window.getGuestCart = getGuestCart;
-        window.setGuestCart = setGuestCart;
-
         // Unified cart functionality
         document.addEventListener('DOMContentLoaded', function() {
             // Load cart immediately when DOM is ready
