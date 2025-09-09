@@ -247,12 +247,14 @@ function initButtonHandlers() {
 
 // Remove item from cart
 async function removeCartItem(menuItemId, itemType = 'food', size = null) {
-    console.log('Removing cart item:', { menuItemId, itemType, size });
+    console.log('Removing item from cart:', { menuItemId, itemType, size });
+    
     try {
         const userId = getUserId();
         const token = getUserToken();
         const isButchery = itemType === 'meat' || itemType === 'butchery';
         
+        // For logged-in users
         if (userId && token) {
             // For logged-in users
             const response = await fetch(`https://aticas-backend.onrender.com/api/cart/items/${menuItemId}`, {

@@ -276,7 +276,13 @@
         </p>
     </footer>
 
-    <script src="js/cart.js"></script>
+    <!-- Include cart.js as a module -->
+    <script src="js/cart.js" type="module"></script>
+    <script src="js/auth-check.js" type="module"></script>
+    
+    <!-- Include test script (remove in production) -->
+    <script src="js/test-cart.js" type="module"></script>
+
     <script>
         // Global cart functions that need to be accessible
         window.updateCartItem = updateCartItem;
@@ -846,8 +852,176 @@
             }
 
             // Initialize everything when DOM is loaded
-            initializeUI();
-            loadCarts();
+            document.addEventListener('DOMContentLoaded', () => {
+                initializeUI();
+                loadCarts();
+                
+                // Add event delegation for cart item actions
+                document.addEventListener('click', async (e) => {
+                    // Handle quantity increase
+                    if (e.target.closest('.increase-quantity')) {
+                        const itemElement = e.target.closest('.cart-item');
+                        const itemId = itemElement?.dataset?.id;
+                        const itemType = itemElement?.dataset?.type || 'food';
+                        const quantityElement = itemElement?.querySelector('.item-quantity');
+                        
+                        if (itemId && quantityElement) {
+                            const currentQty = parseInt(quantityElement.textContent) || 0;
+                            await updateCartItem(itemId, currentQty + 1, itemType);
+                            await loadCarts();
+                        }
+                    }
+                    
+                    // Handle quantity decrease
+                    if (e.target.closest('.decrease-quantity')) {
+                        const itemElement = e.target.closest('.cart-item');
+                        const itemId = itemElement?.dataset?.id;
+                        const itemType = itemElement?.dataset?.type || 'food';
+                        const quantityElement = itemElement?.querySelector('.item-quantity');
+                        
+                        if (itemId && quantityElement) {
+                            const currentQty = parseInt(quantityElement.textContent) || 1;
+                            if (currentQty > 1) {
+                                await updateCartItem(itemId, currentQty - 1, itemType);
+                            } else {
+                                await removeCartItem(itemId, itemType);
+                            }
+                            await loadCarts();
+                        }
+                    }
+                    
+                    // Handle remove item
+                    if (e.target.closest('.remove-item')) {
+                        const itemElement = e.target.closest('.cart-item');
+                        const itemId = itemElement?.dataset?.id;
+                        const itemType = itemElement?.dataset?.type || 'food';
+                        
+                        if (itemId && confirm('Are you sure you want to remove this item from your cart?')) {
+                            await removeCartItem(itemId, itemType);
+                            await loadCarts();
+                        }
+                    }
+                });
+                
+                // Handle checkout form submission
+                const checkoutForm = document.getElementById('checkoutForm');
+                if (checkoutForm) {
+                    checkoutForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        
+                        // Show loading state
+                        const submitBtn = checkoutForm.querySelector('button[type="submit"]');
+                        const originalBtnText = submitBtn.innerHTML;
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                        
+                        try {
+                            // Get form data
+                            const formData = new FormData(checkoutForm);
+                            const orderType = formData.get('orderType');
+                            const paymentMethod = formData.get('payment');
+                            
+                            // Get cart items
+                            const cart = getGuestCart();
+                            if (!cart.items || cart.items.length === 0) {
+                                throw new Error('Your cart is empty');
+                            }
+                            
+                            // Prepare order data
+                            const orderData = {
+                                items: cart.items.map(item => ({
+                                    menuItem: item.menuItem,
+                                    itemType: item.itemType,
+                                    quantity: item.quantity,
+                                    selectedSize: item.selectedSize,
+                                    price: item.price
+                                })),
+                                subtotal: cart.subtotal || 0,
+                                deliveryFee: orderType === 'delivery' ? (cart.deliveryFee || 0) : 0,
+                                total: cart.total || 0,
+                                orderType,
+                                paymentMethod,
+                                status: 'pending',
+                                createdAt: new Date().toISOString()
+                            };
+                            
+                            // Add delivery info if needed
+                            if (orderType === 'delivery') {
+                                orderData.deliveryInfo = {
+                                    address: document.getElementById('streetAddress')?.value,
+                                    building: document.getElementById('buildingName')?.value,
+                                    notes: document.getElementById('additionalInfo')?.value,
+                                    location: {
+                                        lat: parseFloat(document.getElementById('latitude')?.value) || 0,
+                                        lng: parseFloat(document.getElementById('longitude')?.value) || 0
+                                    }
+                                };
+                            }
+                            
+                            // Add payment details if M-Pesa
+                            if (paymentMethod === 'mpesa') {
+                                const mpesaNumber = document.getElementById('mpesaNumber')?.value;
+                                if (!mpesaNumber) {
+                                    throw new Error('Please enter your M-Pesa number');
+                                }
+                                orderData.paymentDetails = {
+                                    mpesaNumber: `254${mpesaNumber}`,
+                                    status: 'pending'
+                                };
+                            }
+                            
+                            console.log('Submitting order:', orderData);
+                            
+                            // Here you would typically send the order to your backend
+                            // For now, we'll just show a success message
+                            alert('Order placed successfully!');
+                            
+                            // Clear cart after successful order
+                            localStorage.setItem('guestCart', JSON.stringify({ items: [] }));
+                            updateCartCount();
+                            loadCarts();
+                            
+                        } catch (error) {
+                            console.error('Error placing order:', error);
+                            alert(`Error placing order: ${error.message}`);
+                        } finally {
+                            // Reset button state
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalBtnText;
+                        }
+                    });
+                    
+                    // Toggle delivery location fields based on order type
+                    const orderTypeRadios = document.querySelectorAll('input[name="orderType"]');
+                    const deliveryLocationPopup = document.getElementById('deliveryLocationPopup');
+                    const deliveryFeeRow = document.getElementById('deliveryFeeRow');
+                    
+                    orderTypeRadios.forEach(radio => {
+                        radio.addEventListener('change', (e) => {
+                            const isDelivery = e.target.value === 'delivery';
+                            if (deliveryLocationPopup) {
+                                deliveryLocationPopup.style.display = isDelivery ? 'block' : 'none';
+                            }
+                            if (deliveryFeeRow) {
+                                deliveryFeeRow.style.display = isDelivery ? 'flex' : 'none';
+                            }
+                            updateOrderTotal();
+                        });
+                    });
+                    
+                    // Toggle M-Pesa details based on payment method
+                    const paymentRadios = document.querySelectorAll('input[name="payment"]');
+                    const mpesaDetails = document.getElementById('mpesaDetails');
+                    
+                    paymentRadios.forEach(radio => {
+                        radio.addEventListener('change', (e) => {
+                            if (mpesaDetails) {
+                                mpesaDetails.style.display = e.target.value === 'mpesa' ? 'block' : 'none';
+                            }
+                        });
+                    });
+                }
+            });
         });
     </script>
 </body>
