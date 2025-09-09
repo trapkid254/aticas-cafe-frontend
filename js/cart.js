@@ -42,40 +42,65 @@ function getUserToken() {
 
 // Function to update cart count in the UI
 async function updateCartCount() {
-    console.log('Updating cart count...');
-    const cartCountElements = document.querySelectorAll('.cart-count');
-    const userId = getUserId();
-    const token = getUserToken();
-    let count = 0;
-
     try {
+        const userId = getUserId();
+        const token = getUserToken();
+        let cafeteriaCount = 0;
+        let butcheryCount = 0;
+        
         if (userId && token) {
-            const response = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+            // For logged-in users, fetch from server
+            const response = await fetch('https://aticas-backend.onrender.com/api/cart/items', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
-
+            
             if (response.ok) {
-                const cart = await response.json();
-                count = cart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
+                const data = await response.json();
+                // Separate counts for butchery and cafeteria items
+                data.items?.forEach(item => {
+                    const isButchery = item.itemType === 'Meat' || item.itemType === 'meat' || item.itemType === 'butchery';
+                    const quantity = item.quantity || 1;
+                    if (isButchery) {
+                        butcheryCount += quantity;
+                    } else {
+                        cafeteriaCount += quantity;
+                    }
+                });
             }
         } else {
-            const guestCart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
-            count = guestCart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
+            // For guests, count from separate localStorage entries
+            const cafeteriaCart = getGuestCart(false);
+            const butcheryCart = getGuestCart(true);
+            
+            cafeteriaCount = cafeteriaCart.items?.reduce((total, item) => total + (item.quantity || 1), 0) || 0;
+            butcheryCount = butcheryCart.items?.reduce((total, item) => total + (item.quantity || 1), 0) || 0;
         }
+        
+        // Update cart counts in the UI
+        const updateCounts = (element, count) => {
+            if (element) {
+                element.textContent = count;
+                element.style.display = count > 0 ? 'inline-block' : 'none';
+            }
+        };
+        
+        // Update cart indicators if available
+        if (window.updateCartIndicators) {
+            window.updateCartIndicators();
+        } else {
+            // Fallback to updating counts directly
+            updateCounts(document.querySelector('.cart-count.cafeteria'), cafeteriaCount);
+            updateCounts(document.querySelector('.cart-count.butchery'), butcheryCount);
+        }
+        
+        // Return total count for backward compatibility
+        return cafeteriaCount + butcheryCount;
     } catch (error) {
         console.error('Error updating cart count:', error);
-        const guestCart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
-        count = guestCart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
+        return 0;
     }
-
-    cartCountElements.forEach(element => {
-        if (element) {
-            element.textContent = count;
-            element.style.display = count > 0 ? 'flex' : 'none';
-        }
-    });
-
-    return count;
 }
 
 // Cafe coordinates (JKUAT area)
@@ -106,26 +131,35 @@ function calculateDeliveryFee(distance) {
 }
 
 // Guest cart helpers
-function getGuestCart() {
-    return JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
+function getGuestCart(isButchery = false) {
+    const key = isButchery ? 'butcheryGuestCart' : 'cafeteriaGuestCart';
+    const cart = JSON.parse(localStorage.getItem(key) || '{"items":[],"total":0}');
+    return cart;
 }
 
-function setGuestCart(cart) {
-    localStorage.setItem('guestCart', JSON.stringify(cart));
+function setGuestCart(cart, isButchery = false) {
+    const key = isButchery ? 'butcheryGuestCart' : 'cafeteriaGuestCart';
+    localStorage.setItem(key, JSON.stringify(cart));
 }
 
 // Update or add item in cart
 async function updateCartItem(menuItemId, quantity, itemType = 'food', selectedSize = null) {
-    console.log('Updating cart item:', { menuItemId, quantity, itemType, selectedSize });
     try {
         const userId = getUserId();
         const token = getUserToken();
         const isButchery = itemType === 'meat' || itemType === 'butchery';
         
+        // Fetch the menu item details
+        const menuItem = await fetchMenuItem(menuItemId, isButchery ? 'meat' : 'food');
+        if (!menuItem) {
+            throw new Error(`Menu item not found: ${menuItemId}`);
+        }
+
         // For logged-in users
         if (userId && token) {
-            const response = await fetch(`https://aticas-backend.onrender.com/api/cart/items`, {
-                method: 'PATCH',
+            // For logged-in users, update server cart
+            const response = await fetch('https://aticas-backend.onrender.com/api/cart/items', {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
@@ -134,55 +168,50 @@ async function updateCartItem(menuItemId, quantity, itemType = 'food', selectedS
                     menuItemId,
                     quantity,
                     itemType: isButchery ? 'Meat' : 'Menu',
-                    selectedSize
+                    ...(selectedSize && { size: selectedSize })
                 })
             });
             
-            if (!response.ok) throw new Error('Failed to update cart');
-            
-            const result = await response.json();
-            updateCartCount();
-            return result;
-        } 
-        // For guests
-        else {
-            const cart = getGuestCart();
-            const existingItemIndex = cart.items.findIndex(item => 
-                item.menuItem === menuItemId && 
-                item.itemType === (isButchery ? 'Meat' : 'Menu') &&
-                (!selectedSize || JSON.stringify(item.selectedSize) === JSON.stringify(selectedSize))
-            );
-
-            if (existingItemIndex >= 0) {
-                if (quantity <= 0) {
-                    cart.items.splice(existingItemIndex, 1);
-                } else {
-                    cart.items[existingItemIndex].quantity = quantity;
-                    if (selectedSize) {
-                        cart.items[existingItemIndex].selectedSize = selectedSize;
-                    }
-                }
-            } else if (quantity > 0) {
-                const menuItem = await fetchMenuItem(menuItemId, itemType);
-                if (menuItem) {
-                    cart.items.push({
-                        menuItem: menuItemId,
-                        quantity,
-                        itemType: isButchery ? 'Meat' : 'Menu',
-                        selectedSize,
-                        name: menuItem.name,
-                        price: selectedSize ? selectedSize.price : menuItem.price,
-                        image: menuItem.image
-                    });
-                } else {
-                    console.error(`updateCartItem: Failed to fetch menu item with ID: ${menuItemId}`);
-                    throw new Error(`Menu item not found: ${menuItemId}`);
-                }
+            if (!response.ok) {
+                throw new Error('Failed to update cart');
             }
-
-            setGuestCart(cart);
-            updateCartCount();
-            return { success: true, cart };
+            
+            await updateCartCount();
+            return await response.json();
+        } else {
+            // For guests, update local storage
+            const guestCart = getGuestCart(isButchery);
+            const existingItemIndex = guestCart.items.findIndex(item => 
+                item.menuItem === menuItemId && 
+                (item.itemType || 'food') === itemType &&
+                (!selectedSize || item.selectedSize?.size === selectedSize)
+            );
+            
+            if (existingItemIndex > -1) {
+                // Update existing item quantity
+                guestCart.items[existingItemIndex].quantity = quantity;
+            } else {
+                // Add new item
+                guestCart.items.push({
+                    menuItem: menuItemId,
+                    name: menuItem.name,
+                    price: selectedSize?.price || menuItem.price,
+                    image: menuItem.image,
+                    quantity,
+                    itemType,
+                    selectedSize
+                });
+            }
+            
+            // Recalculate total
+            guestCart.total = guestCart.items.reduce((sum, item) => {
+                const price = item.selectedSize?.price || item.price || 0;
+                return sum + (price * item.quantity);
+            }, 0);
+            
+            setGuestCart(guestCart, isButchery);
+            await updateCartCount();
+            return guestCart;
         }
     } catch (error) {
         console.error('Error updating cart:', error);
@@ -269,7 +298,7 @@ async function removeCartItem(menuItemId, itemType = 'food', size = null) {
             return await response.json();
         } else {
             // For guests
-            const guestCart = getGuestCart();
+            const guestCart = getGuestCart(isButchery);
             guestCart.items = guestCart.items.filter(item => 
                 !(item.menuItem === menuItemId && 
                   (item.itemType || 'food') === itemType &&
@@ -283,7 +312,7 @@ async function removeCartItem(menuItemId, itemType = 'food', size = null) {
                 return sum + (price * item.quantity);
             }, 0);
             
-            setGuestCart(guestCart);
+            setGuestCart(guestCart, isButchery);
             await updateCartCount();
             return guestCart;
         }

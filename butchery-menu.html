@@ -144,7 +144,7 @@
                 menuContainer.innerHTML = filteredMeats.map(meat => `
                     <div class="menu-item" data-category="${meat.category?.toLowerCase() || 'other'}">
                         <div class="menu-item-image">
-                            <img src="${meat.image || 'images/default-meat.jpg'}" alt="${meat.name}">
+                            <img src="${meat.image || 'images/meat.jpg'}" alt="${meat.name}" onerror="this.src='images/meat.jpg';">
                             ${meat.isSpecial ? '<span class="special-badge">Special</span>' : ''}
                         </div>
                         <div class="menu-item-details">

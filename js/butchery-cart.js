@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
             cartHTML += `
                 <div class="cart-item" data-id="${item.menuItem}" data-type="${item.itemType}" 
                      ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>
-                    <img src="${item.image || 'images/default-meat.jpg'}" alt="${item.name}">
+                    <img src="${item.image || 'images/meat.jpg'}" alt="${item.name}" onerror="this.src='images/meat.jpg';">
                     <div class="cart-item-details">
                         <h3>${item.name} <span class="butchery-badge">Butchery</span></h3>
                         ${item.selectedSize ? `<p>Size: ${item.selectedSize.size}</p>` : ''}

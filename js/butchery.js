@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             id: meatItemId,
                             name: meatItem.name,
                             price: selectedSize ? selectedSize.price : (meatItem.price || 0),
-                            image: meatItem.image || 'images/default-meat.jpg',
+                            image: meatItem.image || 'images/meat.jpg',
                             category: meatItem.category
                         },
                         quantity: 1,

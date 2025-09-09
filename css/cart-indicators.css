@@ -1,0 +1,58 @@
+/* Cart Indicators */
+.cart-indicators {
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 5px;
+}
+
+.cart-indicator {
+    position: relative;
+    display: inline-block;
+    background-color: #ff6b6b;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    text-align: center;
+    line-height: 20px;
+    font-size: 12px;
+    margin: 0 2px;
+}
+
+.cart-indicator i {
+    font-size: 12px;
+}
+
+.cart-indicator .cart-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #ff4757;
+    color: white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    font-size: 10px;
+    line-height: 16px;
+    text-align: center;
+    display: none;
+}
+
+/* Butchery specific indicator */
+.cart-indicator[data-cart-type="butchery"] {
+    background-color: #ff9f43;
+}
+
+.cart-indicator[data-cart-type="butchery"] .cart-count {
+    background-color: #ff7f0e;
+}
+
+/* Cafeteria specific indicator */
+.cart-indicator[data-cart-type="cafeteria"] {
+    background-color: #1dd1a1;
+}
+
+.cart-indicator[data-cart-type="cafeteria"] .cart-count {
+    background-color: #10ac84;
+}
