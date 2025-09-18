@@ -418,8 +418,15 @@
                         // Only migrate items of the correct type
                         const itemIsButchery = item.itemType === 'meat' || item.itemType === 'butchery' || item.itemType === 'Meat';
                         if (itemIsButchery === isButchery) {
+                            // Ensure we're passing the menuItem ID as a string
+                            const menuItemId = typeof item.menuItem === 'object' ? item.menuItem._id || item.menuItem.id : item.menuItem;
+                            if (!menuItemId) {
+                                console.error('Invalid menuItem in cart:', item);
+                                continue;
+                            }
+                            
                             await updateCartItem(
-                                item.menuItem,
+                                menuItemId.toString(),
                                 item.quantity,
                                 item.itemType,
                                 item.selectedSize
