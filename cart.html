@@ -260,6 +260,10 @@
     <script>
         // Unified cart functionality
         document.addEventListener('DOMContentLoaded', function() {
+            // Determine which department cart to show: 'cafeteria' or 'butchery'
+            const urlDept = new URLSearchParams(window.location.search).get('dept');
+            const cartDepartment = (urlDept || localStorage.getItem('cartDepartment') || 'cafeteria').toLowerCase();
+            localStorage.setItem('cartDepartment', cartDepartment);
             // Initialize cart indicators
             if (window.updateCartIndicators) {
                 window.updateCartIndicators();
@@ -450,8 +454,8 @@
             // Function to load both guest and user carts
             async function loadCarts() {
                 try {
-                    // Check if we're on the butchery cart page
-                    const isButcheryPage = window.location.pathname.includes('butchery');
+                    // Determine which cart to load based on selected department
+                    const isButcheryPage = (localStorage.getItem('cartDepartment') || 'cafeteria') === 'butchery';
                     
                     let cart = { items: [], total: 0 };
                     const userId = localStorage.getItem('userId');
@@ -463,11 +467,10 @@
                             await migrateGuestCartToServer(isButcheryPage);
                         }
                         cart = await fetchCart(isButcheryPage);
-                        cart = await fetchCart();
                         console.log('Server cart response:', cart);
                     } else {
                         console.log('Loading guest cart from localStorage...');
-                        cart = getGuestCart();
+                        cart = getGuestCart(isButcheryPage);
                         console.log('Guest cart loaded:', cart);
                     }
 
@@ -592,30 +595,43 @@
                         }
                     });
                 }
-                // Display cafeteria items
-                if (cafeteriaItems.length > 0) {
-                    cafeteriaCart.innerHTML = cafeteriaItems.map(item => createCartItemHTML(item)).join('');
-                } else {
-                    cafeteriaCart.innerHTML = `
-                        <div class="empty-cart">
-                            <i class="fas fa-utensils"></i>
-                            <p>No cafeteria items in your cart</p>
-                            <a href="menu.html" class="btn">Browse Menu</a>
-                        </div>
-                    `;
-                }
+                // Show only the selected department
+                const selectedDept = (localStorage.getItem('cartDepartment') || 'cafeteria').toLowerCase();
+                const cafeteriaSection = cafeteriaCart.closest('.cart-section');
+                const butcherySection = butcheryCart.closest('.cart-section');
 
-                // Display butchery items
-                if (butcheryItems.length > 0) {
-                    butcheryCart.innerHTML = butcheryItems.map(item => createCartItemHTML(item)).join('');
+                if (selectedDept === 'butchery') {
+                    // Hide cafeteria section
+                    if (cafeteriaSection) cafeteriaSection.style.display = 'none';
+                    if (butcherySection) butcherySection.style.display = 'block';
+                    // Render butchery only
+                    if (butcheryItems.length > 0) {
+                        butcheryCart.innerHTML = butcheryItems.map(item => createCartItemHTML(item)).join('');
+                    } else {
+                        butcheryCart.innerHTML = `
+                            <div class="empty-cart">
+                                <i class="fas fa-drumstick-bite"></i>
+                                <p>No butchery items in your cart</p>
+                                <a href="butchery-menu.html" class="btn">Browse Butchery</a>
+                            </div>
+                        `;
+                    }
                 } else {
-                    butcheryCart.innerHTML = `
-                        <div class="empty-cart">
-                            <i class="fas fa-drumstick-bite"></i>
-                            <p>No butchery items in your cart</p>
-                            <a href="butchery-menu.html" class="btn">Browse Butchery</a>
-                        </div>
-                    `;
+                    // Hide butchery section
+                    if (butcherySection) butcherySection.style.display = 'none';
+                    if (cafeteriaSection) cafeteriaSection.style.display = 'block';
+                    // Render cafeteria only
+                    if (cafeteriaItems.length > 0) {
+                        cafeteriaCart.innerHTML = cafeteriaItems.map(item => createCartItemHTML(item)).join('');
+                    } else {
+                        cafeteriaCart.innerHTML = `
+                            <div class="empty-cart">
+                                <i class="fas fa-utensils"></i>
+                                <p>No cafeteria items in your cart</p>
+                                <a href="menu.html" class="btn">Browse Menu</a>
+                            </div>
+                        `;
+                    }
                 }
 
                 // Calculate totals
@@ -626,9 +642,9 @@
                     }, 0);
                 };
 
-                const cafeteriaTotal = calculateTotal(cafeteriaItems);
-                const butcheryTotal = calculateTotal(butcheryItems);
-                const subtotal = cafeteriaTotal + butcheryTotal;
+                const subtotal = (localStorage.getItem('cartDepartment') || 'cafeteria').toLowerCase() === 'butchery'
+                    ? calculateTotal(butcheryItems)
+                    : calculateTotal(cafeteriaItems);
                 const deliveryFee = 0; // Will be calculated based on location
                 const total = subtotal + deliveryFee;
 

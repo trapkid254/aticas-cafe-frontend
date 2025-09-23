@@ -109,7 +109,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const menuItem = typeof itemOrId === 'object' ? itemOrId : null;
         const menuItemId = menuItem ? menuItem._id : itemOrId;
-        const itemType = menuItem ? (menuItem.category ? 'Menu' : 'MealOfDay') : 'Menu';
+        // Determine item type and department context
+        const isButcheryItem = !!(menuItem && (menuItem.type === 'meat' || menuItem.itemType === 'meat' || menuItem.itemType === 'butchery'));
+        const itemType = isButcheryItem
+            ? 'Meat' // Server expects 'Meat' for butchery items
+            : (menuItem ? (menuItem.category ? 'Menu' : 'MealOfDay') : 'Menu');
+        // Persist the department context for cart page filtering
+        localStorage.setItem('cartDepartment', isButcheryItem ? 'butchery' : 'cafeteria');
         
         if (isLoggedIn) {
             try {

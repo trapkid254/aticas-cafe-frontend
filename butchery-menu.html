@@ -20,7 +20,7 @@
             <div class="moving-text">Welcome to <b>Aticas Butchery</b>.Your Hospitality Partner-Enjoy our freshly butchered Beef,Goat meat(Chevon) and Chicken at affordable prices! Open from Mon - Sat @ 6:00am - 12:00am</div>
         </div>
         <div class="navbar-right">
-            <a href="cart.html" class="cart-icon"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cartCount">0</span></a>
+            <a href="cart.html?dept=butchery" class="cart-icon"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cartCount">0</span></a>
             <button class="login-btn" id="loginBtn">Login</button>
             <div class="hamburger-menu" id="hamburgerMenu">
                 <div class="bar"></div>
@@ -96,6 +96,8 @@
     <script>
         // Initialize butchery menu
         document.addEventListener('DOMContentLoaded', function() {
+            // Persist department context so cart shows butchery by default from here
+            try { localStorage.setItem('cartDepartment', 'butchery'); } catch(e) {}
             const menuContainer = document.getElementById('menuItems');
             const loadingIndicator = document.getElementById('loadingIndicator');
             const filterButtons = document.querySelectorAll('.filter-btn');
