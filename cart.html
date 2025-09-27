@@ -319,7 +319,7 @@
                         const cart = await response.json();
                         
                         // Ensure items have itemType
-                        const items = (cart.items || []).map(item => ({
+                        let items = (cart.items || []).map(item => ({
                             ...item,
                             itemType: item.itemType || 'food'
                         }));
