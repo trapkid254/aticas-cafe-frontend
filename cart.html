@@ -264,23 +264,23 @@
             z-index: 2000;
         }
         .toast.show { opacity: 1; }
-        /* Embedded checkout modal styling (appears below the button) */
-        .modal.embedded {
-            position: static !important;
+        /* Anchored checkout modal: floats below the button without reflowing layout */
+        .modal.anchored {
+            position: fixed !important;
+            background: transparent !important; /* no dark overlay */
+            inset: 0; /* allow clicks outside to pass through by default */
             display: none; /* shown via JS */
-            background: transparent !important;
-            align-items: stretch; /* ignore flex centering */
-            justify-content: initial;
-            padding: 0;
-            z-index: auto;
+            z-index: 2000; /* above page content */
+            pointer-events: none; /* container ignores clicks */
         }
-        .modal.embedded .modal-content {
-            width: 100% !important;
+        .modal.anchored .modal-content {
+            position: absolute; /* we will set top/left/width via JS */
+            pointer-events: auto; /* content receives clicks */
             max-height: 65vh;
             overflow-y: auto;
-            margin: 0.75rem 0 0 0;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
             border-radius: 12px;
+            background: #fff;
         }
     </style>
 
@@ -857,24 +857,64 @@
                 const closeCheckout = checkoutModal?.querySelector('.close-modal');
                 const checkoutForm = document.getElementById('checkoutForm');
 
+                let __anchoredHandlersBound = false;
                 function openCheckoutModal() {
                     if (!checkoutModal) return;
-                    // Move modal just below the summary/button on first open
-                    const summary = document.querySelector('.cart-summary');
-                    if (summary && checkoutModal.parentElement !== summary) {
-                        summary.appendChild(checkoutModal);
-                    }
-                    checkoutModal.classList.add('embedded');
+                    const modalContent = checkoutModal.querySelector('.modal-content');
+                    if (!modalContent) return;
+
+                    // Switch to anchored mode and show
+                    checkoutModal.classList.remove('embedded');
+                    checkoutModal.classList.add('anchored');
                     checkoutModal.style.display = 'block';
-                    // Ensure page can scroll and bring modal into view
                     document.body.style.overflow = '';
-                    checkoutModal.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                    const positionAnchored = () => {
+                        const btn = document.getElementById('checkoutBtn');
+                        const summary = document.querySelector('.cart-summary');
+                        if (!btn || !summary) return;
+                        const btnRect = btn.getBoundingClientRect();
+                        const summaryRect = summary.getBoundingClientRect();
+                        const padding = 8; // gap below the button
+
+                        const left = Math.round(summaryRect.left);
+                        const width = Math.round(summaryRect.width);
+                        const top = Math.round(btnRect.bottom + padding);
+                        const available = window.innerHeight - top - 16; // bottom margin
+                        const maxH = Math.max(200, Math.min(Math.round(window.innerHeight * 0.65), available));
+
+                        modalContent.style.left = left + 'px';
+                        modalContent.style.top = top + 'px';
+                        modalContent.style.width = width + 'px';
+                        modalContent.style.maxHeight = maxH + 'px';
+                    };
+
+                    // Store on element for cleanup
+                    checkoutModal.__positionAnchored = positionAnchored;
+
+                    // Initial position and make sure within viewport
+                    positionAnchored();
+                    // Ensure it's scrolled into view if needed
+                    modalContent.scrollTop = 0;
+
+                    if (!__anchoredHandlersBound) {
+                        window.addEventListener('scroll', positionAnchored, { passive: true });
+                        window.addEventListener('resize', positionAnchored);
+                        __anchoredHandlersBound = true;
+                    }
                 }
 
                 function closeCheckoutModal() {
                     if (!checkoutModal) return;
                     checkoutModal.style.display = 'none';
                     document.body.style.overflow = '';
+                    // Clean up listeners
+                    const pos = checkoutModal.__positionAnchored;
+                    if (pos && __anchoredHandlersBound) {
+                        window.removeEventListener('scroll', pos);
+                        window.removeEventListener('resize', pos);
+                        __anchoredHandlersBound = false;
+                    }
                 }
 
                 // Expose globally for inline onclick fallback
