@@ -384,9 +384,7 @@
             });
             if (!res.ok) throw new Error('Failed to fetch orders');
             allOrders = await res.json();
-            
             if (!allOrders.length) {
-                <!-- Continue from the last line that was cut off -->
                 ordersContainer.innerHTML = `
                     <div class="empty-category">
                         <i class="fas fa-receipt"></i>

@@ -1169,71 +1169,97 @@
                         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
                         
                         try {
-                            // Get form data
+                            // Get form and cart data
                             const formData = new FormData(checkoutForm);
                             const orderType = formData.get('orderType');
                             const paymentMethod = formData.get('payment');
-                            
-                            // Get cart items
+                            const name = document.getElementById('name')?.value?.trim();
+                            const phone = document.getElementById('phone')?.value?.trim();
+
                             const cart = getGuestCart();
                             if (!cart.items || cart.items.length === 0) {
                                 throw new Error('Your cart is empty');
                             }
-                            
-                            // Prepare order data
-                            const orderData = {
-                                items: cart.items.map(item => ({
-                                    menuItem: item.menuItem,
-                                    itemType: item.itemType,
-                                    quantity: item.quantity,
-                                    selectedSize: item.selectedSize,
-                                    price: item.price
-                                })),
-                                subtotal: cart.subtotal || 0,
-                                deliveryFee: orderType === 'delivery' ? (cart.deliveryFee || 0) : 0,
-                                total: cart.total || 0,
+
+                            // Build items payload with IDs only
+                            const itemsPayload = cart.items.map(item => {
+                                const menuItemObj = item.menuItem || {};
+                                const menuItemId = menuItemObj._id || menuItemObj.id || item.menuItem;
+                                const rawType = String(item.itemType || 'Menu').toLowerCase();
+                                const itemType = rawType === 'meat' || rawType === 'butchery' ? 'Meat'
+                                                 : rawType === 'mealofday' || rawType === 'mod' || rawType === 'meal of day' ? 'MealOfDay'
+                                                 : 'Menu';
+                                return {
+                                    menuItem: String(menuItemId),
+                                    itemType,
+                                    quantity: item.quantity || 1,
+                                    ...(item.selectedSize ? { selectedSize: item.selectedSize } : {})
+                                };
+                            });
+
+                            // Delivery info mapping for backend schema
+                            const deliveryLocation = orderType === 'delivery' ? {
+                                buildingName: document.getElementById('buildingName')?.value?.trim() || '',
+                                streetAddress: document.getElementById('streetAddress')?.value?.trim() || '',
+                                additionalInfo: document.getElementById('additionalInfo')?.value?.trim() || '',
+                                coordinates: {
+                                    latitude: parseFloat(document.getElementById('latitude')?.value) || 0,
+                                    longitude: parseFloat(document.getElementById('longitude')?.value) || 0
+                                }
+                            } : undefined;
+
+                            // Prepare order body for backend
+                            const orderBody = {
+                                items: itemsPayload,
+                                customerName: name,
+                                customerPhone: phone,
                                 orderType,
                                 paymentMethod,
-                                status: 'pending',
-                                createdAt: new Date().toISOString()
+                                deliveryLocation,
+                                deliveryFee: orderType === 'delivery' ? (cart.deliveryFee || 0) : 0
                             };
-                            
-                            // Add delivery info if needed
-                            if (orderType === 'delivery') {
-                                orderData.deliveryInfo = {
-                                    address: document.getElementById('streetAddress')?.value,
-                                    building: document.getElementById('buildingName')?.value,
-                                    notes: document.getElementById('additionalInfo')?.value,
-                                    location: {
-                                        lat: parseFloat(document.getElementById('latitude')?.value) || 0,
-                                        lng: parseFloat(document.getElementById('longitude')?.value) || 0
-                                    }
-                                };
+
+                            // Send to backend
+                            const token = localStorage.getItem('userToken') || '';
+                            const response = await fetch('https://aticas-backend.onrender.com/api/orders', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': token
+                                },
+                                body: JSON.stringify(orderBody)
+                            });
+
+                            if (!response.ok) {
+                                const err = await response.json().catch(() => ({}));
+                                throw new Error(err.error || 'Failed to place order');
                             }
-                            
-                            // Add payment details if M-Pesa
-                            if (paymentMethod === 'mpesa') {
-                                const mpesaNumber = document.getElementById('mpesaNumber')?.value;
-                                if (!mpesaNumber) {
-                                    throw new Error('Please enter your M-Pesa number');
+
+                            const data = await response.json();
+                            const createdOrder = data.order;
+
+                            // Persist last order details for confirmation page
+                            localStorage.setItem('lastOrderId', createdOrder?._id || '');
+                            localStorage.setItem('lastOrder', JSON.stringify(createdOrder || {}));
+
+                            // If user is a guest (no token), keep a local history for Orders page
+                            if (!token) {
+                                try {
+                                    const existing = JSON.parse(localStorage.getItem('guestOrders') || '[]');
+                                    existing.unshift(createdOrder);
+                                    // Limit to last 20 orders to avoid unbounded growth
+                                    localStorage.setItem('guestOrders', JSON.stringify(existing.slice(0, 20)));
+                                } catch (_) {
+                                    localStorage.setItem('guestOrders', JSON.stringify([createdOrder]));
                                 }
-                                orderData.paymentDetails = {
-                                    mpesaNumber: `254${mpesaNumber}`,
-                                    status: 'pending'
-                                };
                             }
-                            
-                            console.log('Submitting order:', orderData);
-                            
-                            // Here you would typically send the order to your backend
-                            // For now, we'll just show a success message
-                            alert('Order placed successfully!');
-                            
-                            // Clear cart after successful order
+
+                            // Clear cart after successful order (guest cart only; server handles user cart)
                             localStorage.setItem('guestCart', JSON.stringify({ items: [] }));
                             updateCartCount();
-                            loadCarts();
-                            
+
+                            // Redirect to confirmation page with orderId
+                            window.location.href = `order-confirmation.html?orderId=${encodeURIComponent(createdOrder?._id)}`;
                         } catch (error) {
                             console.error('Error placing order:', error);
                             alert(`Error placing order: ${error.message}`);
