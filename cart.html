@@ -942,7 +942,6 @@
                         closeCheckoutModal();
                     });
                 }
-
                 // Close modal when clicking outside content
                 if (checkoutModal) {
                     checkoutModal.addEventListener('click', (e) => {
@@ -951,95 +950,6 @@
                         }
                     });
                 }
-
-                if (checkoutForm) {
-                    checkoutForm.addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        const submitBtn = checkoutForm.querySelector('button[type="submit"]');
-                        const originalBtnText = submitBtn.innerHTML;
-                        submitBtn.disabled = true;
-                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-                        try {
-                            const formData = new FormData(checkoutForm);
-                            const orderType = formData.get('orderType');
-                            const paymentMethod = formData.get('payment');
-
-                            const cart = getGuestCart();
-                            if (!cart.items || cart.items.length === 0) {
-                                throw new Error('Your cart is empty');
-                            }
-
-                            const orderData = {
-                                items: cart.items.map(item => ({
-                                    menuItem: item.menuItem,
-                                    itemType: item.itemType,
-                                    quantity: item.quantity,
-                                    selectedSize: item.selectedSize,
-                                    price: item.price
-                                })),
-                                subtotal: cart.subtotal || 0,
-                                deliveryFee: orderType === 'delivery' ? (cart.deliveryFee || 0) : 0,
-                                total: cart.total || 0,
-                                orderType,
-                                paymentMethod,
-                                status: 'pending',
-                                createdAt: new Date().toISOString()
-                            };
-
-                            if (orderType === 'delivery') {
-                                orderData.deliveryInfo = {
-                                    address: document.getElementById('streetAddress')?.value,
-                                    building: document.getElementById('buildingName')?.value,
-                                    notes: document.getElementById('additionalInfo')?.value,
-                                    location: {
-                                        lat: parseFloat(document.getElementById('latitude')?.value) || 0,
-                                        lng: parseFloat(document.getElementById('longitude')?.value) || 0
-                                    }
-                                };
-                            }
-
-                            if (paymentMethod === 'mpesa') {
-                                const mpesaNumber = document.getElementById('mpesaNumber')?.value;
-                                if (!mpesaNumber) {
-                                    throw new Error('Please enter your M-Pesa number');
-                                }
-                                orderData.paymentDetails = {
-                                    mpesaNumber: `254${mpesaNumber}`,
-                                    status: 'pending'
-                                };
-                            }
-
-                            console.log('Submitting order:', orderData);
-                            alert('Order placed successfully!');
-                            localStorage.setItem('guestCart', JSON.stringify({ items: [] }));
-                            updateCartCount();
-                            loadCarts();
-                        } catch (error) {
-                            console.error('Error placing order:', error);
-                            alert(`Error placing order: ${error.message}`);
-                        } finally {
-                            submitBtn.disabled = false;
-                            submitBtn.innerHTML = originalBtnText;
-                        }
-                    });
-                }
-
-                // Toggle delivery location fields based on order type
-                const orderTypeRadios = document.querySelectorAll('input[name="orderType"]');
-                const deliveryLocationPopup = document.getElementById('deliveryLocationPopup');
-                const deliveryFeeRow = document.getElementById('deliveryFeeRow');
-                orderTypeRadios.forEach(radio => {
-                    radio.addEventListener('change', (e) => {
-                        const isDelivery = e.target.value === 'delivery';
-                        if (deliveryLocationPopup) {
-                            deliveryLocationPopup.style.display = isDelivery ? 'block' : 'none';
-                        }
-                        if (deliveryFeeRow) {
-                            deliveryFeeRow.style.display = isDelivery ? 'flex' : 'none';
-                        }
-                        updateOrderTotal?.();
-                    });
-                });
 
                 // Toggle M-Pesa details based on payment method
                 const paymentRadios = document.querySelectorAll('input[name="payment"]');
@@ -1270,38 +1180,7 @@
                         }
                     });
                 }
-                    // Toggle delivery location fields based on order type
-                    const orderTypeRadios = document.querySelectorAll('input[name="orderType"]');
-                    const deliveryLocationPopup = document.getElementById('deliveryLocationPopup');
-                    const deliveryFeeRow = document.getElementById('deliveryFeeRow');
-                    
-                    orderTypeRadios.forEach(radio => {
-                        radio.addEventListener('change', (e) => {
-                            const isDelivery = e.target.value === 'delivery';
-                            if (deliveryLocationPopup) {
-                                deliveryLocationPopup.style.display = isDelivery ? 'block' : 'none';
-                            }
-                            if (deliveryFeeRow) {
-                                deliveryFeeRow.style.display = isDelivery ? 'flex' : 'none';
-                            }
-                            updateOrderTotal();
-                        });
-                    });
-                    
-                    // Toggle M-Pesa details based on payment method
-                    const paymentRadios = document.querySelectorAll('input[name="payment"]');
-                    const mpesaDetails = document.getElementById('mpesaDetails');
-                    
-                    paymentRadios.forEach(radio => {
-                        radio.addEventListener('change', (e) => {
-                            if (mpesaDetails) {
-                                mpesaDetails.style.display = e.target.value === 'mpesa' ? 'block' : 'none';
-                            }
-                        });
-                    });
-                
             });
         });
     </script>
 </body>
-</html>
