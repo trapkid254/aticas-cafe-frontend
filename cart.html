@@ -963,8 +963,7 @@
                 });
             })();
 
-            // Initialize everything when DOM is loaded
-            document.addEventListener('DOMContentLoaded', () => {
+            // Initialize UI and bind interactive handlers (we are already inside DOMContentLoaded)
                 initializeUI();
                 loadCarts();
                 
@@ -1180,7 +1179,9 @@
                         }
                     });
                 }
-            });
+                
+            // End of DOMContentLoaded handler
         });
     </script>
-</body>
+    </body>
+    </html>
