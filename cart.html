@@ -531,24 +531,28 @@
             // Function to create cart item HTML
             function createCartItemHTML(item) {
                 const isButchery = item.itemType === 'Meat' || item.itemType === 'meat' || item.itemType === 'butchery';
-                const price = item.selectedSize?.price || item.price || 0;
-                const total = price * (item.quantity || 1);
+                const menuItem = item.menuItem || {};
+                const name = item.name || menuItem.name || 'Unnamed Item';
+                const unitPrice = (item.selectedSize?.price ?? item.price ?? menuItem.price ?? 0);
+                const qty = item.quantity || 1;
+                const total = unitPrice * qty;
                 const defaultImage = isButchery ? 'images/meat.jpg' : 'images/default-meal.jpg';
+                const image = item.image || menuItem.image || defaultImage;
                 
                 return `
-                    <div class="cart-item" data-id="${item.menuItem?._id || item.menuItem?.id || item.id}" 
+                    <div class="cart-item" data-id="${menuItem._id || menuItem.id || item.id}" 
                          data-type="${item.itemType || 'food'}">
-                        <img src="${item.image || defaultImage}" 
-                             alt="${item.name || 'Item'}" 
+                        <img src="${image}" 
+                             alt="${name || 'Item'}" 
                              onerror="this.src='${defaultImage}'">
                         <div class="item-details">
-                            <h4>${item.name || 'Unnamed Item'}</h4>
+                            <h4>${name}</h4>
                             ${item.selectedSize ? `<p>Size: ${item.selectedSize.size} (Ksh ${item.selectedSize.price})</p>` : ''}
-                            <p class="price">Ksh ${price.toFixed(2)}</p>
+                            <p class="price">Ksh ${unitPrice.toFixed(2)}</p>
                         </div>
                         <div class="quantity-controls">
                             <button class="quantity-btn minus">-</button>
-                            <span class="quantity">${item.quantity || 1}</span>
+                            <span class="quantity">${qty}</span>
                             <button class="quantity-btn plus">+</button>
                         </div>
                         <div class="item-total">
@@ -636,7 +640,7 @@
                 // Calculate totals
                 const calculateTotal = (items) => {
                     return items.reduce((total, item) => {
-                        const price = item.selectedSize?.price || item.price || 0;
+                        const price = (item.selectedSize?.price ?? item.price ?? item.menuItem?.price ?? 0);
                         return total + (price * (item.quantity || 1));
                     }, 0);
                 };
