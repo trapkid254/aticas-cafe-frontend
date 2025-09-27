@@ -79,7 +79,7 @@
                     <span>Total:</span>
                     <span id="total">Ksh 0.00</span>
                 </div>
-                <button id="checkoutBtn" class="checkout-btn">Proceed to Checkout</button>
+                <button id="checkoutBtn" class="checkout-btn" type="button" onclick="window.openCheckoutModal && window.openCheckoutModal()">Proceed to Checkout</button>
             </div>
         </div>
     </div>
@@ -884,34 +884,60 @@
                     }
                 });
                 
-                // Handle checkout form submission
+                // Checkout modal controls
+                const checkoutBtn = document.getElementById('checkoutBtn');
+                const checkoutModal = document.getElementById('checkoutModal');
+                const closeCheckout = checkoutModal?.querySelector('.close-modal');
                 const checkoutForm = document.getElementById('checkoutForm');
-                if (checkoutForm) {
-                    // Open checkout modal when clicking the button
-                    const checkoutBtn = document.getElementById('checkoutBtn');
-                    const checkoutModal = document.getElementById('checkoutModal');
-                    const closeCheckout = checkoutModal?.querySelector('.close-modal');
 
-                    if (checkoutBtn && checkoutModal) {
-                        checkoutBtn.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            checkoutModal.style.display = 'block';
-                        });
+                function openCheckoutModal() {
+                    if (!checkoutModal) return;
+                    checkoutModal.style.display = 'flex'; // match flex-based centering
+                    document.body.style.overflow = 'hidden';
+                }
+
+                function closeCheckoutModal() {
+                    if (!checkoutModal) return;
+                    checkoutModal.style.display = 'none';
+                    document.body.style.overflow = '';
+                }
+
+                // Expose globally for inline fallback
+                window.openCheckoutModal = openCheckoutModal;
+                window.closeCheckoutModal = closeCheckoutModal;
+
+                if (checkoutBtn && checkoutModal) {
+                    checkoutBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        openCheckoutModal();
+                    });
+                }
+
+                // Delegated handler in case the button gets re-rendered
+                document.addEventListener('click', (e) => {
+                    const btn = e.target.closest('#checkoutBtn');
+                    if (btn) {
+                        e.preventDefault();
+                        openCheckoutModal();
                     }
+                });
 
-                    if (closeCheckout && checkoutModal) {
-                        closeCheckout.addEventListener('click', () => {
-                            checkoutModal.style.display = 'none';
-                        });
-                    }
+                if (closeCheckout && checkoutModal) {
+                    closeCheckout.addEventListener('click', () => {
+                        closeCheckoutModal();
+                    });
+                }
 
-                    // Close modal when clicking outside content
-                    window.addEventListener('click', (e) => {
+                // Close modal when clicking outside content
+                if (checkoutModal) {
+                    checkoutModal.addEventListener('click', (e) => {
                         if (e.target === checkoutModal) {
-                            checkoutModal.style.display = 'none';
+                            closeCheckoutModal();
                         }
                     });
+                }
 
+                if (checkoutForm) {
                     checkoutForm.addEventListener('submit', async (e) => {
                         e.preventDefault();
                         
@@ -996,7 +1022,7 @@
                             submitBtn.innerHTML = originalBtnText;
                         }
                     });
-                    
+                }
                     // Toggle delivery location fields based on order type
                     const orderTypeRadios = document.querySelectorAll('input[name="orderType"]');
                     const deliveryLocationPopup = document.getElementById('deliveryLocationPopup');
@@ -1026,7 +1052,7 @@
                             }
                         });
                     });
-                }
+                
             });
         });
     </script>
