@@ -887,6 +887,31 @@
                 // Handle checkout form submission
                 const checkoutForm = document.getElementById('checkoutForm');
                 if (checkoutForm) {
+                    // Open checkout modal when clicking the button
+                    const checkoutBtn = document.getElementById('checkoutBtn');
+                    const checkoutModal = document.getElementById('checkoutModal');
+                    const closeCheckout = checkoutModal?.querySelector('.close-modal');
+
+                    if (checkoutBtn && checkoutModal) {
+                        checkoutBtn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            checkoutModal.style.display = 'block';
+                        });
+                    }
+
+                    if (closeCheckout && checkoutModal) {
+                        closeCheckout.addEventListener('click', () => {
+                            checkoutModal.style.display = 'none';
+                        });
+                    }
+
+                    // Close modal when clicking outside content
+                    window.addEventListener('click', (e) => {
+                        if (e.target === checkoutModal) {
+                            checkoutModal.style.display = 'none';
+                        }
+                    });
+
                     checkoutForm.addEventListener('submit', async (e) => {
                         e.preventDefault();
                         
