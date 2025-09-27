@@ -1043,14 +1043,14 @@ body {
 #checkoutPopupAnchor {
     width: 100%;
     display: flex;
-    justify-content: center;
     align-items: flex-start;
     min-height: 1px;
 }
 
-.modal {
+  .modal {
     display: none;
     position: fixed;
+    top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
@@ -1058,7 +1058,8 @@ body {
     z-index: 1001;
     justify-content: center;
     align-items: center;
-}
+    top: 0;
+  }
 
 .modal-content {
     background-color: white;
@@ -1068,7 +1069,6 @@ body {
     max-width: 500px;
     position: relative;
 }
-
 .close-modal {
     position: absolute;
     top: 1rem;
