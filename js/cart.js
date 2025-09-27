@@ -13,9 +13,15 @@ async function fetchMenuItem(menuItemId, itemType = 'food') {
         }
 
         const baseUrl = 'https://aticas-backend.onrender.com';
-        const endpoint = itemType === 'meat' || itemType === 'butchery'
-            ? `${baseUrl}/api/meats/${itemIdStr}`
-            : `${baseUrl}/api/menu/${itemIdStr}`;
+        const lowerType = String(itemType || '').toLowerCase();
+        let endpoint;
+        if (lowerType === 'meat' || lowerType === 'butchery') {
+            endpoint = `${baseUrl}/api/meats/${itemIdStr}`;
+        } else if (lowerType === 'mealofday' || lowerType === 'mod' || lowerType === 'meal of day') {
+            endpoint = `${baseUrl}/api/meals/${itemIdStr}`;
+        } else {
+            endpoint = `${baseUrl}/api/menu/${itemIdStr}`;
+        }
         
         const response = await fetch(endpoint);
         if (!response.ok) {
@@ -132,28 +138,63 @@ function calculateDeliveryFee(distance) {
 
 // Guest cart helpers
 function getGuestCart(isButchery = false) {
-    const key = isButchery ? 'butcheryGuestCart' : 'cafeteriaGuestCart';
-    const cartData = localStorage.getItem(key) || '{"items":[],"total":0}';
-    return JSON.parse(cartData);
+    const raw = localStorage.getItem('guestCart') || '{"items":[],"total":0}';
+    let fullCart;
+    try {
+        fullCart = JSON.parse(raw);
+    } catch (e) {
+        fullCart = { items: [], total: 0 };
+    }
+
+    const predicate = (item) => {
+        const t = String(item.itemType || '').toLowerCase();
+        const isMeat = t === 'meat' || t === 'butchery';
+        return isButchery ? isMeat : !isMeat;
+    };
+
+    const items = Array.isArray(fullCart.items) ? fullCart.items.filter(predicate) : [];
+    const total = items.reduce((sum, item) => {
+        const price = item.selectedSize?.price || item.price || item.menuItem?.price || 0;
+        return sum + (price * (item.quantity || 1));
+    }, 0);
+
+    return { items, total };
 }
 
-function setGuestCart(cart, isButchery = false) {
-    const key = isButchery ? 'butcheryGuestCart' : 'cafeteriaGuestCart';
-    localStorage.setItem(key, JSON.stringify(cart));
+function setGuestCart(filteredCart, isButchery = false) {
+    // Merge changes for the specific subset back into the unified guestCart
+    const raw = localStorage.getItem('guestCart') || '{"items":[],"total":0}';
+    let fullCart;
+    try {
+        fullCart = JSON.parse(raw);
+    } catch (e) {
+        fullCart = { items: [], total: 0 };
+    }
+
+    const predicate = (item) => {
+        const t = String(item.itemType || '').toLowerCase();
+        const isMeat = t === 'meat' || t === 'butchery';
+        return isButchery ? isMeat : !isMeat;
+    };
+
+    const otherItems = (fullCart.items || []).filter(item => !predicate(item));
+    const mergedItems = otherItems.concat(filteredCart.items || []);
+    const total = mergedItems.reduce((sum, item) => {
+        const price = item.selectedSize?.price || item.price || item.menuItem?.price || 0;
+        return sum + (price * (item.quantity || 1));
+    }, 0);
+
+    localStorage.setItem('guestCart', JSON.stringify({ items: mergedItems, total }));
 }
 
 // Update or add item in cart
 async function updateCartItem(menuItemId, quantity, itemType = 'food', selectedSize = null) {
-    try {
+        try {
         const userId = getUserId();
         const token = getUserToken();
-        const isButchery = itemType === 'meat' || itemType === 'butchery';
-        
-        // Fetch the menu item details
-        const menuItem = await fetchMenuItem(menuItemId, isButchery ? 'meat' : 'food');
-        if (!menuItem) {
-            throw new Error(`Menu item not found: ${menuItemId}`);
-        }
+        const normalizedType = String(itemType || '').toLowerCase();
+        const isButchery = normalizedType === 'meat' || normalizedType === 'butchery';
+        const isMealOfDay = normalizedType === 'mealofday' || normalizedType === 'mod' || normalizedType === 'meal of day';
 
         // For logged-in users
         if (userId && token) {
@@ -167,7 +208,7 @@ async function updateCartItem(menuItemId, quantity, itemType = 'food', selectedS
                 body: JSON.stringify({
                     menuItemId,
                     quantity,
-                    itemType: isButchery ? 'Meat' : 'Menu',
+                    itemType: isButchery ? 'Meat' : (isMealOfDay ? 'MealOfDay' : 'Menu'),
                     ...(selectedSize && { size: selectedSize })
                 })
             });
@@ -181,24 +222,40 @@ async function updateCartItem(menuItemId, quantity, itemType = 'food', selectedS
         } else {
             // For guests, update local storage
             const guestCart = getGuestCart(isButchery);
-            const existingItemIndex = guestCart.items.findIndex(item => 
-                item.menuItem === menuItemId && 
-                (item.itemType || 'food') === itemType &&
-                (!selectedSize || item.selectedSize?.size === selectedSize)
-            );
+            const existingItemIndex = guestCart.items.findIndex(item => {
+                const itemId = typeof item.menuItem === 'object' ? (item.menuItem._id || item.menuItem.id) : item.menuItem;
+                const sameId = String(itemId) === String(menuItemId);
+                const sameType = String(item.itemType || 'food').toLowerCase() === normalizedType;
+                const sameSize = !selectedSize || item.selectedSize?.size === selectedSize?.size || item.selectedSize?.size === selectedSize;
+                return sameId && sameType && sameSize;
+            });
             
             if (existingItemIndex > -1) {
                 // Update existing item quantity
                 guestCart.items[existingItemIndex].quantity = quantity;
             } else {
-                // Add new item
+                // Add new item - fetch details only for guests when needed
+                const fetched = await fetchMenuItem(menuItemId, isButchery ? 'meat' : (isMealOfDay ? 'mealofday' : 'food'));
+                if (!fetched) {
+                    console.warn('Guest add: missing menuItem details, using fallback for', menuItemId);
+                }
+                const menuObj = fetched ? {
+                    _id: fetched._id || menuItemId,
+                    id: fetched.id,
+                    name: fetched.name,
+                    price: fetched.price,
+                    image: fetched.image,
+                    category: fetched.category
+                } : {
+                    _id: menuItemId
+                };
                 guestCart.items.push({
-                    menuItem: menuItemId,
-                    name: menuItem.name,
-                    price: selectedSize?.price || menuItem.price,
-                    image: menuItem.image,
+                    menuItem: menuObj,
+                    name: fetched?.name, // optional top-level for backward compatibility
+                    price: selectedSize?.price || fetched?.price,
+                    image: fetched?.image,
                     quantity,
-                    itemType,
+                    itemType: isButchery ? 'butchery' : (isMealOfDay ? 'MealOfDay' : 'Menu'),
                     selectedSize
                 });
             }
