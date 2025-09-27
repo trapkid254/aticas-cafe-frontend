@@ -264,6 +264,24 @@
             z-index: 2000;
         }
         .toast.show { opacity: 1; }
+        /* Embedded checkout modal styling (appears below the button) */
+        .modal.embedded {
+            position: static !important;
+            display: none; /* shown via JS */
+            background: transparent !important;
+            align-items: stretch; /* ignore flex centering */
+            justify-content: initial;
+            padding: 0;
+            z-index: auto;
+        }
+        .modal.embedded .modal-content {
+            width: 100% !important;
+            max-height: 65vh;
+            overflow-y: auto;
+            margin: 0.75rem 0 0 0;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            border-radius: 12px;
+        }
     </style>
 
     <!-- Load cart functionality -->
@@ -841,8 +859,16 @@
 
                 function openCheckoutModal() {
                     if (!checkoutModal) return;
-                    checkoutModal.style.display = 'flex';
-                    document.body.style.overflow = 'hidden';
+                    // Move modal just below the summary/button on first open
+                    const summary = document.querySelector('.cart-summary');
+                    if (summary && checkoutModal.parentElement !== summary) {
+                        summary.appendChild(checkoutModal);
+                    }
+                    checkoutModal.classList.add('embedded');
+                    checkoutModal.style.display = 'block';
+                    // Ensure page can scroll and bring modal into view
+                    document.body.style.overflow = '';
+                    checkoutModal.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
 
                 function closeCheckoutModal() {
