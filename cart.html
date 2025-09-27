@@ -248,10 +248,9 @@
     </footer>
 
     <!-- Load cart functionality -->
+    <!-- Shared navbar and site-wide interactions -->
+    <script src="js/script.js"></script>
     <script src="js/cart.js"></script>
-    
-    <!-- Load auth check -->
-    <script src="js/auth-check.js"></script>
     
     <!-- Load cart indicators -->
     <link rel="stylesheet" href="css/cart-indicators.css">
@@ -820,34 +819,7 @@
                     console.groupEnd();
                 };
                 document.body.appendChild(debugButton);
-
-                // Initialize navigation buttons
-                const loginBtn = document.getElementById('loginBtn');
-                const menuBtn = document.querySelector('a[href="menu.html"]');
-
-                if (loginBtn) {
-                    loginBtn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        window.location.href = 'login.html';
-                    });
-                }
-
-                if (menuBtn) {
-                    menuBtn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        window.location.href = 'menu.html';
-                    });
-                }
-
-                // Initialize mobile menu toggle
-                const hamburger = document.getElementById('hamburgerMenu');
-                const mobileMenu = document.getElementById('mobileMenu');
-
-                if (hamburger && mobileMenu) {
-                    hamburger.addEventListener('click', () => {
-                        mobileMenu.style.display = mobileMenu.style.display === 'flex' ? 'none' : 'flex';
-                    });
-                }
+                // Navbar, Login/Logout, and hamburger interactions are handled globally in js/script.js
             }
 
             // Initialize everything when DOM is loaded

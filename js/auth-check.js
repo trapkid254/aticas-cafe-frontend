@@ -28,6 +28,14 @@ document.addEventListener('DOMContentLoaded', function() {
         basePath = '/frontend';
     }
     
+    // Only apply admin auth checks on admin-related routes
+    const isAdminSection = cleanPath.includes('/admin/') || cleanPath.includes('butchery-admin');
+    if (!isAdminSection) {
+        // Skip auth checks for public/customer-facing pages (e.g., cart, menu, home)
+        console.log('Auth Check - Non-admin page, skipping auth enforcement');
+        return;
+    }
+    
     // Get auth data
     const adminToken = localStorage.getItem('adminToken');
     const adminData = JSON.parse(localStorage.getItem('adminData') || '{}');
