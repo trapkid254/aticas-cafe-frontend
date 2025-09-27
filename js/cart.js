@@ -330,7 +330,9 @@ async function removeCartItem(menuItemId, itemType = 'food', size = null) {
     try {
         const userId = getUserId();
         const token = getUserToken();
-        const isButchery = itemType === 'meat' || itemType === 'butchery';
+        const normalizedType = String(itemType || '').toLowerCase();
+        const isButchery = normalizedType === 'meat' || normalizedType === 'butchery';
+        const isMealOfDay = normalizedType === 'mealofday' || normalizedType === 'mod' || normalizedType === 'meal of day';
         
         // For logged-in users
         if (userId && token) {
@@ -342,7 +344,7 @@ async function removeCartItem(menuItemId, itemType = 'food', size = null) {
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    itemType: isButchery ? 'Meat' : 'Menu',
+                    itemType: isButchery ? 'Meat' : (isMealOfDay ? 'MealOfDay' : 'Menu'),
                     size: size || undefined
                 })
             });
@@ -356,12 +358,18 @@ async function removeCartItem(menuItemId, itemType = 'food', size = null) {
         } else {
             // For guests
             const guestCart = getGuestCart(isButchery);
-            guestCart.items = guestCart.items.filter(item => 
-                !(item.menuItem === menuItemId && 
-                  (item.itemType || 'food') === itemType &&
-                  (!size || item.selectedSize?.size === size)
-                )
-            );
+            guestCart.items = guestCart.items.filter(item => {
+                const itemId = typeof item.menuItem === 'object' ? (item.menuItem._id || item.menuItem.id) : item.menuItem;
+                const sameId = String(itemId) === String(menuItemId);
+                const itemTypeNormalized = String(item.itemType || 'food').toLowerCase();
+                const sameType = itemTypeNormalized === normalizedType || (
+                    // treat 'butchery' and 'meat' equivalently
+                    (['butchery','meat'].includes(itemTypeNormalized) && ['butchery','meat'].includes(normalizedType))
+                );
+                const sameSize = !size || item.selectedSize?.size === size;
+                // keep item if NOT the one to delete
+                return !(sameId && sameType && sameSize);
+            });
             
             // Recalculate total
             guestCart.total = guestCart.items.reduce((sum, item) => {

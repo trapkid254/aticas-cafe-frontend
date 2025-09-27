@@ -557,10 +557,15 @@
                 const total = unitPrice * qty;
                 const defaultImage = isButchery ? 'images/meat.jpg' : 'images/default-meal.jpg';
                 const image = item.image || menuItem.image || defaultImage;
+                // Normalize type for reliable updates/removals
+                const rawType = (item.itemType || 'Menu').toString().toLowerCase();
+                const normalizedType = rawType === 'meat' || rawType === 'butchery' ? 'butchery'
+                                      : rawType === 'mealofday' || rawType === 'mod' || rawType === 'meal of day' ? 'mealofday'
+                                      : 'menu';
                 
                 return `
                     <div class="cart-item" data-id="${menuItem._id || menuItem.id || item.id}" 
-                         data-type="${item.itemType || 'food'}">
+                         data-type="${normalizedType}">
                         <img src="${image}" 
                              alt="${name || 'Item'}" 
                              onerror="this.src='${defaultImage}'">
@@ -720,6 +725,8 @@
                     if (e.target.closest('.minus')) {
                         e.preventDefault();
                         const currentQty = parseInt(quantityElement.textContent) || 1;
+                        const nameEl = cartItem.querySelector('.item-details h4');
+                        const removedName = nameEl ? nameEl.textContent.trim() : 'Item';
                         if (currentQty > 1) {
                             await updateCartItem(itemId, currentQty - 1, itemType);
                         } else {
@@ -727,7 +734,7 @@
                         }
                         await loadCarts();
                         if (window.showToast && currentQty <= 1) {
-                            showToast('Item removed');
+                            showToast(`${removedName} removed`);
                         }
                         return;
                     }
@@ -735,10 +742,12 @@
                     // Handle remove item
                     if (e.target.closest('.remove-btn')) {
                         e.preventDefault();
+                        const nameEl = cartItem.querySelector('.item-details h4');
+                        const removedName = nameEl ? nameEl.textContent.trim() : 'Item';
                         await removeCartItem(itemId, itemType);
                         await loadCarts();
                         if (window.showToast) {
-                            showToast('Item removed');
+                            showToast(`${removedName} removed`);
                         }
                         return;
                     }
@@ -747,7 +756,8 @@
             
             // Initialize button handlers with event delegation
             function initButtonHandlers() {
-                // All functionality has been moved to initCartEventListeners
+                // Initialize main cart event delegation
+                initCartEventListeners();
             }
             
             // Butchery cart functions
