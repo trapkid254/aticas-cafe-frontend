@@ -27,9 +27,19 @@ document.addEventListener('DOMContentLoaded', function() {
     if (currentPath.includes('/frontend/')) {
         basePath = '/frontend';
     }
+    // Helper to normalize a path for safe comparisons
+    const normalizePath = (p) => {
+        if (!p) return '';
+        return String(p)
+            .replace(/\\/g, '/')
+            .replace(/\/index(?:\.html)?$/i, '')
+            .replace(/\.html$/i, '')
+            .replace(/\/$/, '')
+            .toLowerCase();
+    };
     
     // Only apply admin auth checks on admin-related routes
-    const isAdminSection = cleanPath.includes('/admin/') || cleanPath.includes('butchery-admin');
+    const isAdminSection = cleanPath.includes('/admin') || cleanPath.includes('butchery-admin');
     if (!isAdminSection) {
         // Skip auth checks for public/customer-facing pages (e.g., cart, menu, home)
         console.log('Auth Check - Non-admin page, skipping auth enforcement');
@@ -39,7 +49,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // Get auth data
     const adminToken = localStorage.getItem('adminToken');
     const adminData = JSON.parse(localStorage.getItem('adminData') || '{}');
-    const adminType = adminData?.adminType; // Use optional chaining
+    // Try to derive adminType from stored data, else from JWT payload to avoid loops during initial save
+    const decodeJwt = (t) => {
+        try {
+            const parts = String(t).split('.');
+            if (parts.length !== 3) return null;
+            const json = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'));
+            return JSON.parse(json);
+        } catch { return null; }
+    };
+    const tokenPayload = adminToken ? decodeJwt(adminToken) : null;
+    let adminType = adminData?.adminType || tokenPayload?.adminType;
     
     console.log('Auth Check - Current Path:', currentPath);
     console.log('Auth Check - Clean Path:', cleanPath);
@@ -52,9 +72,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const loginPath = isButcheryPath 
             ? `${basePath}/butchery-admin/login` // server has explicit route
             : `${basePath}/admin/admin-login.html`; // static file
-        const normalizedTarget = loginPath.replace(/\/index(?:\.html)?$/i, '').replace(/\.html$/i, '').toLowerCase();
-        const normalizedHere = cleanPath;
-        if (normalizedHere.endsWith(normalizedTarget.replace(basePath, '').replace(/^\/+/, ''))) {
+        const normalizedTarget = normalizePath(loginPath);
+        const normalizedHere = normalizePath(currentPath);
+        // compare both full and without basePath
+        const hereNoBase = normalizedHere.replace(normalizePath(basePath), '');
+        const targetNoBase = normalizedTarget.replace(normalizePath(basePath), '');
+        if (normalizedHere === normalizedTarget || hereNoBase === targetNoBase) {
             console.log('Auth Check - Already on login page, no redirect');
             return;
         }
@@ -64,12 +87,9 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     // Validate stored data
-    if (adminToken && (!adminData || typeof adminData !== 'object' || !adminType)) {
-        console.log('Invalid admin data structure, clearing storage');
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminData');
-        redirectToLogin();
-        return;
+    if (adminToken && (!adminData || typeof adminData !== 'object')) {
+        // Don't clear token aggressively; rely on token for type during initial post-login navigation
+        console.log('Auth Check - adminData missing or invalid; using token payload if available');
     }
     
     const isLoginPage = (
@@ -103,9 +123,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const targetPath = getDashboardPath(isButchery);
         
         // Only redirect if we're not already on the target page
-        const normalizedTarget = targetPath.replace(/\/index(?:\.html)?$/i, '').toLowerCase();
-        const normalizedHere = cleanPath;
-        if (!normalizedHere.endsWith(normalizedTarget.replace(basePath, '').replace(/^\/+/, ''))) {
+        const normalizedTarget = normalizePath(targetPath);
+        const normalizedHere = normalizePath(currentPath);
+        const hereNoBase = normalizedHere.replace(normalizePath(basePath), '');
+        const targetNoBase = normalizedTarget.replace(normalizePath(basePath), '');
+        // Avoid redirect if we're already under the correct dashboard base (e.g., /admin/...)
+        if (!(normalizedHere === normalizedTarget || hereNoBase === targetNoBase || hereNoBase.startsWith(targetNoBase + '/'))) {
             console.log('Auth Check - Redirecting to dashboard:', targetPath);
             sessionStorage.setItem('authRedirecting', 'true');
             window.location.replace(targetPath);
@@ -113,6 +136,18 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Auth Check - Already on the correct dashboard');
         }
         return;
+    }
+
+    // Strong guard: if we have a token and a resolvable adminType and we're already under the correct base, do nothing
+    if (adminToken && adminType) {
+        const expectedBase = normalizePath(getDashboardPath(adminType === 'butchery'));
+        const here = normalizePath(currentPath);
+        const hereNoBase = here.replace(normalizePath(basePath), '');
+        const expectedNoBase = expectedBase.replace(normalizePath(basePath), '');
+        if (here === expectedBase || hereNoBase === expectedNoBase || hereNoBase.startsWith(expectedNoBase + '/')) {
+            console.log('Auth Check - On correct admin base with token; skipping redirects');
+            return;
+        }
     }
 
     // If not logged in and not on login page, redirect to login
@@ -136,9 +171,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Only redirect if we're on the wrong admin section
     if (isButchery !== shouldBeOnButchery) {
         const targetPath = getDashboardPath(isButchery);
-        const normalizedTarget = targetPath.replace(/\/index(?:\.html)?$/i, '').toLowerCase();
-        const normalizedHere = cleanPath;
-        if (!normalizedHere.endsWith(normalizedTarget.replace(basePath, '').replace(/^\/+/, ''))) {
+        const normalizedTarget = normalizePath(targetPath);
+        const normalizedHere = normalizePath(currentPath);
+        const hereNoBase = normalizedHere.replace(normalizePath(basePath), '');
+        const targetNoBase = normalizedTarget.replace(normalizePath(basePath), '');
+        if (!(normalizedHere === normalizedTarget || hereNoBase === targetNoBase || hereNoBase.startsWith(targetNoBase + '/'))) {
             console.log('Auth Check - Redirecting to correct admin section:', targetPath);
             sessionStorage.setItem('authRedirecting', 'true');
             window.location.replace(targetPath);
