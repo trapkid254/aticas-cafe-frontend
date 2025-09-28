@@ -153,6 +153,21 @@
                 }
 
                 const order = await response.json();
+                // Persist order reference for guests so it appears in orders.html
+                try {
+                    localStorage.setItem('lastOrderId', order._id);
+                    const tokenPresent = !!localStorage.getItem('userToken');
+                    if (!tokenPresent && order?._id) {
+                        const raw = localStorage.getItem('guestOrders');
+                        let arr = [];
+                        try { arr = raw ? JSON.parse(raw) : []; } catch {}
+                        if (!Array.isArray(arr)) arr = [];
+                        if (!arr.includes(order._id)) arr.unshift(order._id);
+                        // cap history
+                        arr = arr.slice(0, 10);
+                        localStorage.setItem('guestOrders', JSON.stringify(arr));
+                    }
+                } catch {}
                 let itemsHtml = '<ul>';
                 order.items.forEach(item => {
                     if (item.menuItem) {
