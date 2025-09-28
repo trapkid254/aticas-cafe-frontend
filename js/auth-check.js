@@ -46,13 +46,18 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Auth Check - Admin Token:', adminToken ? 'Exists' : 'Missing');
     console.log('Auth Check - Admin Type:', adminType);
     
-    // Helper function to redirect to login
+    // Helper function to redirect to login (use explicit, existing routes)
     const redirectToLogin = () => {
         const isButcheryPath = cleanPath.includes('butchery-admin');
         const loginPath = isButcheryPath 
-            ? `${basePath}/butchery-admin/butcheryadmin-login` 
-            : `${basePath}/admin/admin-login`;
-            
+            ? `${basePath}/butchery-admin/login` // server has explicit route
+            : `${basePath}/admin/admin-login.html`; // static file
+        const normalizedTarget = loginPath.replace(/\/index(?:\.html)?$/i, '').replace(/\.html$/i, '').toLowerCase();
+        const normalizedHere = cleanPath;
+        if (normalizedHere.endsWith(normalizedTarget.replace(basePath, '').replace(/^\/+/, ''))) {
+            console.log('Auth Check - Already on login page, no redirect');
+            return;
+        }
         console.log('Auth Check - Redirecting to login:', loginPath);
         sessionStorage.setItem('authRedirecting', 'true');
         window.location.replace(loginPath);
@@ -67,14 +72,21 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    const isLoginPage = cleanPath.endsWith('login') || cleanPath.includes('-login');
+    const isLoginPage = (
+        cleanPath.endsWith('/admin/admin-login') ||
+        cleanPath.includes('/admin/admin-login') ||
+        cleanPath.endsWith('/butchery-admin/login') ||
+        cleanPath.includes('/butchery-admin/login') ||
+        cleanPath.endsWith('login') || cleanPath.includes('-login')
+    );
     console.log('Auth Check - Is Login Page:', isLoginPage);
     
     // Helper function to get dashboard path
     const getDashboardPath = (isButchery) => {
+        // Use base urls that the server actually serves
         return isButchery 
-            ? `${basePath}/butchery-admin/index`
-            : `${basePath}/admin/index`;
+            ? `${basePath}/butchery-admin`
+            : `${basePath}/admin`;
     };
     
     // Function to get the correct login path
@@ -91,7 +103,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const targetPath = getDashboardPath(isButchery);
         
         // Only redirect if we're not already on the target page
-        if (!cleanPath.endsWith(targetPath.replace(basePath, '').replace(/^\/+/, ''))) {
+        const normalizedTarget = targetPath.replace(/\/index(?:\.html)?$/i, '').toLowerCase();
+        const normalizedHere = cleanPath;
+        if (!normalizedHere.endsWith(normalizedTarget.replace(basePath, '').replace(/^\/+/, ''))) {
             console.log('Auth Check - Redirecting to dashboard:', targetPath);
             sessionStorage.setItem('authRedirecting', 'true');
             window.location.replace(targetPath);
@@ -122,10 +136,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Only redirect if we're on the wrong admin section
     if (isButchery !== shouldBeOnButchery) {
         const targetPath = getDashboardPath(isButchery);
-        console.log('Auth Check - Redirecting to correct admin section:', targetPath);
-        sessionStorage.setItem('authRedirecting', 'true');
-        window.location.replace(targetPath);
-        return;
+        const normalizedTarget = targetPath.replace(/\/index(?:\.html)?$/i, '').toLowerCase();
+        const normalizedHere = cleanPath;
+        if (!normalizedHere.endsWith(normalizedTarget.replace(basePath, '').replace(/^\/+/, ''))) {
+            console.log('Auth Check - Redirecting to correct admin section:', targetPath);
+            sessionStorage.setItem('authRedirecting', 'true');
+            window.location.replace(targetPath);
+            return;
+        }
     }
     
     console.log('Auth Check - No redirection needed - already on correct page');
