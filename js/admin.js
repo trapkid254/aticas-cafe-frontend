@@ -1,27 +1,34 @@
 document.addEventListener('DOMContentLoaded', function() {
     const adminToken = localStorage.getItem('adminToken');
-    const adminType = localStorage.getItem('adminType'); // 'cafeteria' or 'butchery'
+    // Derive adminType robustly: from localStorage, adminData, or JWT payload
+    let adminType = localStorage.getItem('adminType'); // 'cafeteria' or 'butchery'
+    const storedAdminData = JSON.parse(localStorage.getItem('adminData') || '{}');
+    if (!adminType && storedAdminData && typeof storedAdminData === 'object') {
+        adminType = storedAdminData.adminType || adminType;
+    }
+    const decodeJwt = (t) => {
+        try {
+            const parts = String(t).split('.');
+            if (parts.length !== 3) return null;
+            const json = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'));
+            return JSON.parse(json);
+        } catch { return null; }
+    };
+    if (!adminType && adminToken) {
+        const payload = decodeJwt(adminToken);
+        if (payload?.adminType) {
+            adminType = payload.adminType;
+            try { localStorage.setItem('adminType', adminType); } catch {}
+        }
+    }
 
-    if (!adminToken || !adminType) {
-        window.location.href = 'index.html';
+    // If no token at all, go to login (do not force dashboard redirects here)
+    if (!adminToken) {
+        window.location.href = '/admin/admin-login.html';
         return;
     }
 
-    // Get the current page path
-    const currentPath = window.location.pathname;
-    const isButcheryPath = currentPath.includes('butchery-admin');
-    const isCafeteriaPath = currentPath.includes('admin');
-    
-    // Determine the correct dashboard path based on admin type
-    const targetDashboard = adminType === 'butchery' ? '/butchery-admin/index.html' : '/admin/index.html';
-    const isOnCorrectDashboard = (adminType === 'butchery' && isButcheryPath) || 
-                               (adminType === 'cafeteria' && isCafeteriaPath);
-    
-    // Only redirect if we're not already on the correct dashboard
-    if (!isOnCorrectDashboard) {
-        window.location.href = targetDashboard;
-        return; // Stop execution to prevent further processing during redirect
-    }
+    // Do not force-redirect to dashboard; allow navigation within admin sections
 
     // Setup logout button
     const logoutBtn = document.getElementById('logoutBtn');
@@ -30,7 +37,10 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.removeItem('adminToken');
             localStorage.removeItem('adminType');
             localStorage.removeItem('isAdminLoggedIn');
-            window.location.href = 'admin-login.html';
+            const isButchery = (localStorage.getItem('adminType') || adminType) === 'butchery';
+            window.location.href = isButchery 
+                ? '/butchery-admin/butcheryadmin-login.html' 
+                : '/admin/admin-login.html';
         });
     }
 
@@ -62,17 +72,18 @@ document.addEventListener('DOMContentLoaded', function() {
         if (shouldAddTypeParam) {
             url.searchParams.append('type', adminType);
         }
-        
+        // Merge auth headers correctly (avoid overriding with duplicate keys)
+        const authHeaders = getAuthHeaders();
         const response = await fetch(url, {
             ...options,
-            headers: { ...headers, ...(options.headers || {}) },
-            headers: getAuthHeaders()
+            headers: { ...headers, ...(authHeaders || {}), ...(options.headers || {}) }
         });
         
         if (!response.ok) {
             if (response.status === 401) {
                 // Handle unauthorized access
                 localStorage.removeItem('adminToken');
+                window.location.href = '/admin/admin-login.html';
                 localStorage.removeItem('adminType');
                 window.location.href = adminType === 'butchery' 
                     ? '/butchery-admin/butcheryadmin-login.html'
