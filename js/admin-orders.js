@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const defaultOptions = {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': adminToken
+                'Authorization': `Bearer ${adminToken}`
             }
         };
         const response = await fetch(`https://aticas-backend.onrender.com${endpoint}`, { ...defaultOptions, ...options });
