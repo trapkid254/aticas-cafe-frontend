@@ -52,11 +52,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const fetchFromApi = async (endpoint, options = {}) => {
         const url = new URL(`https://aticas-backend.onrender.com${endpoint}`);
         
-        // Add admin type to headers for all requests
+        // Base headers for all requests (avoid custom headers that trigger CORS preflight failures)
         const headers = {
             'Authorization': `Bearer ${adminToken}`,
-            'Content-Type': 'application/json',
-            'X-Admin-Type': adminType  // Add admin type to headers
+            'Content-Type': 'application/json'
         };
         
         // Add type parameter for relevant endpoints
