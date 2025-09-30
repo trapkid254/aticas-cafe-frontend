@@ -36,13 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fetch menu items from API
     async function fetchMenuItems() {
         try {
-            const { token, adminType } = getAdminAuth();
-            const res = await fetch('https://aticas-backend.onrender.com/api/menu', {
-                headers: { 
-                    'Authorization': `Bearer ${token}`,
-                    'X-Admin-Type': adminType
-                }
-            });
+            const res = await fetch('https://aticas-backend.onrender.com/api/menu');
             
             if (!res.ok) {
                 throw new Error(`HTTP error! status: ${res.status}`);
@@ -60,13 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fetch meals of the day from API
     async function fetchMealsOfDay() {
         try {
-            const { token, adminType } = getAdminAuth();
-            const res = await fetch('https://aticas-backend.onrender.com/api/meals', {
-                headers: { 
-                    'Authorization': `Bearer ${token}`,
-                    'X-Admin-Type': adminType
-                }
-            });
+            const res = await fetch('https://aticas-backend.onrender.com/api/meals');
             
             if (!res.ok) {
                 throw new Error(`HTTP error! status: ${res.status}`);
