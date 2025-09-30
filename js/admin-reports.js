@@ -1,21 +1,26 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if admin is logged in
-    const isAdminLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
-    
-    if (!isAdminLoggedIn) {
-        window.location.href = '../admin-login.html';
+    // Token-based auth check
+    const adminToken = localStorage.getItem('adminToken');
+    if (!adminToken) {
+        window.location.href = '/admin/admin-login.html';
+        return;
     }
+    const adminType = localStorage.getItem('adminType') || 'cafeteria';
     
     // Logout button
     const logoutBtn = document.getElementById('logoutBtn');
-    logoutBtn.addEventListener('click', function() {
-        localStorage.removeItem('isAdminLoggedIn');
-        localStorage.removeItem('adminToken');
-        window.location.href = '../index.html';
-    });
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+            localStorage.removeItem('isAdminLoggedIn');
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminType');
+            window.location.href = '/admin/admin-login.html';
+        });
+    }
     
     // Time period toggle
-    document.getElementById('timePeriod').addEventListener('change', function() {
+    const timePeriodEl = document.getElementById('timePeriod');
+    if (timePeriodEl) timePeriodEl.addEventListener('change', function() {
         const customDateRange = document.getElementById('customDateRange');
         if (this.value === 'custom') {
             customDateRange.style.display = 'block';
@@ -25,9 +30,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Generate report button
-    document.getElementById('generateReportBtn').addEventListener('click', function() {
-        const reportType = document.getElementById('reportType').value;
-        const timePeriod = document.getElementById('timePeriod').value;
+    const generateBtn = document.getElementById('generateReportBtn');
+    if (generateBtn) generateBtn.addEventListener('click', function() {
+        const reportType = document.getElementById('reportType')?.value;
+        const timePeriod = document.getElementById('timePeriod')?.value;
         let startDate, endDate;
         
         if (timePeriod === 'custom') {
@@ -69,16 +75,19 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Export buttons
-    document.querySelector('.pdf-btn').addEventListener('click', function() {
+    const pdfBtn = document.querySelector('.pdf-btn');
+    if (pdfBtn) pdfBtn.addEventListener('click', function() {
         alert('PDF export would be implemented here');
     });
     
-    document.querySelector('.excel-btn').addEventListener('click', function() {
+    const excelBtn = document.querySelector('.excel-btn');
+    if (excelBtn) excelBtn.addEventListener('click', function() {
         alert('Excel export would be implemented here');
     });
     
     // Generate initial report
-    generateReport('sales', getDateRange('month').startDate, getDateRange('month').endDate);
+    const initialRange = getDateRange('month');
+    generateReport('sales', initialRange.startDate, initialRange.endDate);
 });
 
 function getDateRange(timePeriod) {
@@ -123,7 +132,11 @@ function generateReport(reportType, startDate, endDate) {
 
 async function generateSalesReport(startDate, endDate) {
     try {
-        const res = await fetch('https://aticas-backend.onrender.com/api/orders?type=cafeteria', { headers: { 'Authorization': localStorage.getItem('adminToken') || '' } });
+        const adminToken = localStorage.getItem('adminToken');
+        const adminType = localStorage.getItem('adminType') || 'cafeteria';
+        const res = await fetch(`https://aticas-backend.onrender.com/api/orders?type=${encodeURIComponent(adminType)}`, { 
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
         const orders = await res.json();
         // Filter orders by date range
         const filteredData = orders.filter(order => {
@@ -176,7 +189,7 @@ async function generateSalesReport(startDate, endDate) {
         document.querySelector('.report-card:nth-child(4) .change').className = `change ${customersChange >= 0 ? 'positive' : 'negative'}`;
         // Update detailed sales table
         const tableBody = document.querySelector('#salesReportTable tbody');
-        tableBody.innerHTML = '';
+        if (tableBody) tableBody.innerHTML = '';
         // Display first 5 orders for the demo
         const displayData = filteredData.slice(0, 5);
         displayData.forEach(order => {
@@ -190,7 +203,7 @@ async function generateSalesReport(startDate, endDate) {
                 <td>${order.paymentMethod === 'mpesa' ? 'M-Pesa' : 'Cash'}</td>
                 <td class="status-${order.status}">${order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : ''}</td>
             `;
-            tableBody.appendChild(row);
+            if (tableBody) tableBody.appendChild(row);
         });
         // --- Render Sales Overview Chart ---
         renderSalesOverviewChart(filteredData);
@@ -198,10 +211,10 @@ async function generateSalesReport(startDate, endDate) {
         renderPopularItemsChart(filteredData);
     } catch (err) {
         // Handle error
-        document.querySelector('.report-card:nth-child(1) .value').textContent = 'Ksh 0';
-        document.querySelector('.report-card:nth-child(2) .value').textContent = '0';
-        document.querySelector('.report-card:nth-child(3) .value').textContent = 'Ksh 0';
-        document.querySelector('.report-card:nth-child(4) .value').textContent = '0';
+        const c1 = document.querySelector('.report-card:nth-child(1) .value'); if (c1) c1.textContent = 'Ksh 0';
+        const c2 = document.querySelector('.report-card:nth-child(2) .value'); if (c2) c2.textContent = '0';
+        const c3 = document.querySelector('.report-card:nth-child(3) .value'); if (c3) c3.textContent = 'Ksh 0';
+        const c4 = document.querySelector('.report-card:nth-child(4) .value'); if (c4) c4.textContent = '0';
         const tableBody = document.querySelector('#salesReportTable tbody');
         if (tableBody) tableBody.innerHTML = '<tr><td colspan="7">Failed to load sales data.</td></tr>';
     }
@@ -231,7 +244,11 @@ function generateSimpleReport(orders) {
 
 async function fetchOrdersAndGenerateReport() {
     try {
-        const res = await fetch('https://aticas-backend.onrender.com/api/orders?type=cafeteria', { headers: { 'Authorization': localStorage.getItem('adminToken') || '' } });
+        const adminToken = localStorage.getItem('adminToken');
+        const adminType = localStorage.getItem('adminType') || 'cafeteria';
+        const res = await fetch(`https://aticas-backend.onrender.com/api/orders?type=${encodeURIComponent(adminType)}`, { 
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
         if (!res.ok) {
             throw new Error('Failed to fetch orders for report');
         }
