@@ -5,7 +5,17 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = '/admin/admin-login.html';
         return;
     }
-    const adminType = localStorage.getItem('adminType') || 'cafeteria';
+    // Derive adminType from JWT to avoid stale localStorage values
+    const decodeJwt = (t) => {
+        try {
+            const parts = String(t).split('.');
+            if (parts.length !== 3) return null;
+            const json = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'));
+            return JSON.parse(json);
+        } catch { return null; }
+    };
+    const payload = decodeJwt(adminToken);
+    const adminType = (payload && payload.adminType) || localStorage.getItem('adminType') || 'cafeteria';
     
     // Logout button
     const logoutBtn = document.getElementById('logoutBtn');

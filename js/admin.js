@@ -1,11 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     const adminToken = localStorage.getItem('adminToken');
-    // Derive adminType robustly: from localStorage, adminData, or JWT payload
-    let adminType = localStorage.getItem('adminType'); // 'cafeteria' or 'butchery'
-    const storedAdminData = JSON.parse(localStorage.getItem('adminData') || '{}');
-    if (!adminType && storedAdminData && typeof storedAdminData === 'object') {
-        adminType = storedAdminData.adminType || adminType;
-    }
+    // Always prioritize JWT payload for adminType to avoid stale localStorage values
     const decodeJwt = (t) => {
         try {
             const parts = String(t).split('.');
@@ -14,13 +9,21 @@ document.addEventListener('DOMContentLoaded', function() {
             return JSON.parse(json);
         } catch { return null; }
     };
-    if (!adminType && adminToken) {
-        const payload = decodeJwt(adminToken);
-        if (payload?.adminType) {
-            adminType = payload.adminType;
-            try { localStorage.setItem('adminType', adminType); } catch {}
+    let adminType = null;
+    const payload = adminToken ? decodeJwt(adminToken) : null;
+    if (payload?.adminType) {
+        adminType = payload.adminType; // canonical source
+    } else {
+        // Fallbacks if token missing type for some reason
+        const storedAdminData = JSON.parse(localStorage.getItem('adminData') || '{}');
+        if (storedAdminData && typeof storedAdminData === 'object' && storedAdminData.adminType) {
+            adminType = storedAdminData.adminType;
+        } else {
+            adminType = localStorage.getItem('adminType') || 'cafeteria';
         }
     }
+    // Persist corrected adminType so other scripts use the right one
+    try { localStorage.setItem('adminType', adminType); } catch {}
 
     // Fallback: compute dashboard stats and recent orders on client from /api/orders
     async function buildStatsFromOrdersFallback() {
