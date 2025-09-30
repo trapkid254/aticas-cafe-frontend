@@ -28,15 +28,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Functions
     async function fetchMeatItems() {
         try {
-            const res = await fetch('https://aticas-backend.onrender.com/api/menu', {
-                headers: { 'Authorization': getToken() }
-            });
+            const res = await fetch('https://aticas-backend.onrender.com/api/meats');
             if (!res.ok) {
                 throw new Error(`HTTP error! status: ${res.status}`);
             }
-            const allMenuItems = await res.json();
-            // Filter for meat items (assuming meat items have category 'meat' or similar)
-            meatItems = allMenuItems.filter(item => item.category && item.category.toLowerCase() === 'meat');
+            const allMeatItems = await res.json();
+            meatItems = Array.isArray(allMeatItems) ? allMeatItems : [];
             renderMeatMenu();
         } catch (err) {
             console.error('Failed to load meat menu:', err);
@@ -48,9 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     async function fetchMeatsOfDay() {
         try {
-            const res = await fetch('https://aticas-backend.onrender.com/api/menu', {
-                headers: { 'Authorization': getToken() }
-            });
+            const res = await fetch('https://aticas-backend.onrender.com/api/meats');
             
             if (!res.ok) {
                 const errorText = await res.text();
@@ -65,9 +60,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('Response was not JSON');
             }
             
-            const allMenuItems = await res.json();
-            // Filter for meat items (assuming meat items have category 'meat' or similar)
-            meatsOfDay = allMenuItems.filter(item => item.category && item.category.toLowerCase() === 'meat');
+            const allMeatItems = await res.json();
+            meatsOfDay = Array.isArray(allMeatItems) ? allMeatItems : [];
             renderMeatsOfDay();
         } catch (err) {
             console.error('Failed to load meats of day:', err);
@@ -170,6 +164,24 @@ document.addEventListener('DOMContentLoaded', function() {
         isSubmitting = true;
         
         try {
+            // Verify current admin profile is butchery before proceeding
+            try {
+                const profRes = await fetch('https://aticas-backend.onrender.com/api/admin/profile', {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                if (profRes.ok) {
+                    const prof = await profRes.json();
+                    const at = prof?.admin?.adminType;
+                    if (at !== 'butchery') {
+                        throw new Error('You are not logged in as a Butchery admin. Please log in to the Butchery admin account.');
+                    }
+                } else {
+                    console.warn('Profile check failed with status', profRes.status);
+                }
+            } catch (pfErr) {
+                console.warn('Admin profile verification warning:', pfErr.message || pfErr);
+            }
+
             // Get form elements
             const name = document.getElementById('meatName')?.value?.trim();
             const price = document.getElementById('meatPrice')?.value;
