@@ -154,6 +154,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.warn('Dashboard stats endpoint missing or invalid. Falling back to compute from orders.');
                     response = await buildStatsFromOrdersFallback();
                     if (!response) throw new Error('No dashboard data returned');
+                } else {
+                    // Safety net: if stats look empty but there are orders, recompute from orders
+                    try {
+                        const orders = await fetchFromApi('/api/orders');
+                        if (Array.isArray(orders) && orders.length > 0) {
+                            const allZero = !response.stats.todayOrders && !response.stats.todayRevenue && !response.stats.pendingOrders && !response.stats.completedOrders;
+                            if (allZero) {
+                                console.warn('Backend stats look empty while orders exist. Recomputing from orders.');
+                                const fallback = await buildStatsFromOrdersFallback();
+                                if (fallback && fallback.stats) {
+                                    response = fallback;
+                                }
+                            }
+                        }
+                    } catch (ignore) {}
                 }
                 // Update dashboard stats
                 const stats = response.stats;
@@ -332,7 +347,7 @@ const errorDiv = document.createElement('div');
         const isButchery = adminType === 'butchery';
 
         // Filter menu items by admin type if needed
-        const filteredMenuItems = menuItems.filter(item => item.adminType === adminType);
+        const filteredMenuItems = (menuItems || []).filter(item => item.adminType === adminType);
 
         // If no orders or menu items, don't show the chart
         if (!orders || orders.length === 0 || filteredMenuItems.length === 0) {
@@ -342,13 +357,13 @@ const errorDiv = document.createElement('div');
 
         const itemSales = {};
         
-        // Process each order to count item quantities
+        // Count quantities per item id
         orders.forEach(order => {
             if (order.items && order.items.length > 0) {
                 order.items.forEach(item => {
                     const id = item.menuItem?._id || item.menuItem;
                     if (id) {
-                        itemSales[id] = (itemSales[id] || 0) + (item.quantity || 1);
+                        itemSales[String(id)] = (itemSales[String(id)] || 0) + (item.quantity || 1);
                     }
                 });
             }
@@ -357,7 +372,16 @@ const errorDiv = document.createElement('div');
         // Sort and get top 5 items
         const sortedItems = Object.entries(itemSales)
             .sort(([, a], [, b]) => b - a)
-        
+            .slice(0, 5);
+
+        // Map item ids to names
+        const idToName = new Map(filteredMenuItems.map(i => [String(i._id || i.id), i.name]));
+        const labels = sortedItems.map(([id]) => idToName.get(String(id)) || 'Unknown');
+        const data = sortedItems.map(([, qty]) => qty);
+
+        // Destroy existing chart if any
+        if (topSellingChart) topSellingChart.destroy();
+
         // Create new chart
         topSellingChart = new Chart(ctx, {
             type: 'pie',
@@ -367,17 +391,17 @@ const errorDiv = document.createElement('div');
                     label: 'Quantity Sold',
                     data: data,
                     backgroundColor: [
-                        '#2ecc71', 
-                        '#3498db', 
-                        '#f1c40f', 
-                        '#e74c3c', 
+                        '#2ecc71',
+                        '#3498db',
+                        '#f1c40f',
+                        '#e74c3c',
                         '#9b59b6'
                     ],
                     borderWidth: 1
                 }]
             },
-            options: { 
-                responsive: true, 
+            options: {
+                responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
@@ -386,9 +410,7 @@ const errorDiv = document.createElement('div');
                     title: {
                         display: true,
                         text: isButchery ? 'Top Selling Meat Items' : 'Top Selling Menu Items',
-                        font: {
-                            size: 16
-                        }
+                        font: { size: 16 }
                     }
                 }
             }
