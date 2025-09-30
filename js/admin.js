@@ -22,6 +22,36 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Fallback: compute dashboard stats and recent orders on client from /api/orders
+    async function buildStatsFromOrdersFallback() {
+        try {
+            const adminType = localStorage.getItem('adminType') || 'cafeteria';
+            const orders = await fetchFromApi('/api/orders');
+            if (!Array.isArray(orders)) return null;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const todayOrders = orders.filter(o => {
+                const d = new Date(o.createdAt || o.date);
+                return d >= today;
+            });
+            const stats = {
+                todayOrders: todayOrders.length,
+                todayRevenue: todayOrders.reduce((sum, o) => sum + (o.totalAmount || o.total || 0), 0),
+                pendingOrders: orders.filter(o => o.status === 'pending').length,
+                completedOrders: orders.filter(o => o.status === 'completed').length,
+            };
+            // recentOrders: latest 5
+            const recentOrders = [...orders]
+                .sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date))
+                .slice(0, 5);
+            console.info('Dashboard data built from orders fallback.');
+            return { success: true, stats, recentOrders };
+        } catch (e) {
+            console.error('Fallback build from orders failed:', e);
+            return null;
+        }
+    }
+
     // If no token at all, go to login (do not force dashboard redirects here)
     if (!adminToken) {
         window.location.href = '/admin/admin-login.html';
@@ -80,14 +110,15 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!response.ok) {
             if (response.status === 401) {
-                // Handle unauthorized access
-                localStorage.removeItem('adminToken');
-                window.location.href = '/admin/admin-login.html';
-                localStorage.removeItem('adminType');
+                // Handle unauthorized: clear and redirect once, then throw to let callers handle UI
+                try {
+                    localStorage.removeItem('adminToken');
+                    localStorage.removeItem('adminType');
+                } catch (e) {}
                 window.location.href = adminType === 'butchery' 
                     ? '/butchery-admin/butcheryadmin-login.html'
                     : '/admin/admin-login.html';
-                return null;
+                throw new Error('401 Unauthorized');
             }
             throw new Error(`Failed to fetch from ${endpoint}`);
         }
@@ -111,13 +142,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 const adminType = localStorage.getItem('adminType') || 'cafeteria';
                 
                 // Fetch dashboard stats with admin type
-                const response = await fetchFromApi(`/api/dashboard/stats?adminType=${adminType}`);
+                let response = await fetchFromApi(`/api/dashboard/stats?adminType=${adminType}`);
                 
                 // Remove loading indicator
                 if (loadingDiv.parentNode) {
                     loadingDiv.remove();
                 }
 
+                // Validate response
+                if (!response || response.success === false || !response.stats) {
+                    console.warn('Dashboard stats endpoint missing or invalid. Falling back to compute from orders.');
+                    response = await buildStatsFromOrdersFallback();
+                    if (!response) throw new Error('No dashboard data returned');
+                }
                 // Update dashboard stats
                 const stats = response.stats;
                 const isButchery = adminType === 'butchery';
@@ -138,10 +175,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Update card values
-                if (todayOrdersEl) todayOrdersEl.textContent = stats.todayOrders?.toLocaleString() || '0';
+                if (todayOrdersEl) todayOrdersEl.textContent = (stats.todayOrders || 0).toLocaleString();
                 if (totalRevenueEl) totalRevenueEl.textContent = `Ksh ${(stats.todayRevenue || 0).toLocaleString()}`;
-                if (pendingOrdersEl) pendingOrdersEl.textContent = stats.pendingOrders?.toLocaleString() || '0';
-                if (completedOrdersEl) completedOrdersEl.textContent = stats.completedOrders?.toLocaleString() || '0';
+                if (pendingOrdersEl) pendingOrdersEl.textContent = (stats.pendingOrders || 0).toLocaleString();
+                if (completedOrdersEl) completedOrdersEl.textContent = (stats.completedOrders || 0).toLocaleString();
                 
                 // Update page title
                 const pageTitle = document.querySelector('.admin-content h2');
