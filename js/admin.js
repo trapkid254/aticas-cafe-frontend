@@ -633,7 +633,8 @@ const errorDiv = document.createElement('div');
             const token = localStorage.getItem('adminToken');
             if (!token) return;
             
-            const endpoint = adminType === 'butchery' ? '/api/butchery-orders' : '/api/orders';
+            // Use unified orders endpoint; backend filters by admin type via JWT
+            const endpoint = '/api/orders';
             const res = await fetch(`https://aticas-backend.onrender.com${endpoint}`, {
                 headers: { 
                     'Authorization': `Bearer ${token}`,
@@ -727,40 +728,33 @@ const errorDiv = document.createElement('div');
         setTimeout(() => { toast.style.display = 'none'; }, 4000);
     }
 
+    // Polling with simple exponential backoff on errors
+    let pollDelayMs = 10000; // start with 10s
     async function pollForNewOrders() {
         try {
             const token = localStorage.getItem('adminToken');
-            
             if (!token) {
                 console.error('No admin token found');
                 return;
             }
 
-            const res = await fetch('https://aticas-backend.onrender.com/api/orders', {
-                headers: { 
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!res.ok) {
-                throw new Error(`HTTP error! status: ${res.status}`);
-            }
-
-            const orders = await res.json();
+            const orders = await fetchFromApi('/api/orders');
             const unviewed = orders.filter(o => !o.viewedByAdmin && (!o.status || (o.status !== 'completed' && o.status !== 'cancelled')));
-            
+
             if (typeof updateUnviewedOrdersBadge === 'function') {
                 updateUnviewedOrdersBadge();
             }
-            
+
             if (unviewed.length > lastUnviewedOrderCount) {
                 showAdminOrderToast('New order received!');
             }
             lastUnviewedOrderCount = unviewed.length;
+
+            // Success: reset delay to baseline
+            pollDelayMs = 10000;
         } catch (err) {
             console.error('Error polling for orders:', err);
-            if (err.message.includes('401')) {
+            if (err.message && err.message.includes('401')) {
                 console.error('Authentication failed. Redirecting to login...');
                 localStorage.removeItem('adminToken');
                 localStorage.removeItem('adminType');
@@ -769,8 +763,10 @@ const errorDiv = document.createElement('div');
                     : '/admin/admin-login.html';
                 return;
             }
+            // Backoff on transient errors
+            pollDelayMs = Math.min(pollDelayMs * 2, 60000); // cap at 60s
         }
-        setTimeout(pollForNewOrders, 10000);
+        setTimeout(pollForNewOrders, pollDelayMs);
     }
 
     // Initialize only where applicable
