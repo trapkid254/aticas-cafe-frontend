@@ -5,14 +5,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function loadPayments() {
     const adminToken = localStorage.getItem('adminToken');
+    const adminType = localStorage.getItem('adminType') || 'cafeteria';
     const paymentsTableBody = document.querySelector('#paymentsTable tbody');
     const todayPaymentsElem = document.getElementById('todayPayments');
     const monthPaymentsElem = document.getElementById('monthPayments');
     const yearPaymentsElem = document.getElementById('yearPayments');
     paymentsTableBody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
     try {
-        const res = await fetch('https://aticas-backend.onrender.com/api/orders?type=cafeteria', {
-            headers: { 'Authorization': adminToken }
+        const res = await fetch(`https://aticas-backend.onrender.com/api/orders?type=${encodeURIComponent(adminType)}`, {
+            headers: { 'Authorization': `Bearer ${adminToken}` }
         });
         if (!res.ok) throw new Error('Failed to fetch orders');
         let orders = await res.json();

@@ -98,11 +98,13 @@ document.addEventListener('DOMContentLoaded', function() {
     async function updateDashboardData() {
         try {
             // Show loading state
-            const contentArea = document.querySelector('.admin-content');
+            const contentArea = document.querySelector('.admin-content') || document.querySelector('.main-content') || document.body;
             const loadingDiv = document.createElement('div');
             loadingDiv.className = 'loading';
             loadingDiv.textContent = 'Loading dashboard data...';
-            contentArea.insertBefore(loadingDiv, contentArea.firstChild);
+            if (contentArea) {
+                contentArea.insertBefore(loadingDiv, contentArea.firstChild);
+            }
 
             try {
                 // Get admin type from localStorage
@@ -174,7 +176,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const successMessage = document.createElement('div');
                 successMessage.className = 'success-message';
                 successMessage.textContent = 'Dashboard updated successfully';
-                contentArea.insertBefore(successMessage, contentArea.firstChild);
+                if (contentArea) {
+                    contentArea.insertBefore(successMessage, contentArea.firstChild);
+                }
                 
                 // Remove success message after 3 seconds
                 setTimeout(() => {
@@ -200,7 +204,7 @@ const errorDiv = document.createElement('div');
             errorDiv.textContent = 'Failed to load dashboard data. ' + 
                 (error.message || 'Please try again later.');
                 
-            const contentArea = document.querySelector('.admin-content');
+            const contentArea = document.querySelector('.admin-content') || document.querySelector('.main-content') || document.body;
             if (contentArea) {
                 contentArea.insertBefore(errorDiv, contentArea.firstChild);
                 
@@ -732,8 +736,11 @@ const errorDiv = document.createElement('div');
         setTimeout(pollForNewOrders, 10000);
     }
 
-    // Initialize the dashboard
-    updateDashboardData();
-    updateUnviewedOrdersBadge();
-    setTimeout(pollForNewOrders, 10000);
+    // Initialize only where applicable
+    const isDashboardPage = !!document.querySelector('.admin-content .dashboard-cards');
+    if (isDashboardPage) {
+        updateDashboardData();
+        updateUnviewedOrdersBadge();
+        setTimeout(pollForNewOrders, 10000);
+    }
 });
