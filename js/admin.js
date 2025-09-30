@@ -173,27 +173,52 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Update dashboard stats
                 const stats = response.stats;
                 const isButchery = adminType === 'butchery';
-                
-                // Update dashboard cards
+
+                // Cafeteria IDs
                 const todayOrdersEl = document.getElementById('todayOrders');
                 const totalRevenueEl = document.getElementById('totalRevenue');
                 const pendingOrdersEl = document.getElementById('pendingOrders');
                 const completedOrdersEl = document.getElementById('completedOrders');
-                
-                // Update card titles based on admin type
+
+                // Butchery IDs
+                const totalOrdersElB = document.getElementById('totalOrders');
+                const totalRevenueElB = document.getElementById('totalRevenue');
+                const totalMeatItemsElB = document.getElementById('totalMeatItems');
+                const meatsTodayElB = document.getElementById('meatsToday');
+
+                // Update card titles based on admin type (only if elements exist)
                 const cardTitles = document.querySelectorAll('.dashboard-card h3');
                 if (cardTitles.length >= 4) {
-                    cardTitles[0].textContent = isButchery ? "Today's Meat Orders" : "Today's Orders";
-                    cardTitles[1].textContent = isButchery ? "Today's Meat Revenue" : "Today's Revenue";
-                    cardTitles[2].textContent = isButchery ? "Pending Meat Orders" : "Pending Orders";
-                    cardTitles[3].textContent = isButchery ? "Completed Meat Orders" : "Completed Orders";
+                    if (isButchery) {
+                        // For butchery page, titles are already set in HTML; skip changing text
+                    } else {
+                        cardTitles[0].textContent = "Today's Orders";
+                        cardTitles[1].textContent = "Today's Revenue";
+                        cardTitles[2].textContent = "Pending Orders";
+                        cardTitles[3].textContent = "Completed Orders";
+                    }
                 }
-                
-                // Update card values
-                if (todayOrdersEl) todayOrdersEl.textContent = (stats.todayOrders || 0).toLocaleString();
-                if (totalRevenueEl) totalRevenueEl.textContent = `Ksh ${(stats.todayRevenue || 0).toLocaleString()}`;
-                if (pendingOrdersEl) pendingOrdersEl.textContent = (stats.pendingOrders || 0).toLocaleString();
-                if (completedOrdersEl) completedOrdersEl.textContent = (stats.completedOrders || 0).toLocaleString();
+
+                // Populate values for cafeteria
+                if (!isButchery) {
+                    if (todayOrdersEl) todayOrdersEl.textContent = (stats.todayOrders || 0).toLocaleString();
+                    if (totalRevenueEl) totalRevenueEl.textContent = `Ksh ${(stats.todayRevenue || 0).toLocaleString()}`;
+                    if (pendingOrdersEl) pendingOrdersEl.textContent = (stats.pendingOrders || 0).toLocaleString();
+                    if (completedOrdersEl) completedOrdersEl.textContent = (stats.completedOrders || 0).toLocaleString();
+                } else {
+                    // Populate butchery cards
+                    if (totalOrdersElB) totalOrdersElB.textContent = ((stats.todayOrders || 0) + (stats.pendingOrders || 0) + (stats.completedOrders || 0)).toLocaleString();
+                    if (totalRevenueElB) totalRevenueElB.textContent = `Ksh ${(stats.todayRevenue || 0).toLocaleString()}`;
+                    // Fetch meat items for counts
+                    try {
+                        const meats = await fetchFromApi('/api/meats');
+                        if (Array.isArray(meats)) {
+                            if (totalMeatItemsElB) totalMeatItemsElB.textContent = meats.length.toLocaleString();
+                            // If you later track "meats of the day", compute here; using 0 for now
+                            if (meatsTodayElB) meatsTodayElB.textContent = '0';
+                        }
+                    } catch {}
+                }
                 
                 // Update page title
                 const pageTitle = document.querySelector('.admin-content h2');

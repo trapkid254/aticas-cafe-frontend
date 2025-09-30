@@ -31,7 +31,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function fetchMenuItems() {
         try {
-            const res = await fetch('https://aticas-backend.onrender.com/api/menu');
+            // For butchery admin, load meats
+            const res = await fetch('https://aticas-backend.onrender.com/api/meats');
             menuItems = await res.json();
             renderMenuOptions(menuSearch.value);
         } catch (err) {
@@ -125,9 +126,9 @@ document.addEventListener('DOMContentLoaded', function() {
             customerPhone
         };
         try {
-            const res = await fetch('https://aticas-backend.onrender.com/api/orders?type=cafeteria', {
+            const res = await fetch('https://aticas-backend.onrender.com/api/orders', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
                 body: JSON.stringify(order)
             });
             const data = await res.json();
