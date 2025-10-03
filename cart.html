@@ -961,6 +961,83 @@
                         }
                     });
                 });
+
+                // Toggle Delivery Location section when order type changes
+                const orderTypeRadios = document.querySelectorAll('input[name="orderType"]');
+                const deliveryPopup = document.getElementById('deliveryLocationPopup');
+                const buildingNameEl = document.getElementById('buildingName');
+                const streetAddressEl = document.getElementById('streetAddress');
+                const latitudeEl = document.getElementById('latitude');
+                const longitudeEl = document.getElementById('longitude');
+                const checkoutDeliveryFeeRow = document.getElementById('checkoutDeliveryFeeRow');
+                const checkoutDeliveryFeeEl = document.getElementById('checkoutDeliveryFee');
+
+                function updateDeliveryFee() {
+                    try {
+                        const lat = parseFloat(latitudeEl?.value);
+                        const lng = parseFloat(longitudeEl?.value);
+                        if (Number.isFinite(lat) && Number.isFinite(lng) && typeof calculateDeliveryFee === 'function' && typeof haversineDistance === 'function') {
+                            const distanceKm = haversineDistance(CAFE_LAT, CAFE_LNG, lat, lng);
+                            const fee = calculateDeliveryFee(distanceKm);
+                            window.__computedDeliveryFee = fee;
+                            if (checkoutDeliveryFeeRow) checkoutDeliveryFeeRow.style.display = 'flex';
+                            if (checkoutDeliveryFeeEl) checkoutDeliveryFeeEl.textContent = `Ksh ${fee.toFixed(2)}`;
+                        }
+                    } catch (_) {}
+                }
+
+                function toggleDeliveryFields() {
+                    const selected = document.querySelector('input[name="orderType"]:checked')?.value;
+                    const isDelivery = selected === 'delivery';
+                    if (deliveryPopup) deliveryPopup.style.display = isDelivery ? 'block' : 'none';
+                    // Set required attributes dynamically
+                    [buildingNameEl, streetAddressEl].forEach(el => { if (el) el.required = isDelivery; });
+                    [latitudeEl, longitudeEl].forEach(el => { if (el) el.required = isDelivery; });
+                    if (isDelivery) updateDeliveryFee();
+                }
+
+                orderTypeRadios.forEach(r => r.addEventListener('change', toggleDeliveryFields));
+                // Initialize state
+                toggleDeliveryFields();
+
+                // Geolocation button handler
+                const getLocationBtn = document.getElementById('getLocationBtn');
+                const locationStatus = document.getElementById('locationStatus');
+                if (getLocationBtn && navigator.geolocation) {
+                    getLocationBtn.addEventListener('click', () => {
+                        if (locationStatus) {
+                            locationStatus.style.display = 'block';
+                            locationStatus.style.background = '#e8f5e9';
+                            locationStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Fetching your location...</span>';
+                        }
+                        navigator.geolocation.getCurrentPosition(
+                            (pos) => {
+                                const { latitude, longitude } = pos.coords;
+                                if (latitudeEl) latitudeEl.value = latitude;
+                                if (longitudeEl) longitudeEl.value = longitude;
+                                if (locationStatus) {
+                                    locationStatus.style.display = 'block';
+                                    locationStatus.style.background = '#e8f5e9';
+                                    locationStatus.innerHTML = '<i class="fas fa-check-circle" style="color:#27ae60"></i> <span>Location captured successfully!</span>';
+                                }
+                                updateDeliveryFee();
+                            },
+                            (err) => {
+                                if (locationStatus) {
+                                    locationStatus.style.display = 'block';
+                                    locationStatus.style.background = '#ffebee';
+                                    locationStatus.innerHTML = `<i class=\"fas fa-exclamation-triangle\" style=\"color:#e53935\"></i> <span>Failed to get location: ${err.message}</span>`;
+                                }
+                            },
+                            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                        );
+                    });
+                }
+
+                // Recompute fee when user edits coordinates manually
+                [latitudeEl, longitudeEl].forEach(el => {
+                    if (el) el.addEventListener('input', updateDeliveryFee);
+                });
             })();
 
             // Initialize UI and bind interactive handlers (we are already inside DOMContentLoaded)
@@ -1106,6 +1183,20 @@
                                 };
                             });
 
+                            // Validate delivery fields if delivery is selected
+                            if (orderType === 'delivery') {
+                                const bld = document.getElementById('buildingName')?.value?.trim();
+                                const str = document.getElementById('streetAddress')?.value?.trim();
+                                const latVal = parseFloat(document.getElementById('latitude')?.value);
+                                const lngVal = parseFloat(document.getElementById('longitude')?.value);
+                                if (!bld || !str) {
+                                    throw new Error('Please provide Building name and Street address for delivery');
+                                }
+                                if (!Number.isFinite(latVal) || !Number.isFinite(lngVal)) {
+                                    throw new Error('Please provide valid coordinates for delivery');
+                                }
+                            }
+
                             // Delivery info mapping for backend schema
                             const deliveryLocation = orderType === 'delivery' ? {
                                 buildingName: document.getElementById('buildingName')?.value?.trim() || '',
@@ -1118,6 +1209,7 @@
                             } : undefined;
 
                             // Prepare order body for backend
+                            const computedFee = orderType === 'delivery' ? (window.__computedDeliveryFee || 0) : 0;
                             const orderBody = {
                                 items: itemsPayload,
                                 customerName: name,
@@ -1125,7 +1217,7 @@
                                 orderType,
                                 paymentMethod,
                                 deliveryLocation,
-                                deliveryFee: orderType === 'delivery' ? (cart.deliveryFee || 0) : 0
+                                deliveryFee: computedFee
                             };
 
                             // Send to backend
