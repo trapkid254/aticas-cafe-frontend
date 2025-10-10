@@ -148,30 +148,46 @@ async function generateSalesReport(startDate, endDate) {
             headers: { 'Authorization': `Bearer ${adminToken}` }
         });
         const orders = await res.json();
+        // Fetch users for New Customers metric
+        const usersRes = await fetch('https://aticas-backend.onrender.com/api/users', {
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        const usersPayload = await usersRes.json();
+        const users = usersPayload && usersPayload.success ? (usersPayload.users || []) : [];
         // Filter orders by date range
         const filteredData = orders.filter(order => {
             const orderDate = (order.date || '').split('T')[0];
             return orderDate >= startDate && orderDate <= endDate;
         });
+        // Filter users by date range using createdAt
+        const filteredUsers = users.filter(u => {
+            const d = (u.createdAt || '').split('T')[0];
+            return d >= startDate && d <= endDate;
+        });
         // Calculate report stats
         const totalRevenue = filteredData.reduce((sum, order) => sum + (order.total || 0), 0);
         const totalOrders = filteredData.length;
         const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-        const uniqueCustomers = new Set(filteredData.map(order => order.customerName)).size;
+        // New customers from registrations
+        const newCustomers = filteredUsers.length;
         // For change calculations, get previous period
         const prevPeriod = getPreviousPeriod(startDate, endDate);
         const prevData = orders.filter(order => {
             const orderDate = (order.date || '').split('T')[0];
             return orderDate >= prevPeriod.startDate && orderDate <= prevPeriod.endDate;
         });
+        const prevUsers = users.filter(u => {
+            const d = (u.createdAt || '').split('T')[0];
+            return d >= prevPeriod.startDate && d <= prevPeriod.endDate;
+        });
         const prevRevenue = prevData.reduce((sum, order) => sum + (order.total || 0), 0);
         const prevOrders = prevData.length;
         const prevAvgOrderValue = prevOrders > 0 ? prevRevenue / prevOrders : 0;
-        const prevCustomers = new Set(prevData.map(order => order.customerName)).size;
+        const prevNewCustomers = prevUsers.length;
         const revenueChange = prevRevenue > 0 ? ((totalRevenue - prevRevenue) / prevRevenue * 100) : 100;
         const ordersChange = prevOrders > 0 ? ((totalOrders - prevOrders) / prevOrders * 100) : 100;
         const avgOrderChange = prevAvgOrderValue > 0 ? ((avgOrderValue - prevAvgOrderValue) / prevAvgOrderValue * 100) : 100;
-        const customersChange = prevCustomers > 0 ? ((uniqueCustomers - prevCustomers) / prevCustomers * 100) : 100;
+        const customersChange = prevNewCustomers > 0 ? ((newCustomers - prevNewCustomers) / prevNewCustomers * 100) : (newCustomers > 0 ? 100 : 0);
         // Update report cards
         document.querySelector('.report-card:nth-child(1) .value').textContent = 'Ksh ' + totalRevenue.toLocaleString();
         document.querySelector('.report-card:nth-child(1) .change').innerHTML = `
@@ -191,7 +207,7 @@ async function generateSalesReport(startDate, endDate) {
             ${Math.abs(avgOrderChange).toFixed(0)}% from last period
         `;
         document.querySelector('.report-card:nth-child(3) .change').className = `change ${avgOrderChange >= 0 ? 'positive' : 'negative'}`;
-        document.querySelector('.report-card:nth-child(4) .value').textContent = uniqueCustomers;
+        document.querySelector('.report-card:nth-child(4) .value').textContent = newCustomers;
         document.querySelector('.report-card:nth-child(4) .change').innerHTML = `
             <i class="fas fa-arrow-${customersChange >= 0 ? 'up' : 'down'}"></i> 
             ${Math.abs(customersChange).toFixed(0)}% from last period
