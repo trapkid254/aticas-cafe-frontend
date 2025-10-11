@@ -55,8 +55,8 @@ async function updateCartCount() {
         let butcheryCount = 0;
         
         if (userId && token) {
-            // For logged-in users, fetch from server
-            const response = await fetch('https://aticas-backend.onrender.com/api/cart/items', {
+            // For logged-in users, fetch cart by userId (backend route is /api/cart/:userId)
+            const response = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -198,9 +198,9 @@ async function updateCartItem(menuItemId, quantity, itemType = 'food', selectedS
 
         // For logged-in users
         if (userId && token) {
-            // For logged-in users, update server cart
+            // For logged-in users, update server cart (backend expects PATCH /api/cart/items)
             const response = await fetch('https://aticas-backend.onrender.com/api/cart/items', {
-                method: 'POST',
+                method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
@@ -209,12 +209,14 @@ async function updateCartItem(menuItemId, quantity, itemType = 'food', selectedS
                     menuItemId,
                     quantity,
                     itemType: isButchery ? 'Meat' : (isMealOfDay ? 'MealOfDay' : 'Menu'),
-                    ...(selectedSize && { size: selectedSize })
+                    ...(selectedSize && { selectedSize })
                 })
             });
             
             if (!response.ok) {
-                throw new Error('Failed to update cart');
+                let msg = 'Failed to update cart';
+                try { msg += `: ${response.status} ${await response.text()}`; } catch (e) {}
+                throw new Error(msg);
             }
             
             await updateCartCount();
@@ -336,21 +338,25 @@ async function removeCartItem(menuItemId, itemType = 'food', size = null) {
         
         // For logged-in users
         if (userId && token) {
-            // For logged-in users
-            const response = await fetch(`https://aticas-backend.onrender.com/api/cart/items/${menuItemId}`, {
-                method: 'DELETE',
+            // Use PATCH with quantity 0 so backend matches by selectedSize when provided
+            const response = await fetch('https://aticas-backend.onrender.com/api/cart/items', {
+                method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
+                    menuItemId,
+                    quantity: 0,
                     itemType: isButchery ? 'Meat' : (isMealOfDay ? 'MealOfDay' : 'Menu'),
-                    size: size || undefined
+                    ...(size && { selectedSize: { size } })
                 })
             });
             
             if (!response.ok) {
-                throw new Error('Failed to remove item from cart');
+                let msg = 'Failed to remove item from cart';
+                try { msg += `: ${response.status} ${await response.text()}`; } catch (e) {}
+                throw new Error(msg);
             }
             
             await updateCartCount();

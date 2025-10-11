@@ -442,6 +442,22 @@
                 }
             }
             
+            // Helper: validate MongoDB ObjectId
+            function isValidObjectId(id) {
+                const s = String(id || '');
+                return /^[0-9a-fA-F]{24}$/.test(s);
+            }
+
+            // Normalize itemType for updateCartItem()
+            function normalizeType(t) {
+                const v = String(t || '').toLowerCase();
+                if (v === 'meat' || v === 'butchery') return 'butchery';
+                if (v === 'mealofday' || v === 'mod' || v === 'meal of day' || v === 'mealofday') return 'mealofday';
+                if (v === 'menu') return 'menu';
+                // default to menu
+                return 'menu';
+            }
+
             // Migrate guest cart to server cart
             async function migrateGuestCartToServer(isButchery = false) {
                 const guestCart = getGuestCart(isButchery);
@@ -457,20 +473,28 @@
                     for (const item of guestCart.items) {
                         // Only migrate items of the correct type
                         const itemIsButchery = item.itemType === 'meat' || item.itemType === 'butchery' || item.itemType === 'Meat';
-                        if (itemIsButchery === isButchery) {
-                            // Ensure we're passing the menuItem ID as a string
-                            const menuItemId = typeof item.menuItem === 'object' ? item.menuItem._id || item.menuItem.id : item.menuItem;
-                            if (!menuItemId) {
-                                console.error('Invalid menuItem in cart:', item);
-                                continue;
-                            }
-                            
+                        if (itemIsButchery !== isButchery) continue;
+
+                        // Extract ID
+                        const rawId = typeof item.menuItem === 'object' ? (item.menuItem._id || item.menuItem.id) : item.menuItem;
+                        const menuItemId = rawId ? String(rawId) : '';
+                        if (!isValidObjectId(menuItemId)) {
+                            console.warn('Skipping migration for invalid menuItemId:', menuItemId, item);
+                            continue;
+                        }
+
+                        const normType = normalizeType(item.itemType);
+
+                        try {
                             await updateCartItem(
-                                menuItemId.toString(),
-                                item.quantity,
-                                item.itemType,
-                                item.selectedSize
+                                menuItemId,
+                                Number(item.quantity) || 1,
+                                normType,
+                                item.selectedSize || null
                             );
+                        } catch (e) {
+                            console.error('Failed to migrate item:', { menuItemId, normType, selectedSize: item.selectedSize, quantity: item.quantity }, e);
+                            // Continue with next item
                         }
                     }
 
