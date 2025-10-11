@@ -241,8 +241,11 @@
             });
             */
 
-            // Fetch existing meals of the day
-            const meatsRes = await fetch('https://aticas-backend.onrender.com/api/meats', { headers: { 'Authorization': localStorage.getItem('butcheryAdminToken') || '' } });
+            // Fetch existing meats using shared admin token
+            const adminToken = localStorage.getItem('adminToken');
+            const meatsRes = await fetch('https://aticas-backend.onrender.com/api/meats', {
+                headers: { 'Authorization': adminToken ? `Bearer ${adminToken}` : '' }
+            });
             const meats = await meatsRes.json();
             // ... (rest of the script to display meats)
 
