@@ -169,17 +169,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 const profRes = await fetch('https://aticas-backend.onrender.com/api/admin/profile', {
                     headers: { 'Authorization': `Bearer ${getToken()}` }
                 });
-                if (profRes.ok) {
-                    const prof = await profRes.json();
-                    const at = prof?.admin?.adminType;
-                    if (at !== 'butchery') {
-                        throw new Error('You are not logged in as a Butchery admin. Please log in to the Butchery admin account.');
-                    }
-                } else {
-                    console.warn('Profile check failed with status', profRes.status);
+                if (!profRes.ok) {
+                    const status = profRes.status;
+                    const text = await profRes.text().catch(() => '');
+                    console.warn('Profile check failed', status, text);
+                    showToast('Please log in as a Butchery admin to continue.', 'error');
+                    window.location.href = '/butchery-admin/butcheryadmin-login.html';
+                    return;
+                }
+                const prof = await profRes.json();
+                const at = prof?.admin?.adminType;
+                if (at !== 'butchery') {
+                    showToast('You are logged in as a different admin. Please log in as Butchery admin.', 'error');
+                    window.location.href = '/butchery-admin/butcheryadmin-login.html';
+                    return;
                 }
             } catch (pfErr) {
-                console.warn('Admin profile verification warning:', pfErr.message || pfErr);
+                console.warn('Admin profile verification error:', pfErr?.message || pfErr);
+                showToast('Authentication required. Please log in as Butchery admin.', 'error');
+                window.location.href = '/butchery-admin/butcheryadmin-login.html';
+                return;
             }
 
             // Get form elements
@@ -373,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const res = await fetch(`https://aticas-backend.onrender.com/api/meats/${id}`, {
                 method: 'DELETE',
-                headers: { 'Authorization': getToken() }
+                headers: { 'Authorization': `Bearer ${getToken()}` }
             });
             
             if (!res.ok) throw new Error('Failed to delete meat');
@@ -392,7 +401,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const res = await fetch(`https://aticas-backend.onrender.com/api/meats/${id}`, {
                 method: 'DELETE',
-                headers: { 'Authorization': getToken() }
+                headers: { 'Authorization': `Bearer ${getToken()}` }
             });
             
             if (!res.ok) throw new Error('Failed to remove');
