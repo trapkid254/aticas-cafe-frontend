@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (response.ok) {
                     await updateCartCount();
-                    showToast('Item added to cart!');
+                    showToast(`${meatItem.name} added to cart!`);
                     return true;
                 } else {
                     const errorData = await response.json().catch(() => ({}));
@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 localStorage.setItem('guestCart', JSON.stringify(cart));
                 await updateCartCount();
-                showToast('Item added to cart!');
+                showToast(`${meatItem.name} added to cart!`);
                 return true;
             } catch (err) {
                 console.error('Error adding to guest cart:', err);

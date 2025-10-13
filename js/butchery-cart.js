@@ -10,6 +10,89 @@ document.addEventListener('DOMContentLoaded', function() {
     const paymentOptions = document.querySelectorAll('input[name="payment"]');
     const orderTypeOptions = document.querySelectorAll('input[name="orderType"]');
 
+    // Helpers to normalize itemType and ids
+    function isButcheryType(t) {
+        const s = String(t || '').toLowerCase();
+        return s === 'meat' || s === 'butchery';
+    }
+
+    function getItemId(item) {
+        // Supports either nested menuItem object or direct id
+        if (!item) return null;
+        if (typeof item.menuItem === 'object' && item.menuItem) {
+            return item.menuItem._id || item.menuItem.id || item.menuItem;
+        }
+        return item.menuItem || item._id || item.id || null;
+    }
+
+    function getItemName(item) {
+        return item.name || item.menuItem?.name || 'Meat Item';
+    }
+
+    function getItemImage(item) {
+        return item.image || item.menuItem?.image || 'images/meat.jpg';
+    }
+
+    function mergeGuestButcheryCart(butcheryOnly) {
+        // Merge butchery-only items back into unified guestCart while preserving others
+        const raw = localStorage.getItem('guestCart') || '{"items":[],"total":0}';
+        let full;
+        try { full = JSON.parse(raw); } catch { full = { items: [], total: 0 }; }
+        const others = (full.items || []).filter(it => !isButcheryType(it.itemType));
+        const merged = others.concat(butcheryOnly.items || []);
+        const total = merged.reduce((sum, it) => {
+            const price = it.selectedSize?.price || it.price || it.menuItem?.price || 0;
+            return sum + (price * (it.quantity || 1));
+        }, 0);
+        localStorage.setItem('guestCart', JSON.stringify({ items: merged, total }));
+    }
+
+    function getGuestButcheryCart() {
+        // Read unified cart
+        const raw = localStorage.getItem('guestCart') || '{"items":[],"total":0}';
+        let full;
+        try { full = JSON.parse(raw); } catch { full = { items: [], total: 0 }; }
+
+        // Migrate legacy butcheryGuestCart if present
+        try {
+            const legacyRaw = localStorage.getItem('butcheryGuestCart');
+            if (legacyRaw) {
+                const legacy = JSON.parse(legacyRaw);
+                const legacyItems = Array.isArray(legacy.items) ? legacy.items : [];
+                if (legacyItems.length) {
+                    const merged = (full.items || []).concat(
+                        legacyItems.map(li => ({
+                            // normalize legacy fields
+                            menuItem: typeof li.menuItem === 'object' ? li.menuItem : { _id: li.menuItem, name: li.name, price: li.price, image: li.image },
+                            itemType: li.itemType || 'Meat',
+                            quantity: li.quantity || 1,
+                            selectedSize: li.selectedSize || null,
+                            name: li.name,
+                            price: li.price,
+                            image: li.image
+                        }))
+                    );
+                    const total = merged.reduce((sum, it) => {
+                        const price = it.selectedSize?.price || it.price || it.menuItem?.price || 0;
+                        return sum + (price * (it.quantity || 1));
+                    }, 0);
+                    localStorage.setItem('guestCart', JSON.stringify({ items: merged, total }));
+                    localStorage.removeItem('butcheryGuestCart');
+                    full = { items: merged, total };
+                } else {
+                    localStorage.removeItem('butcheryGuestCart');
+                }
+            }
+        } catch (_) {}
+
+        const items = (full.items || []).filter(it => isButcheryType(it.itemType));
+        const total = items.reduce((sum, it) => {
+            const price = it.selectedSize?.price || it.price || it.menuItem?.price || 0;
+            return sum + (price * (it.quantity || 1));
+        }, 0);
+        return { items, total };
+    }
+
     // Fetch cart from backend or local storage
     async function fetchCart() {
         const userId = localStorage.getItem('userId');
@@ -26,9 +109,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Fallback to local storage for guests
-        const guestCart = localStorage.getItem('butcheryGuestCart');
-        return guestCart ? JSON.parse(guestCart) : { items: [] };
+        // Fallback to unified guest cart for guests (butchery subset)
+        return getGuestButcheryCart();
     }
 
     // Save cart to backend or local storage
@@ -50,7 +132,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Error saving cart:', error);
             }
         } else {
-            localStorage.setItem('butcheryGuestCart', JSON.stringify(cart));
+            // Merge butchery-only changes back into unified guestCart
+            mergeGuestButcheryCart(cart);
         }
     }
 
@@ -64,18 +147,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add item to cart
     async function addToCart(item) {
         const cart = await fetchCart();
-        const existingItem = cart.items.find(i => 
-            i.menuItem === item._id && 
-            i.itemType === 'meat' &&
-            (!item.selectedSize || i.selectedSize?.size === item.selectedSize?.size)
-        );
+        const existingItem = cart.items.find(i => {
+            const sameId = String(getItemId(i)) === String(item._id);
+            const sameType = isButcheryType(i.itemType);
+            const sameSize = !item.selectedSize || i.selectedSize?.size === item.selectedSize?.size;
+            return sameId && sameType && sameSize;
+        });
 
         if (existingItem) {
             existingItem.quantity += item.quantity || 1;
         } else {
             cart.items.push({
-                menuItem: item._id,
-                itemType: 'meat',
+                menuItem: { _id: item._id, name: item.name, price: item.price, image: item.image, category: item.category },
+                itemType: 'Meat',
                 quantity: item.quantity || 1,
                 selectedSize: item.selectedSize || null,
                 name: item.name,
@@ -93,12 +177,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Remove item from cart
     async function removeFromCart(menuItemId, itemType, selectedSize = null) {
         const cart = await fetchCart();
-        cart.items = cart.items.filter(item => 
-            !(item.menuItem === menuItemId && 
-              item.itemType === itemType && 
-              ((selectedSize && item.selectedSize?.size === selectedSize) || 
-               (!selectedSize && !item.selectedSize)))
-        );
+        cart.items = cart.items.filter(item => {
+            const sameId = String(getItemId(item)) === String(menuItemId);
+            const sameType = isButcheryType(item.itemType) && isButcheryType(itemType);
+            const sameSize = (selectedSize && item.selectedSize?.size === selectedSize) || (!selectedSize && !item.selectedSize);
+            return !(sameId && sameType && sameSize);
+        });
         await saveCart(cart);
         await updateCartCount();
         await displayCartItems();
@@ -112,12 +196,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const cart = await fetchCart();
-        const item = cart.items.find(item => 
-            item.menuItem === menuItemId && 
-            item.itemType === itemType &&
-            ((selectedSize && item.selectedSize?.size === selectedSize) || 
-             (!selectedSize && !item.selectedSize))
-        );
+        const item = cart.items.find(item => {
+            const sameId = String(getItemId(item)) === String(menuItemId);
+            const sameType = isButcheryType(item.itemType) && isButcheryType(itemType);
+            const sameSize = (selectedSize && item.selectedSize?.size === selectedSize) || (!selectedSize && !item.selectedSize);
+            return sameId && sameType && sameSize;
+        });
 
         if (item) {
             item.quantity = quantity;
@@ -147,28 +231,28 @@ document.addEventListener('DOMContentLoaded', function() {
         let cartHTML = '';
 
         for (const item of cart.items) {
-            const itemTotal = item.quantity * (item.selectedSize?.price || item.price || 0);
+            const itemTotal = item.quantity * (item.selectedSize?.price || item.price || item.menuItem?.price || 0);
             subtotal += itemTotal;
 
             cartHTML += `
-                <div class="cart-item" data-id="${item.menuItem}" data-type="${item.itemType}" 
+                <div class="cart-item" data-id="${getItemId(item)}" data-type="${item.itemType}" 
                      ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>
-                    <img src="${item.image || 'images/meat.jpg'}" alt="${item.name}" onerror="this.src='images/meat.jpg';">
+                    <img src="${getItemImage(item)}" alt="${getItemName(item)}" onerror="this.src='images/meat.jpg';">
                     <div class="cart-item-details">
-                        <h3>${item.name} <span class="butchery-badge">Butchery</span></h3>
+                        <h3>${getItemName(item)} <span class="butchery-badge">Butchery</span></h3>
                         ${item.selectedSize ? `<p>Size: ${item.selectedSize.size}</p>` : ''}
-                        <p class="price">Ksh ${(item.selectedSize?.price || item.price || 0).toLocaleString()}</p>
+                        <p class="price">Ksh ${(item.selectedSize?.price || item.price || item.menuItem?.price || 0).toLocaleString()}</p>
                         <div class="quantity-controls">
-                            <button class="quantity-btn minus" data-id="${item.menuItem}" 
+                            <button class="quantity-btn minus" data-id="${getItemId(item)}" 
                                 data-type="${item.itemType}" 
                                 ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>-</button>
                             <span class="quantity">${item.quantity}</span>
-                            <button class="quantity-btn plus" data-id="${item.menuItem}" 
+                            <button class="quantity-btn plus" data-id="${getItemId(item)}" 
                                 data-type="${item.itemType}" 
                                 ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>+</button>
                         </div>
                     </div>
-                    <button class="remove-btn" data-id="${item.menuItem}" 
+                    <button class="remove-btn" data-id="${getItemId(item)}" 
                         data-type="${item.itemType}" 
                         ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>
                         <i class="fas fa-trash"></i>
