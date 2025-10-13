@@ -119,6 +119,26 @@
     </div>
 
     <script>
+        // Preselect admin type based on URL query (?type=butchery|cafeteria)
+        (function() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const type = (params.get('type') || '').toLowerCase();
+                const adminTypeSelect = document.getElementById('adminType');
+                const empNumber = document.getElementById('employmentNumber');
+                if (type === 'butchery' || type === 'cafeteria') {
+                    adminTypeSelect.value = type;
+                    // Sync placeholder and default value to reduce mistakes
+                    if (type === 'butchery') {
+                        empNumber.placeholder = 'e.g. AB001';
+                        if (!empNumber.value || empNumber.value === 'AC001') empNumber.value = 'AB001';
+                    } else {
+                        empNumber.placeholder = 'e.g. AC001';
+                        if (!empNumber.value || empNumber.value === 'AB001') empNumber.value = 'AC001';
+                    }
+                }
+            } catch (_) {}
+        })();
         document.getElementById('adminType').addEventListener('change', function() {
             const empNumber = document.getElementById('employmentNumber');
             if (this.value === 'cafeteria') {

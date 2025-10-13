@@ -257,7 +257,12 @@
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', function() {
-                localStorage.removeItem('butcheryAdminToken');
+                try {
+                    localStorage.removeItem('adminToken');
+                    localStorage.removeItem('adminData');
+                    localStorage.removeItem('adminType');
+                    localStorage.removeItem('isAdminLoggedIn');
+                } catch (_) {}
                 window.location.href = 'butcheryadmin-login.html';
             });
         }

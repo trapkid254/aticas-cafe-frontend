@@ -174,19 +174,38 @@ document.addEventListener('DOMContentLoaded', function() {
                     const text = await profRes.text().catch(() => '');
                     console.warn('Profile check failed', status, text);
                     showToast('Please log in as a Butchery admin to continue.', 'error');
+                    try {
+                        localStorage.removeItem('adminToken');
+                        localStorage.removeItem('adminData');
+                        localStorage.removeItem('adminType');
+                        localStorage.removeItem('isAdminLoggedIn');
+                    } catch(_) {}
                     window.location.href = '/butchery-admin/butcheryadmin-login.html';
                     return;
                 }
                 const prof = await profRes.json();
                 const at = prof?.admin?.adminType;
+                console.log('Detected adminType from profile:', at);
                 if (at !== 'butchery') {
-                    showToast('You are logged in as a different admin. Please log in as Butchery admin.', 'error');
+                    showToast(`You are logged in as ${at || 'a different'} admin. Please log in as Butchery admin.`, 'error');
+                    try {
+                        localStorage.removeItem('adminToken');
+                        localStorage.removeItem('adminData');
+                        localStorage.removeItem('adminType');
+                        localStorage.removeItem('isAdminLoggedIn');
+                    } catch(_) {}
                     window.location.href = '/butchery-admin/butcheryadmin-login.html';
                     return;
                 }
             } catch (pfErr) {
                 console.warn('Admin profile verification error:', pfErr?.message || pfErr);
                 showToast('Authentication required. Please log in as Butchery admin.', 'error');
+                try {
+                    localStorage.removeItem('adminToken');
+                    localStorage.removeItem('adminData');
+                    localStorage.removeItem('adminType');
+                    localStorage.removeItem('isAdminLoggedIn');
+                } catch(_) {}
                 window.location.href = '/butchery-admin/butcheryadmin-login.html';
                 return;
             }
