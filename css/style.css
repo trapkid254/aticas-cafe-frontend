@@ -1412,166 +1412,145 @@ body {
     border-bottom: 1px solid #eee;
 }
 .summary-row.total {
-    font-weight: bold;
-    font-size: 1.1rem;
-    border-bottom: none;
-    margin-top: 1.5rem;
+font-weight: bold;
+font-size: 1.1rem;
+border-bottom: none;
+margin-top: 1.5rem;
 }
 .checkout-btn {
-    width: 100%;
-    padding: 1rem;
-    background: linear-gradient(90deg, #27ae60 60%, #f9d423 100%);
-    color: #fff;
-    border: none;
-    border-radius: 7px;
-    font-weight: bold;
-    font-size: 1.1rem;
-    cursor: pointer;
-    margin-top: 1.5rem;
-    transition: background 0.3s;
-    box-shadow: 0 2px 8px rgba(39,174,96,0.08);
+width: 100%;
+padding: 1rem;
+background: #27ae60;
+color: #fff;
+border: none;
+border-radius: 7px;
+font-weight: bold;
+font-size: 1.1rem;
+cursor: pointer;
+margin-top: 1.5rem;
+transition: background 0.3s;
+box-shadow: 0 2px 8px rgba(39,174,96,0.08);
 }
 .checkout-btn:hover {
-    background: linear-gradient(90deg, #ff5252 60%, #f9d423 100%);
+background: #229954;
 }
 .empty-cart {
-    text-align: center;
-    font-size: 1.2rem;
-    color: #666;
-    margin-top: 2rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+text-align: center;
+font-size: 1.2rem;
+color: #666;
+margin-top: 2rem;
+display: flex;
+flex-direction: column;
+align-items: center;
 }
 .empty-cart i {
-    font-size: 4rem;
-    color: #ccc;
-    margin-bottom: 1.5rem;
+font-size: 4rem;
+color: #ccc;
+margin-bottom: 1.5rem;
 }
 .menu-btn {
-    padding: 0.8rem 2rem;
-    background-color: #27ae60;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: bold;
-    font-size: 1.1rem;
-    margin-top: 1.5rem;
-    transition: background-color 0.3s;
+padding: 0.8rem 2rem;
+background-color: #27ae60;
+color: white;
+text-decoration: none;
+border-radius: 5px;
+font-weight: bold;
+font-size: 1.1rem;
+margin-top: 1.5rem;
+transition: background-color 0.3s;
 }
 .menu-btn:hover {
-    background-color: #ff5252;
+background-color: #ff5252;
 }
 @media (max-width: 900px) {
-    .cart-main {
-        flex-direction: column;
-        align-items: center;
-        gap: 2rem;
-    }
-    .cart-container, .cart-summary {
-        max-width: 100%;
-        width: 100%;
-    }
+.cart-main {
+flex-direction: column;
+align-items: center;
+gap: 2rem;
+}
+.cart-container, .cart-summary {
+max-width: 100%;
+width: 100%;
+}
 }
 
 .checkout-form {
-    margin-top: 1.5rem;
-    background: #f7fff7;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(39,174,96,0.06);
-    padding: 1.5rem 1rem 1rem 1rem;
-    animation: fadeIn 0.4s;
+margin-top: 1.5rem;
+background: #f7fff7;
+border-radius: 10px;
+box-shadow: 0 2px 8px rgba(39,174,96,0.06);
+padding: 1.5rem 1rem 1rem 1rem;
+animation: fadeIn 0.4s;
 }
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: none; }
+from { opacity: 0; transform: translateY(20px); }
+to { opacity: 1; transform: none; }
 }
 .payment-options {
-    display: flex;
-    gap: 1.5rem;
-    margin-top: 0.5rem;
+display: flex;
+gap: 1.5rem;
+margin-top: 0.5rem;
 }
 .payment-option {
-    display: flex;
-    align-items: center;
-    background: yellow;
-    border-radius: 7px;
-    padding: 0.6rem 1.2rem;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 1.05rem;
-    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-    color: #333;
+display: flex;
+align-items: center;
+background: #f7fff7;
+border-radius: 7px;
+padding: 0.6rem 1.2rem;
+cursor: pointer;
+font-weight: bold;
+font-size: 1.05rem;
+transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+color: #333;
 }
 .payment-option input[type="radio"] {
-    margin-right: 0.7rem;
+margin-right: 0.7rem;
 }
 .payment-option i, .payment-option .mpesa-icon {
-    font-size: 1.3rem;
-    margin-right: 0.5rem;
-    color: #333;
-    transition: color 0.2s;
+font-size: 1.3rem;
+margin-right: 0.5rem;
+color: #333;
+transition: color 0.2s;
 }
 .payment-option input[type="radio"]:checked + i,
 .payment-option input[type="radio"]:checked + .mpesa-icon,
 .payment-option input[type="radio"]:checked ~ i,
 .payment-option input[type="radio"]:checked ~ .mpesa-icon {
-    color: #27ae60;
+color: #27ae60;
 }
 .payment-option input[type="radio"]:checked ~ .payment-option {
-    background: #27ae6022;
+background: #27ae6022;
 }
 .payment-option input[type="radio"]:checked ~ label {
-    color: #27ae60;
+color: #27ae60;
 }
-.payment-option input[type="radio"]:checked ~ .payment-option {
-    background: #27ae6022;
-}
-.payment-option input[type="radio"]:checked ~ i {
-    color: #27ae60;
-}
-.payment-option input[type="radio"]:checked ~ .mpesa-icon {
-    color: #27ae60;
-}
-.payment-option input[type="radio"]:checked ~ span {
-    color: #27ae60;
-}
-.payment-option input[type="radio"]:checked ~ .payment-option {
-    background: #27ae6022;
-}
-.payment-option input[type="radio"]:checked ~ .payment-option i {
-    color: #27ae60;
-}
-.payment-option input[type="radio"]:checked ~ .payment-option span {
-    color: #27ae60;
-}
-.payment-option input[type="radio"]:checked ~ .payment-option {
-    background: #27ae6022;
-}
-
 .order-type-options {
-    display: flex;
-    gap: 1.5rem;
-    margin-top: 0.5rem;
+display: flex;
+gap: 1.5rem;
+margin-top: 0.5rem;
 }
 .order-type-option {
-    display: flex;
-    align-items: center;
-    background: yellow;
-    border-radius: 7px;
-    padding: 0.6rem 1.2rem;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 1.05rem;
-    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-    color: #333;
+display: flex;
+align-items: center;
+background: #f7fff7;
+border-radius: 7px;
+padding: 0.6rem 1.2rem;
+cursor: pointer;
+font-weight: bold;
+font-size: 1.05rem;
+transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+color: #333;
 }
 .order-type-option input[type="radio"] {
-    margin-right: 0.7rem;
+margin-right: 0.7rem;
 }
 .order-type-option i {
+font-size: 1.3rem;
+margin-right: 0.5rem;
+color: #333;
+transition: color 0.2s;
     font-size: 1.3rem;
     margin-right: 0.5rem;
     color: #333;
