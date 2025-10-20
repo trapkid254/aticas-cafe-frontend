@@ -399,17 +399,40 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!confirm('Are you sure you want to delete this meat item?')) return;
         
         try {
+            const token = getToken();
             const res = await fetch(`https://aticas-backend.onrender.com/api/meats/${id}`, {
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${getToken()}` }
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
             });
             
-            if (!res.ok) throw new Error('Failed to delete meat');
+            if (!res.ok) {
+                let msg = `Failed to delete meat (status ${res.status})`;
+                try {
+                    const text = await res.text();
+                    msg = (() => { try { const j = JSON.parse(text); return j.message || j.error || msg; } catch { return text || msg; } })();
+                } catch {}
+                if (res.status === 401 || res.status === 403) {
+                    showToast('Session expired. Please log in again.', 'error');
+                    try {
+                        localStorage.removeItem('adminToken');
+                        localStorage.removeItem('adminData');
+                        localStorage.removeItem('adminType');
+                        localStorage.removeItem('isAdminLoggedIn');
+                    } catch(_) {}
+                    window.location.href = '/butchery-admin/butcheryadmin-login.html';
+                    return;
+                }
+                throw new Error(msg);
+            }
             
             fetchMeatItems();
             showToast('Meat deleted');
         } catch (err) {
             console.error('Error deleting meat:', err);
+            alert(`Error deleting meat: ${err.message}`);
             showToast('Failed to delete meat', 'error');
         }
     };
@@ -418,17 +441,40 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!confirm('Remove from today\'s specials?')) return;
         
         try {
+            const token = getToken();
             const res = await fetch(`https://aticas-backend.onrender.com/api/meats/${id}`, {
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${getToken()}` }
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
             });
             
-            if (!res.ok) throw new Error('Failed to remove');
+            if (!res.ok) {
+                let msg = `Failed to remove (status ${res.status})`;
+                try {
+                    const text = await res.text();
+                    msg = (() => { try { const j = JSON.parse(text); return j.message || j.error || msg; } catch { return text || msg; } })();
+                } catch {}
+                if (res.status === 401 || res.status === 403) {
+                    showToast('Session expired. Please log in again.', 'error');
+                    try {
+                        localStorage.removeItem('adminToken');
+                        localStorage.removeItem('adminData');
+                        localStorage.removeItem('adminType');
+                        localStorage.removeItem('isAdminLoggedIn');
+                    } catch(_) {}
+                    window.location.href = '/butchery-admin/butcheryadmin-login.html';
+                    return;
+                }
+                throw new Error(msg);
+            }
             
             fetchMeatsOfDay();
             showToast('Removed from today\'s specials');
         } catch (err) {
             console.error('Error removing meat of day:', err);
+            alert(`Error removing: ${err.message}`);
             showToast('Failed to remove', 'error');
         }
     };
