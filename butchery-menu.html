@@ -63,6 +63,36 @@
         </div>
     </section>
 
+    <!-- Order Meat Modal (Professional UI) -->
+    <div id="order-meat-modal" class="modal" style="display:none;align-items:center;justify-content:center;">
+        <div class="modal-content" style="width:100%;max-width:520px;border-radius:14px;border:1.5px solid #e0e0e0;box-shadow:0 10px 30px rgba(0,0,0,0.12);padding:1.4rem 1.4rem 1.2rem 1.4rem;background:#fff;max-height:90vh;overflow-y:auto;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;">
+                <h3 id="orderMeatTitle" style="margin:0;font-size:1.3rem;color:#2e7d32;">Order Meat</h3>
+                <span class="close-modal" id="orderMeatClose" style="cursor:pointer;font-size:1.6rem;line-height:1;color:#888">&times;</span>
+            </div>
+            <div id="orderMeatSubtitle" style="font-size:0.95rem;color:#607d8b;margin-bottom:0.9rem;">Select how you want to order</div>
+            <div style="display:flex;gap:0.6rem;margin-bottom:0.9rem;">
+                <button id="orderByKgBtn" type="button" style="flex:1;padding:0.7rem 1rem;border-radius:10px;border:1.5px solid #27ae60;background:#e8f5e9;color:#1b5e20;font-weight:700;cursor:pointer;">By Kilograms</button>
+                <button id="orderByAmtBtn" type="button" style="flex:1;padding:0.7rem 1rem;border-radius:10px;border:1.5px solid #e0e0e0;background:#fafafa;color:#37474f;font-weight:700;cursor:pointer;">By Amount (Ksh)</button>
+            </div>
+            <div style="display:flex;gap:0.8rem;align-items:flex-end;margin-bottom:0.8rem;">
+                <div style="flex:1;">
+                    <label for="kgInput" style="display:block;font-weight:600;color:#455a64;margin-bottom:0.3rem;">Kilograms (kg)</label>
+                    <input id="kgInput" type="number" min="0" step="0.1" placeholder="e.g. 0.5" style="width:100%;padding:0.65rem 0.8rem;border:1.5px solid #dfe5e8;border-radius:10px;">
+                </div>
+                <div style="flex:1;">
+                    <label for="amtInput" style="display:block;font-weight:600;color:#455a64;margin-bottom:0.3rem;">Amount (Ksh)</label>
+                    <input id="amtInput" type="number" min="0" step="10" placeholder="e.g. 300" style="width:100%;padding:0.65rem 0.8rem;border:1.5px solid #dfe5e8;border-radius:10px;">
+                </div>
+            </div>
+            <div id="orderMeatSummary" style="padding:0.8rem 1rem;border-radius:10px;background:#f7fdf8;border:1.5px solid #cdeccd;color:#2e7d32;margin-bottom:0.9rem;">
+                <div>Price per kg: <b id="pricePerKgLabel">Ksh 0</b></div>
+                <div style="margin-top:0.25rem;">You will get <b id="calcKg">0.00 kg</b> for <b id="calcAmt">Ksh 0</b></div>
+            </div>
+            <button id="confirmOrderMeat" type="button" class="add-to-cart-btn" style="width:100%;padding:0.85rem 1rem;border:none;border-radius:10px;background:#27ae60;color:#fff;font-weight:800;cursor:pointer;">Add to Cart</button>
+        </div>
+    </div>
+
     <!-- Size/Price Options Modal -->
     <div id="price-options-modal" class="modal" style="display:none;">
         <div class="modal-content">
@@ -145,17 +175,17 @@
 
                 menuContainer.innerHTML = filteredMeats.map(meat => `
                     <div class="menu-item" data-category="${meat.category?.toLowerCase() || 'other'}">
-                        <div class="menu-item-image">
+                        <div class="menu-item-image" style="border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.08);">
                             <img src="${meat.image || 'images/meat.jpg'}" alt="${meat.name}" onerror="this.src='images/meat.jpg';">
                             ${meat.isSpecial ? '<span class="special-badge">Special</span>' : ''}
                         </div>
                         <div class="menu-item-details">
-                            <h3>${meat.name}</h3>
-                            <p class="menu-item-description">${meat.description || 'Fresh and delicious meat'}</p>
-                            <div class="menu-item-footer">
-                                <span class="price">Ksh ${meat.price?.toFixed(2) || '0.00'}/kg</span>
-                                <button class="add-to-cart-btn" data-id="${meat._id}" data-name="${meat.name}" data-price="${meat.price}">
-                                    <i class="fas fa-plus"></i> Add to Cart
+                            <h3 style="margin-bottom:0.3rem;">${meat.name}</h3>
+                            <p class="menu-item-description" style="color:#607d8b;">${meat.description || 'Fresh and delicious meat'}</p>
+                            <div class="menu-item-footer" style="display:flex;align-items:center;justify-content:space-between;gap:0.6rem;">
+                                <span class="price" style="font-weight:800;color:#2e7d32;">Ksh ${meat.price?.toFixed(2) || '0.00'}/kg</span>
+                                <button class="add-to-cart-btn" data-id="${meat._id}" data-name="${meat.name}" data-price="${meat.price}" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.6rem 0.9rem;border-radius:10px;border:1.5px solid #27ae60;background:#27ae60;color:#fff;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(39,174,96,0.18);">
+                                    <i class="fas fa-cart-plus"></i> Add to Cart
                                 </button>
                             </div>
                         </div>
@@ -163,46 +193,101 @@
                 `).join('');
 
                 // Add event listeners to the add to cart buttons
-                document.querySelectorAll('.add-to-cart-btn').forEach(button => {
-                    button.addEventListener('click', async function() {
-                        const basePrice = parseFloat(this.dataset.price) || 0;
+                // Modal state and handlers
+                const orderModal = document.getElementById('order-meat-modal');
+                const orderTitle = document.getElementById('orderMeatTitle');
+                const orderClose = document.getElementById('orderMeatClose');
+                const orderByKgBtn = document.getElementById('orderByKgBtn');
+                const orderByAmtBtn = document.getElementById('orderByAmtBtn');
+                const kgInput = document.getElementById('kgInput');
+                const amtInput = document.getElementById('amtInput');
+                const pricePerKgLabel = document.getElementById('pricePerKgLabel');
+                const calcKg = document.getElementById('calcKg');
+                const calcAmt = document.getElementById('calcAmt');
+                const confirmBtn = document.getElementById('confirmOrderMeat');
+                let currentItem = null;
+                let pricePerKg = 0;
+
+                function openOrderModal(item) {
+                    currentItem = item;
+                    pricePerKg = parseFloat(item.price) || 0;
+                    if (!pricePerKg) { alert('Invalid price'); return; }
+                    if (orderTitle) orderTitle.textContent = `Order ${item.name}`;
+                    if (pricePerKgLabel) pricePerKgLabel.textContent = `Ksh ${pricePerKg.toLocaleString()}`;
+                    if (kgInput) kgInput.value = '';
+                    if (amtInput) amtInput.value = '';
+                    if (calcKg) calcKg.textContent = '0.00 kg';
+                    if (calcAmt) calcAmt.textContent = 'Ksh 0';
+                    orderModal.style.display = 'flex';
+                }
+
+                function recalcFromKg() {
+                    const kg = Math.max(0, Number(kgInput.value || 0));
+                    const amt = Math.round(kg * pricePerKg);
+                    if (amtInput) amtInput.value = amt ? String(amt) : '';
+                    if (calcKg) calcKg.textContent = `${kg.toFixed(2)} kg`;
+                    if (calcAmt) calcAmt.textContent = `Ksh ${amt.toLocaleString()}`;
+                }
+
+                function recalcFromAmt() {
+                    const amt = Math.max(0, Number(amtInput.value || 0));
+                    const kg = pricePerKg ? (amt / pricePerKg) : 0;
+                    if (kgInput) kgInput.value = kg ? kg.toFixed(2) : '';
+                    if (calcKg) calcKg.textContent = `${kg.toFixed(2)} kg`;
+                    if (calcAmt) calcAmt.textContent = `Ksh ${amt.toLocaleString()}`;
+                }
+
+                if (orderClose) orderClose.addEventListener('click', () => orderModal.style.display = 'none');
+                window.addEventListener('click', (e) => { if (e.target === orderModal) orderModal.style.display = 'none'; });
+                if (orderByKgBtn && orderByAmtBtn) {
+                    orderByKgBtn.addEventListener('click', () => {
+                        orderByKgBtn.style.borderColor = '#27ae60'; orderByKgBtn.style.background = '#e8f5e9'; orderByKgBtn.style.color = '#1b5e20';
+                        orderByAmtBtn.style.borderColor = '#e0e0e0'; orderByAmtBtn.style.background = '#fafafa'; orderByAmtBtn.style.color = '#37474f';
+                        kgInput.focus();
+                    });
+                    orderByAmtBtn.addEventListener('click', () => {
+                        orderByAmtBtn.style.borderColor = '#27ae60'; orderByAmtBtn.style.background = '#e8f5e9'; orderByAmtBtn.style.color = '#1b5e20';
+                        orderByKgBtn.style.borderColor = '#e0e0e0'; orderByKgBtn.style.background = '#fafafa'; orderByKgBtn.style.color = '#37474f';
+                        amtInput.focus();
+                    });
+                }
+                if (kgInput) kgInput.addEventListener('input', recalcFromKg);
+                if (amtInput) amtInput.addEventListener('input', recalcFromAmt);
+
+                if (confirmBtn) {
+                    confirmBtn.addEventListener('click', async () => {
+                        if (!currentItem) return;
+                        const kg = Math.max(0, Number(kgInput?.value || 0));
+                        const amt = Math.max(0, Number(amtInput?.value || 0));
+                        let finalKg = kg, finalAmt = amt;
+                        if (!finalKg && finalAmt) finalKg = pricePerKg ? (finalAmt / pricePerKg) : 0;
+                        if (!finalAmt && finalKg) finalAmt = Math.round(finalKg * pricePerKg);
+                        if (!finalKg || !finalAmt) { alert('Please enter kg or amount'); return; }
                         const item = {
-                            _id: this.dataset.id,
-                            name: this.dataset.name,
-                            price: basePrice,
-                            type: 'meat'
+                            _id: currentItem._id,
+                            name: currentItem.name,
+                            price: Math.round(finalAmt),
+                            type: 'meat',
+                            selectedSize: { size: `${finalKg.toFixed(2)} kg`, price: Math.round(finalAmt) },
+                            quantity: 1
                         };
-                        if (!basePrice) { alert('Invalid price'); return; }
-                        const mode = prompt('Order by:\n1) Kilograms (kg)\n2) Amount (Ksh)\nEnter 1 or 2:');
-                        if (!mode) return;
-                        const trimmed = String(mode).trim();
-                        let kg = 0, amount = 0;
-                        if (trimmed === '1') {
-                            const kgInput = prompt('Enter weight in kg (e.g., 0.5):');
-                            if (!kgInput) return;
-                            kg = Math.max(0, Number(kgInput));
-                            if (!kg) { alert('Invalid kilograms'); return; }
-                            amount = kg * basePrice;
-                        } else if (trimmed === '2') {
-                            const amtInput = prompt('Enter amount in Ksh (e.g., 300):');
-                            if (!amtInput) return;
-                            amount = Math.max(0, Number(amtInput));
-                            if (!amount) { alert('Invalid amount'); return; }
-                            kg = amount / basePrice;
-                        } else {
-                            return;
-                        }
-                        item.selectedSize = { size: `${kg.toFixed(2)} kg`, price: Math.round(amount) };
-                        item.price = item.selectedSize.price;
-                        item.quantity = 1;
-                        // Expose addToCart via global if available
                         if (typeof window.addToCart === 'function') {
                             await window.addToCart(item);
                         } else if (typeof addToCart === 'function') {
                             await addToCart(item);
-                        } else {
-                            alert('Cart is not initialized');
                         }
+                        orderModal.style.display = 'none';
+                    });
+                }
+
+                document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const item = {
+                            _id: this.dataset.id,
+                            name: this.dataset.name,
+                            price: parseFloat(this.dataset.price) || 0
+                        };
+                        openOrderModal(item);
                     });
                 });
             }

@@ -4,6 +4,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const menuContainer = document.getElementById('butcheryItems') || document.getElementById('meatsOfDayContainer');
     const filterButtons = document.querySelectorAll('.filter-btn');
     const priceOptionsModal = document.getElementById('price-options-modal');
+    // Order-by-kg/amount modal (butchery homepage)
+    const orderMeatModal = document.getElementById('order-meat-modal');
+    const orderMeatTitle = document.getElementById('orderMeatTitle');
+    const orderMeatClose = document.getElementById('orderMeatClose');
+    const orderByKgBtn = document.getElementById('orderByKgBtn');
+    const orderByAmtBtn = document.getElementById('orderByAmtBtn');
+    const kgInput = document.getElementById('kgInput');
+    const amtInput = document.getElementById('amtInput');
+    const pricePerKgLabel = document.getElementById('pricePerKgLabel');
+    const calcKg = document.getElementById('calcKg');
+    const calcAmt = document.getElementById('calcAmt');
+    const confirmOrderMeat = document.getElementById('confirmOrderMeat');
+    let currentOrderItem = null;
+    let currentPricePerKg = 0;
     const modalItemName = document.getElementById('modal-item-name');
     const modalPriceOptions = document.getElementById('modal-price-options');
     const modalAddToCartBtn = document.getElementById('modal-add-to-cart-btn');
@@ -30,6 +44,96 @@ document.addEventListener('DOMContentLoaded', function() {
             menuContainer.innerHTML = '';
             menuContainer.appendChild(errorMsg);
         }
+
+    // Modal: order by kg or amount
+    function openOrderMeatModal(item) {
+        if (!orderMeatModal) {
+            // Fallback to prompt if modal not present on this page
+            const pricePerKg = Number(item.price) || 0;
+            if (!pricePerKg) { showToast('Invalid price for this item', 'error'); return; }
+            const mode = prompt('Order by:\n1) Kilograms (kg)\n2) Amount (Ksh)\nEnter 1 or 2:');
+            if (!mode) return;
+            const trimmed = String(mode).trim();
+            let kg = 0, amount = 0;
+            if (trimmed === '1') {
+                const kgI = prompt('Enter weight in kg (e.g., 0.5):');
+                if (!kgI) return; kg = Math.max(0, Number(kgI)); if (!kg) { showToast('Invalid kilograms', 'error'); return; }
+                amount = kg * pricePerKg;
+            } else if (trimmed === '2') {
+                const amtI = prompt('Enter amount in Ksh (e.g., 300):');
+                if (!amtI) return; amount = Math.max(0, Number(amtI)); if (!amount) { showToast('Invalid amount', 'error'); return; }
+                kg = amount / pricePerKg;
+            } else { return; }
+            const selected = { size: `${kg.toFixed(2)} kg`, price: Math.round(amount) };
+            addToCartApi(item, selected).then(() => {
+                showToast(`${item.name} (${selected.size}) added to cart!`);
+                fetchMeatItems();
+            });
+            return;
+        }
+
+        currentOrderItem = item;
+        currentPricePerKg = Number(item.price) || 0;
+        if (!currentPricePerKg) { showToast('Invalid price for this item', 'error'); return; }
+        if (orderMeatTitle) orderMeatTitle.textContent = `Order ${item.name}`;
+        if (pricePerKgLabel) pricePerKgLabel.textContent = `Ksh ${currentPricePerKg.toLocaleString()}`;
+        if (kgInput) kgInput.value = '';
+        if (amtInput) amtInput.value = '';
+        if (calcKg) calcKg.textContent = '0.00 kg';
+        if (calcAmt) calcAmt.textContent = 'Ksh 0';
+        orderMeatModal.style.display = 'flex';
+    }
+
+    function recalcFromKg() {
+        const kg = Math.max(0, Number(kgInput.value || 0));
+        const amt = Math.round(kg * currentPricePerKg);
+        if (amtInput) amtInput.value = amt ? String(amt) : '';
+        if (calcKg) calcKg.textContent = `${kg.toFixed(2)} kg`;
+        if (calcAmt) calcAmt.textContent = `Ksh ${amt.toLocaleString()}`;
+    }
+
+    function recalcFromAmt() {
+        const amt = Math.max(0, Number(amtInput.value || 0));
+        const kg = currentPricePerKg ? (amt / currentPricePerKg) : 0;
+        if (kgInput) kgInput.value = kg ? kg.toFixed(2) : '';
+        if (calcKg) calcKg.textContent = `${kg.toFixed(2)} kg`;
+        if (calcAmt) calcAmt.textContent = `Ksh ${amt.toLocaleString()}`;
+    }
+
+    // Initialize modal events if present
+    if (orderMeatModal) {
+        if (orderMeatClose) orderMeatClose.addEventListener('click', () => { orderMeatModal.style.display = 'none'; });
+        window.addEventListener('click', (e) => { if (e.target === orderMeatModal) orderMeatModal.style.display = 'none'; });
+        if (orderByKgBtn && orderByAmtBtn && kgInput && amtInput) {
+            orderByKgBtn.addEventListener('click', () => {
+                orderByKgBtn.style.borderColor = '#27ae60'; orderByKgBtn.style.background = '#e8f5e9'; orderByKgBtn.style.color = '#1b5e20';
+                orderByAmtBtn.style.borderColor = '#e0e0e0'; orderByAmtBtn.style.background = '#fafafa'; orderByAmtBtn.style.color = '#37474f';
+                kgInput.focus();
+            });
+            orderByAmtBtn.addEventListener('click', () => {
+                orderByAmtBtn.style.borderColor = '#27ae60'; orderByAmtBtn.style.background = '#e8f5e9'; orderByAmtBtn.style.color = '#1b5e20';
+                orderByKgBtn.style.borderColor = '#e0e0e0'; orderByKgBtn.style.background = '#fafafa'; orderByKgBtn.style.color = '#37474f';
+                amtInput.focus();
+            });
+            kgInput.addEventListener('input', recalcFromKg);
+            amtInput.addEventListener('input', recalcFromAmt);
+        }
+        if (confirmOrderMeat) {
+            confirmOrderMeat.addEventListener('click', async () => {
+                const kg = Math.max(0, Number(kgInput?.value || 0));
+                const amt = Math.max(0, Number(amtInput?.value || 0));
+                let finalKg = kg, finalAmt = amt;
+                if (!finalKg && finalAmt) finalKg = currentPricePerKg ? (finalAmt / currentPricePerKg) : 0;
+                if (!finalAmt && finalKg) finalAmt = Math.round(finalKg * currentPricePerKg);
+                if (!finalKg || !finalAmt) { showToast('Please enter kg or amount', 'error'); return; }
+                const selected = { size: `${finalKg.toFixed(2)} kg`, price: Math.round(finalAmt) };
+                await addToCartApi(currentOrderItem, selected);
+                orderMeatModal.style.display = 'none';
+                showToast(`${currentOrderItem.name} (${selected.size}) added to cart!`);
+                fetchMeatItems();
+            });
+        }
+    }
     }
 
     // Helper functions from menu.js/cart.js
@@ -306,36 +410,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (item.priceOptions && item.priceOptions.length > 0) {
                     openPriceOptionsModal(item);
                 } else {
-                    // Ask user to order by kg or by amount (Ksh)
-                    const pricePerKg = Number(item.price) || 0;
-                    if (!pricePerKg) {
-                        showToast('Invalid price for this item', 'error');
-                        return;
-                    }
-                    const mode = prompt('Order by:\n1) Kilograms (kg)\n2) Amount (Ksh)\nEnter 1 or 2:');
-                    if (!mode) return;
-                    const trimmed = String(mode).trim();
-                    let kg = 0, amount = 0;
-                    if (trimmed === '1') {
-                        const kgInput = prompt('Enter weight in kg (e.g., 0.5):');
-                        if (!kgInput) return;
-                        kg = Math.max(0, Number(kgInput));
-                        if (!kg) { showToast('Invalid kilograms', 'error'); return; }
-                        amount = kg * pricePerKg;
-                    } else if (trimmed === '2') {
-                        const amtInput = prompt('Enter amount in Ksh (e.g., 300):');
-                        if (!amtInput) return;
-                        amount = Math.max(0, Number(amtInput));
-                        if (!amount) { showToast('Invalid amount', 'error'); return; }
-                        kg = amount / pricePerKg;
-                    } else {
-                        return;
-                    }
-
-                    const selected = { size: `${kg.toFixed(2)} kg`, price: Math.round(amount) };
-                    await addToCartApi(item, selected);
-                    showToast(`${item.name} (${selected.size}) added to cart!`);
-                    fetchMeatItems();
+                    // Open professional modal for kg/amount selection
+                    openOrderMeatModal(item);
                 }
             });
         });

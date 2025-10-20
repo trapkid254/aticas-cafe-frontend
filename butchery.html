@@ -68,6 +68,36 @@
         </div>
     </section>
 
+    <!-- Order Meat Modal -->
+    <div id="order-meat-modal" class="modal" style="display:none;align-items:center;justify-content:center;">
+        <div class="modal-content" style="width:100%;max-width:520px;border-radius:14px;border:1.5px solid #e0e0e0;box-shadow:0 10px 30px rgba(0,0,0,0.12);padding:1.4rem 1.4rem 1.2rem 1.4rem;background:#fff;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;">
+                <h3 id="orderMeatTitle" style="margin:0;font-size:1.3rem;color:#2e7d32;">Order Meat</h3>
+                <span class="close-modal" id="orderMeatClose" style="cursor:pointer;font-size:1.6rem;line-height:1;color:#888">&times;</span>
+            </div>
+            <div id="orderMeatSubtitle" style="font-size:0.95rem;color:#607d8b;margin-bottom:0.9rem;">Select how you want to order</div>
+            <div style="display:flex;gap:0.6rem;margin-bottom:0.9rem;">
+                <button id="orderByKgBtn" type="button" style="flex:1;padding:0.7rem 1rem;border-radius:10px;border:1.5px solid #27ae60;background:#e8f5e9;color:#1b5e20;font-weight:700;cursor:pointer;">By Kilograms</button>
+                <button id="orderByAmtBtn" type="button" style="flex:1;padding:0.7rem 1rem;border-radius:10px;border:1.5px solid #e0e0e0;background:#fafafa;color:#37474f;font-weight:700;cursor:pointer;">By Amount (Ksh)</button>
+            </div>
+            <div style="display:flex;gap:0.8rem;align-items:flex-end;margin-bottom:0.8rem;">
+                <div style="flex:1;">
+                    <label for="kgInput" style="display:block;font-weight:600;color:#455a64;margin-bottom:0.3rem;">Kilograms (kg)</label>
+                    <input id="kgInput" type="number" min="0" step="0.1" placeholder="e.g. 0.5" style="width:100%;padding:0.65rem 0.8rem;border:1.5px solid #dfe5e8;border-radius:10px;">
+                </div>
+                <div style="flex:1;">
+                    <label for="amtInput" style="display:block;font-weight:600;color:#455a64;margin-bottom:0.3rem;">Amount (Ksh)</label>
+                    <input id="amtInput" type="number" min="0" step="10" placeholder="e.g. 300" style="width:100%;padding:0.65rem 0.8rem;border:1.5px solid #dfe5e8;border-radius:10px;">
+                </div>
+            </div>
+            <div id="orderMeatSummary" style="padding:0.8rem 1rem;border-radius:10px;background:#f7fdf8;border:1.5px solid #cdeccd;color:#2e7d32;margin-bottom:0.9rem;">
+                <div>Price per kg: <b id="pricePerKgLabel">Ksh 0</b></div>
+                <div style="margin-top:0.25rem;">You will get <b id="calcKg">0.00 kg</b> for <b id="calcAmt">Ksh 0</b></div>
+            </div>
+            <button id="confirmOrderMeat" type="button" class="add-to-cart-btn" style="width:100%;padding:0.85rem 1rem;border:none;border-radius:10px;background:#27ae60;color:#fff;font-weight:800;cursor:pointer;">Add to Cart</button>
+        </div>
+    </div>
+
     <!-- Why Dine With Us -->
     <section class="why-us">
         <h2 class="typewriter-on-scroll">Why Shop With Us</h2>
