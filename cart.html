@@ -1122,7 +1122,16 @@
                             const name = document.getElementById('name')?.value?.trim();
                             const phone = document.getElementById('phone')?.value?.trim();
 
-                            const cart = getGuestCart();
+                            // Build the same cart used for display
+                            const isButcheryPage = (localStorage.getItem('cartDepartment') || 'cafeteria') === 'butchery';
+                            const userIdForCart = localStorage.getItem('userId');
+                            const tokenForCart = localStorage.getItem('userToken');
+                            let cart;
+                            if (userIdForCart && tokenForCart) {
+                                cart = await fetchCart(isButcheryPage);
+                            } else {
+                                cart = getGuestCart(isButcheryPage);
+                            }
                             if (!cart.items || cart.items.length === 0) {
                                 throw new Error('Your cart is empty');
                             }
@@ -1138,7 +1147,8 @@
                                         return null;
                                     }
                                     const rawType = String(item.itemType || 'Menu').toLowerCase();
-                                    const itemType = rawType === 'meat' || rawType === 'butchery' ? 'Meat'
+                                    const itemType = isButcheryPage ? 'Meat'
+                                                     : rawType === 'meat' || rawType === 'butchery' ? 'Meat'
                                                      : rawType === 'mealofday' || rawType === 'mod' || rawType === 'meal of day' ? 'MealOfDay'
                                                      : 'Menu';
                                     return {

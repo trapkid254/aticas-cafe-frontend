@@ -1,5 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const adminToken = localStorage.getItem('adminToken');
+    function getCleanAdminToken() {
+        const raw = localStorage.getItem('adminToken') || '';
+        if (!raw) return '';
+        // Remove any leading 'Bearer '
+        return raw.replace(/^Bearer\s+/i, '');
+    }
+    const adminToken = getCleanAdminToken();
     if (!adminToken) {
         window.location.href = '/admin/admin-login.html';
         return;
@@ -10,14 +16,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModalButton = document.querySelector('.close-modal');
 
     const fetchFromApi = async (endpoint, options = {}) => {
-        const defaultOptions = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${adminToken}`
-            }
-        };
-        const response = await fetch(`https://aticas-backend.onrender.com${endpoint}`, { ...defaultOptions, ...options });
-        if (!response.ok) throw new Error(`API call to ${endpoint} failed.`);
+        const headers = new Headers();
+        headers.set('Content-Type', 'application/json');
+        headers.set('Accept', 'application/json');
+        headers.set('Authorization', `Bearer ${adminToken}`);
+        const finalOptions = { method: 'GET', headers, ...options };
+        const response = await fetch(`https://aticas-backend.onrender.com${endpoint}`, finalOptions);
+        if (!response.ok) {
+            let msg = `API call to ${endpoint} failed.`;
+            try {
+                const text = await response.text();
+                msg = (() => { try { const j = JSON.parse(text); return j.message || j.error || msg; } catch { return text || msg; } })();
+            } catch {}
+            throw new Error(msg);
+        }
         return response.json();
     };
 
