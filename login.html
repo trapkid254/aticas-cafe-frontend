@@ -9,75 +9,64 @@
     <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
     <style>
         body {
-            background: #fffbe7;
+            background: linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+        }
+        .auth-shell {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 0;
+            max-width: 980px;
+            margin: 120px auto 40px auto;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 14px 40px rgba(16, 24, 40, 0.12);
+            overflow: hidden;
+            border: 1px solid #e6e9ef;
+        }
+        .auth-visual {
+            position: relative;
+            min-height: 520px;
+            background: radial-gradient(100% 100% at 0% 0%, rgba(39,174,96,0.08) 0%, rgba(255,223,89,0.08) 100%), #f6f8fb;
+        }
+        .auth-visual::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url('images/1b.jpg') center/contain no-repeat;
+            opacity: 0.1;
+            filter: saturate(0.6) contrast(1.1);
+        }
+        .auth-container {
+            padding: 2.2rem 2rem 2.2rem 2rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .brand {
+            display: flex;
             align-items: center;
+            gap: 10px;
+            margin-bottom: 1rem;
         }
-        .login-container {
-            background: #fff;
-            padding: 2.5rem 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-            max-width: 350px;
-            width: 100%;
-            margin-top: 120px;
+        .brand .logo {
+            width: 42px; height: 42px; border-radius: 10px; object-fit: cover; border: 1px solid #e6e9ef;
         }
-        .login-container h2 {
-            font-family: 'Algerian', 'UnifrakturCook', cursive, serif;
-            color: green;
-            text-align: center;
-            margin-bottom: 1.5rem;
-        }
-        .form-group {
-            margin-bottom: 1.2rem;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 0.4rem;
-            font-weight: bold;
-            color: #333;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 0.7rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-        .login-btn {
-            width: 100%;
-            padding: 0.8rem;
-            background-color: green;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-weight: bold;
-            font-size: 1.1rem;
-            cursor: pointer;
-            margin-top: 0.5rem;
-            transition: background 0.3s;
-        }
-        .login-btn:hover {
-            background-color: #ff5252;
-        }
-        .register-link {
-            display: block;
-            text-align: center;
-            margin-top: 1.2rem;
-            color: #333;
-            font-size: 1rem;
-        }
-        .register-link a {
-            color: green;
-            text-decoration: underline;
-            font-weight: bold;
-        }
-        .register-link a:hover {
-            color: #ff5252;
-        }
+        .brand span { font-weight: 800; letter-spacing: 0.4px; color: #1f2937; }
+        .auth-header { margin: 0.5rem 0 1.2rem 0; }
+        .auth-title { font-size: 1.7rem; font-weight: 800; color: #111827; }
+        .auth-subtitle { color: #6b7280; margin-top: 6px; }
+        .form { margin-top: 0.4rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display:block; font-weight:600; color:#374151; margin-bottom:0.35rem; }
+        .input { width:100%; padding:0.8rem 0.9rem; border:1px solid #d1d5db; border-radius:10px; font-size:1rem; background:#fff; }
+        .input:focus { outline:none; border-color:#27ae60; box-shadow:0 0 0 3px rgba(39,174,96,0.15); }
+        .login-btn { width:100%; padding:0.9rem 1rem; border:none; border-radius:10px; font-weight:800; color:#111827; background:linear-gradient(90deg, #ffd95a 0%, #27ae60 100%); cursor:pointer; }
+        .login-btn:hover { filter: brightness(0.98); }
+        .register-link { text-align:center; margin-top: 1rem; color:#4b5563; }
+        .register-link a { color:#1f2937; font-weight:700; text-decoration: underline; }
+        @media (max-width: 900px) { .auth-shell { grid-template-columns: 1fr; margin: 100px 14px 30px; } .auth-visual { display: none; } }
     </style>
 </head>
 <body>
@@ -100,24 +89,34 @@
             </div>
         </div>
     </nav>
-    <div class="login-container" style="background: #fff; padding: 2.5rem 2rem; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); max-width: 350px; width: 100%; margin-top: 140px; border: 2px solid yellow;">
-        <h2 style="font-family: 'Algerian', 'UnifrakturCook', cursive, serif; color: green; text-align: center; margin-bottom: 1.5rem;">Login to ATICAS CAFE'</h2>
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="phone">Phone Number</label>
-                <input type="tel" id="phone" name="phone" pattern="[0-9]{10,15}" required placeholder="e.g. 0712345678">
+    <div class="auth-shell">
+        <div class="auth-visual"></div>
+        <div class="auth-container">
+            <div class="brand">
+                <img class="logo" src="images/1b.jpg" alt="Aticas" />
+                <span>ATICAS CAFE'</span>
             </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <div style="position:relative;display:flex;align-items:center;">
-                    <input type="password" id="password" name="password" required style="width:100%;padding-right:2.5rem;">
-                    <span class="toggle-password" toggle="#password" style="position:absolute;right:1rem;top:50%;transform:translateY(-50%);cursor:pointer;color:#888;font-size:1.2rem;z-index:2;"><i class="fas fa-eye"></i></span>
+            <div class="auth-header">
+                <div class="auth-title">Welcome back</div>
+                <div class="auth-subtitle">Sign in to your account</div>
+            </div>
+            <form id="loginForm" class="form">
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" class="input" pattern="[0-9]{10,15}" required placeholder="e.g. 0712345678">
                 </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div style="position:relative;display:flex;align-items:center;">
+                        <input type="password" id="password" name="password" class="input" required style="padding-right:2.5rem;">
+                        <span class="toggle-password" toggle="#password" style="position:absolute;right:0.9rem;top:50%;transform:translateY(-50%);cursor:pointer;color:#6b7280;font-size:1.1rem;z-index:2;"><i class="fas fa-eye"></i></span>
+                    </div>
+                </div>
+                <button type="submit" class="login-btn">Login</button>
+            </form>
+            <div class="register-link">
+                Don't have an account? <a href="register.html">Register here</a>
             </div>
-            <button type="submit" class="login-btn" style="background: linear-gradient(90deg, yellow 60%, green 100%); color: #222; font-weight: bold; border: none; border-radius: 5px; font-size: 1.1rem; margin-top: 0.5rem;">Login</button>
-        </form>
-        <div class="register-link" style="text-align: center; margin-top: 1.2rem; color: #333; font-size: 1rem;">
-            Don't have an account? <a href="register.html" style="color: green; text-decoration: underline; font-weight: bold;">Register here</a>
         </div>
     </div>
     <!-- Mobile Menu -->
