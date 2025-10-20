@@ -1222,9 +1222,8 @@
                                 localStorage.setItem('guestCart', JSON.stringify({ items: [] }));
                                 updateCartCount();
 
-                                // Inform user of manual payment instructions and redirect
-                                alert('Please pay the total to M-Pesa Till 634536, then keep your confirmation message. We will verify your payment.');
-                                window.location.href = `order-confirmation.html?orderId=${encodeURIComponent(createdOrder?._id)}`;
+                                // Redirect to Orders page; instructions will be shown there above the receipt
+                                window.location.href = 'orders.html';
                             } else {
                                 // Cash on delivery: create the order immediately
                                 const orderBody = orderDetails;
