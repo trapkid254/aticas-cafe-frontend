@@ -150,44 +150,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    sendMpesaBtn.onclick = async function() {
+    sendMpesaBtn.onclick = function() {
         if (!placedOrder) return;
-        mpesaStatus.textContent = 'Sending payment request...';
-        mpesaStatus.style.color = '#222';
-        try {
-            const response = await fetch('https://aticas-backend.onrender.com/api/mpesa/payment', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ phone: placedOrder.customerPhone.startsWith('0') ? '254' + placedOrder.customerPhone.slice(1) : placedOrder.customerPhone, amount: placedOrder.total, orderId: placedOrder._id })
-            });
-            const data = await response.json();
-            if (data.ResponseCode === '0') {
-                mpesaStatus.textContent = 'M-Pesa push sent. Customer should complete payment on their phone.';
-                mpesaStatus.style.color = '#27ae60';
-                // Add redirect countdown
-                let seconds = 10;
-                const redirectMsg = document.createElement('div');
-                redirectMsg.style = 'margin-top:1rem;font-size:1.1rem;color:#222;';
-                redirectMsg.id = 'redirectMsg';
-                mpesaStatus.appendChild(redirectMsg);
-                function updateCountdown() {
-                    redirectMsg.textContent = `Redirecting to orders in ${seconds} sec...`;
-                    if (seconds === 0) {
-                        window.location.href = 'orders.html';
-                    } else {
-                        seconds--;
-                        setTimeout(updateCountdown, 1000);
-                    }
-                }
-                updateCountdown();
-            } else {
-                mpesaStatus.textContent = 'M-Pesa push failed: ' + (data.errorMessage || data.error || 'Unknown error');
-                mpesaStatus.style.color = '#e74c3c';
-            }
-        } catch (err) {
-            mpesaStatus.textContent = 'M-Pesa error: ' + err.message;
-            mpesaStatus.style.color = '#e74c3c';
-        }
+        mpesaStatus.textContent = 'Ask the customer to pay manually to M-Pesa Till 634536, then record/verify the payment.';
+        mpesaStatus.style.color = '#27ae60';
+        try { sendMpesaBtn.disabled = true; } catch (_) {}
+        setTimeout(() => { window.location.href = 'orders.html'; }, 3000);
     };
 
     fetchMenuItems();
