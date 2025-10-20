@@ -21,11 +21,13 @@ document.addEventListener('DOMContentLoaded', () => {
         headers.set('Accept', 'application/json');
         headers.set('Authorization', `Bearer ${adminToken}`);
         const finalOptions = { method: 'GET', headers, ...options };
-        const response = await fetch(`https://aticas-backend.onrender.com${endpoint}`, finalOptions);
+        const url = `https://aticas-backend.onrender.com${endpoint}`;
+        const response = await fetch(url, finalOptions);
         if (!response.ok) {
             let msg = `API call to ${endpoint} failed.`;
             try {
                 const text = await response.text();
+                console.error('Admin API error', { url, status: response.status, statusText: response.statusText, body: text, options: finalOptions });
                 msg = (() => { try { const j = JSON.parse(text); return j.message || j.error || msg; } catch { return text || msg; } })();
             } catch {}
             throw new Error(msg);
@@ -96,6 +98,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Status cycling logic (pending → verifying → completed → cancelled)
+    function isValidObjectId(id) { return /^[0-9a-fA-F]{24}$/.test(String(id||'')); }
+
     function cycleOrderStatus(orderId, currentStatus) {
         const statuses = ['pending', 'verifying', 'completed', 'cancelled'];
         let idx = statuses.indexOf(currentStatus);
@@ -106,6 +110,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function updateOrderStatus(orderId, newStatus) {
         try {
+            if (!isValidObjectId(orderId)) {
+                showToast('Invalid order ID format', 'error');
+                return;
+            }
             const response = await fetchFromApi(`/api/orders/${orderId}`, {
                 method: 'PUT',
                 body: JSON.stringify({ status: newStatus })
@@ -120,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('Failed to update order status:', error);
-            showToast('Failed to update order status', 'error');
+            showToast(error.message || 'Failed to update order status', 'error');
         }
     }
 
