@@ -9,113 +9,176 @@
     <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
     <style>
         body {
-            background: #fffbe7;
             min-height: 100vh;
+            margin: 0;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            background: radial-gradient(1000px 500px at 10% 10%, #e8f5e9, transparent),
+                        radial-gradient(800px 400px at 90% 0%, #fff3e0, transparent),
+                        linear-gradient(180deg, #f7fbff 0%, #ffffff 100%);
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        .brand {
+            position: absolute;
+            top: 28px;
+            left: 28px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #2e7d32;
+            font-weight: 700;
+        }
+        .brand .logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            object-fit: cover;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        }
+        .login-shell {
+            width: 100%;
+            max-width: 900px;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 0;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(46, 125, 50, 0.08);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(46, 125, 50, 0.12);
+            overflow: hidden;
+        }
+        .login-visual {
+            background: linear-gradient(135deg, rgba(46, 125, 50, 0.1), rgba(255, 193, 7, 0.1)),
+                        url('images/1b.jpg') center/cover no-repeat;
+            position: relative;
+            min-height: 480px;
+        }
+        .login-visual::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 60%, rgba(255,255,255,0.8) 100%);
         }
         .login-container {
+            padding: 3rem 2.2rem;
             background: #fff;
-            padding: 2.5rem 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-            max-width: 350px;
-            width: 100%;
-            margin-top: 60px;
         }
-        .login-container h2 {
-            font-family: 'Algerian', 'UnifrakturCook', cursive, serif;
-            color: green;
+        .login-header {
             text-align: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.6rem;
         }
-        .form-group {
-            margin-bottom: 1.2rem;
+        .login-title {
+            font-family: 'UnifrakturCook', cursive;
+            font-size: 2rem;
+            color: #2e7d32;
+            margin: 0 0 4px 0;
         }
+        .login-subtitle {
+            color: #6b7280;
+            font-size: 0.98rem;
+        }
+        .form {
+            max-width: 420px;
+            margin: 0 auto;
+        }
+        .form-group { margin-bottom: 1.1rem; }
         .form-group label {
             display: block;
-            margin-bottom: 0.4rem;
-            font-weight: bold;
-            color: #333;
+            margin-bottom: 0.45rem;
+            font-weight: 600;
+            color: #1f2937;
         }
-        .form-group input, .form-group select {
+        .input, .select {
             width: 100%;
-            padding: 0.7rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 0.8rem 0.9rem;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
             font-size: 1rem;
+            background: #fff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .input:focus, .select:focus {
+            outline: none;
+            border-color: #2e7d32;
+            box-shadow: 0 0 0 4px rgba(46,125,50,0.12);
+        }
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.9rem;
         }
         .login-btn {
             width: 100%;
-            padding: 0.8rem;
-            background-color: green;
+            padding: 0.95rem 1rem;
+            background: linear-gradient(180deg, #2e7d32, #1b5e20);
             color: white;
             border: none;
-            border-radius: 5px;
-            font-weight: bold;
-            font-size: 1.1rem;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1.05rem;
             cursor: pointer;
-            margin-top: 1rem;
-            transition: background 0.3s;
+            margin-top: 0.6rem;
+            transition: transform 0.05s ease, box-shadow 0.2s ease;
+            box-shadow: 0 10px 24px rgba(46,125,50,0.22);
         }
-        .login-btn:hover {
-            background-color: #ff5252;
-        }
+        .login-btn:hover { box-shadow: 0 14px 28px rgba(46,125,50,0.28); }
+        .login-btn:active { transform: translateY(1px); }
         .error-message {
-            color: #e74c3c;
-            margin-top: 1rem;
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+            border-radius: 10px;
+            padding: 0.75rem;
+            font-size: 0.95rem;
             text-align: center;
-            font-size: 1rem;
+            margin-top: 0.9rem;
+            display: none;
         }
-        .admin-type-selector {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .admin-type-btn {
-            flex: 1;
-            padding: 0.8rem;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            background: #f9f9f9;
-            cursor: pointer;
-            text-align: center;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-        .admin-type-btn.active {
-            border-color: green;
-            background: #e8f5e9;
-            color: green;
+        .error-message.show { display: block; }
+        @media (max-width: 860px) {
+            .login-shell { grid-template-columns: 1fr; max-width: 520px; }
+            .login-visual { display: none; }
+            .brand { left: 16px; }
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <h2>Admin Login</h2>
-        <form id="admin-login-form">
+    <div class="brand">
+        <img class="logo" src="images/1b.jpg" alt="Aticas" />
+        <span>ATICAS CAFE'</span>
+    </div>
+    <div class="login-shell">
+        <div class="login-visual"></div>
+        <div class="login-container">
+        <div class="login-header">
+            <div class="login-title">Admin Portal</div>
+            <div class="login-subtitle">Sign in to manage orders, menus and reports</div>
+        </div>
+        <form id="admin-login-form" class="form">
             <div class="form-group">
                 <label for="adminType">Admin Type</label>
-                <select id="adminType" name="adminType" required>
+                <select id="adminType" name="adminType" class="select" required>
                     <option value="cafeteria">Cafeteria Admin</option>
                     <option value="butchery">Butchery Admin</option>
                 </select>
             </div>
+            <div class="row">
             <div class="form-group">
                 <label for="employmentNumber">Admin Number</label>
-                <input type="text" id="employmentNumber" name="employmentNumber" required 
+                <input type="text" id="employmentNumber" name="employmentNumber" class="input" required 
                        placeholder="e.g. AC001 for Cafeteria, AB001 for Butchery" 
                        value="AC001">
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" required value="admin@aticas">
+                <input type="password" id="password" name="password" class="input" required value="admin@aticas">
+            </div>
             </div>
             <button type="submit" class="login-btn">Login</button>
             <div class="error-message" id="login-error"></div>
         </form>
+        </div>
     </div>
 
     <script>

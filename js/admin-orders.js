@@ -188,7 +188,16 @@ document.addEventListener('DOMContentLoaded', () => {
         order.items.forEach(item => {
             const menuItem = item.menuItem;
             if(menuItem) {
-                itemsHtml += `<tr><td style="padding:6px 0;"><b>${menuItem.name}</b></td><td style="text-align:center;">${item.quantity}</td><td style="text-align:right;"><b>Ksh ${(menuItem.price * item.quantity).toFixed(2)}</b></td></tr>`;
+                const isMeat = (item.itemType === 'Meat') || (menuItem.adminType === 'butchery');
+                const unitPrice = item.selectedSize ? (item.selectedSize.price || 0) : (menuItem.price || 0);
+                const qtyLabel = isMeat ? `${item.quantity} kg` : `${item.quantity}`;
+                const nameLabel = item.selectedSize ? `${menuItem.name} (${item.selectedSize.size})` : menuItem.name;
+                const lineTotal = unitPrice * (item.quantity || 1);
+                itemsHtml += `<tr>
+                    <td style="padding:6px 0;"><b>${nameLabel}</b></td>
+                    <td style="text-align:center;">${qtyLabel}</td>
+                    <td style="text-align:right;"><b>Ksh ${lineTotal.toFixed(2)}</b></td>
+                </tr>`;
             }
         });
         itemsHtml += '</tbody></table>';

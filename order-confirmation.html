@@ -171,9 +171,11 @@
                 let itemsHtml = '<ul>';
                 order.items.forEach(item => {
                     if (item.menuItem) {
-                        const price = item.selectedSize ? item.selectedSize.price : item.menuItem.price;
+                        const isMeat = (item.itemType === 'Meat') || (item.menuItem?.adminType === 'butchery');
+                        const unitPrice = item.selectedSize ? (item.selectedSize.price || 0) : (item.menuItem.price || 0);
+                        const qtyLabel = isMeat ? `${item.quantity} kg` : `${item.quantity}`;
                         const name = item.selectedSize ? `${item.menuItem.name} (${item.selectedSize.size})` : item.menuItem.name;
-                        itemsHtml += `<li>${item.quantity} x ${name} - Ksh ${(item.quantity * price).toFixed(2)}</li>`;
+                        itemsHtml += `<li>${qtyLabel} x ${name} - Ksh ${(unitPrice * (item.quantity || 1)).toFixed(2)}</li>`;
                     }
                 });
                 itemsHtml += '</ul>';
@@ -196,13 +198,16 @@
                                 <thead><tr style="background:#f8f8f8;"><th style="padding:8px 0;">Item</th><th>Qty</th><th>Price</th></tr></thead>
                                 <tbody>
                                     ${order.items.map(i => {
-                                        const price = i.selectedSize ? i.selectedSize.price : (i.menuItem ? i.menuItem.price : 0);
+                                        const isMeat = (i.itemType === 'Meat') || (i.menuItem?.adminType === 'butchery');
+                                        const unitPrice = i.selectedSize ? (i.selectedSize.price || 0) : (i.menuItem ? (i.menuItem.price || 0) : 0);
+                                        const qtyLabel = isMeat ? `${i.quantity} kg` : `${i.quantity}`;
                                         const name = i.selectedSize ? `${i.menuItem?.name || 'Item'} (${i.selectedSize.size})` : (i.menuItem ? i.menuItem.name : 'Item');
+                                        const lineTotal = unitPrice * (i.quantity || 1);
                                         return `
                                             <tr>
                                                 <td style="padding:6px 0;">${name}</td>
-                                                <td>${i.quantity}</td>
-                                                <td>Ksh ${Number(price).toLocaleString()}</td>
+                                                <td>${qtyLabel}</td>
+                                                <td>Ksh ${Number(lineTotal).toLocaleString()}</td>
                                             </tr>
                                         `
                                     }).join('')}
