@@ -119,7 +119,28 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (isLoggedIn) {
             try {
-                // For logged-in users, use the PATCH endpoint
+                // For logged-in users, first fetch current cart to compute new absolute quantity
+                let currentQty = 0;
+                try {
+                    const cartRes = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
+                    });
+                    if (cartRes.ok) {
+                        const cart = await cartRes.json();
+                        const match = (cart.items || []).find(it => {
+                            const id = (it.menuItem && (it.menuItem._id || it.menuItem.id)) || it.menuItem;
+                            const sameId = String(id) === String(menuItemId);
+                            const sameType = it.itemType === itemType;
+                            const sameSize = (!selectedSize && !it.selectedSize) || (selectedSize && it.selectedSize && (it.selectedSize.size === (selectedSize.size || selectedSize)));
+                            return sameId && sameType && sameSize;
+                        });
+                        currentQty = match ? (Number(match.quantity) || 0) : 0;
+                    }
+                } catch (_) {}
+
+                const newQuantity = Number(currentQty) + Number(quantity || 1);
+
+                // Use the PATCH endpoint with absolute quantity
                 const response = await fetch(`https://aticas-backend.onrender.com/api/cart/items`, {
                     method: 'PATCH',
                     headers: { 
@@ -128,7 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     body: JSON.stringify({
                         menuItemId,
-                        quantity,
+                        quantity: newQuantity,
                         itemType,
                         selectedSize: selectedSize || undefined
                     })

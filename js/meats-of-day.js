@@ -57,9 +57,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to add meat to cart
     async function addMeatToCart(meat) {
         try {
-            // Check if window.addToCart is available (from script.js)
+            // Ensure department context is butchery
+            try { localStorage.setItem('cartDepartment', 'butchery'); } catch (_) {}
+
+            // Prepare meat payload with explicit type hints for global addToCart
+            const meatItem = {
+                ...meat,
+                type: 'meat',          // hint for isButchery detection
+                itemType: 'butchery'    // additional hint
+            };
+
+            // Prefer global addToCart (from script.js)
             if (window.addToCart) {
-                await window.addToCart(meat);
+                await window.addToCart(meatItem, 1);
                 showToast(`${meat.name} added to cart!`);
             } else {
                 // Fallback to direct API call if addToCart is not available
@@ -67,9 +77,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const userToken = localStorage.getItem('userToken');
                 
                 if (userId && userToken) {
-                    // For logged-in users
-                    const response = await fetch(`/api/cart/${userId}/items`, {
-                        method: 'POST',
+                    // For logged-in users use authenticated PATCH endpoint
+                    const response = await fetch('https://aticas-backend.onrender.com/api/cart/items', {
+                        method: 'PATCH',
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${userToken}`
@@ -77,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         body: JSON.stringify({
                             menuItemId: meat._id,
                             quantity: 1,
-                            itemType: 'MeatOfDay'
+                            itemType: 'Meat'
                         })
                     });
 
@@ -95,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // For guests
                     let cart = JSON.parse(localStorage.getItem('guestCart') || '{"items": []}');
                     const existingItemIndex = cart.items.findIndex(item => 
-                        item.menuItem._id === meat._id && item.itemType === 'MeatOfDay'
+                        item.menuItem._id === meat._id && (item.itemType === 'Meat' || item.itemType === 'butchery' || item.itemType === 'meat')
                     );
 
                     if (existingItemIndex > -1) {
@@ -104,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         cart.items.push({
                             menuItem: meat,
                             quantity: 1,
-                            itemType: 'MeatOfDay'
+                            itemType: 'Meat'
                         });
                     }
                     
