@@ -1127,21 +1127,28 @@
                                 throw new Error('Your cart is empty');
                             }
 
-                            // Build items payload with IDs only
-                            const itemsPayload = cart.items.map(item => {
-                                const menuItemObj = item.menuItem || {};
-                                const menuItemId = menuItemObj._id || menuItemObj.id || item.menuItem;
-                                const rawType = String(item.itemType || 'Menu').toLowerCase();
-                                const itemType = rawType === 'meat' || rawType === 'butchery' ? 'Meat'
-                                                 : rawType === 'mealofday' || rawType === 'mod' || rawType === 'meal of day' ? 'MealOfDay'
-                                                 : 'Menu';
-                                return {
-                                    menuItem: String(menuItemId),
-                                    itemType,
-                                    quantity: item.quantity || 1,
-                                    ...(item.selectedSize ? { selectedSize: item.selectedSize } : {})
-                                };
-                            });
+                            // Build items payload with IDs only, filter invalid IDs
+                            const itemsPayload = cart.items
+                                .map(item => {
+                                    const menuItemObj = item.menuItem || {};
+                                    const menuItemId = menuItemObj._id || menuItemObj.id || item.menuItem;
+                                    const idStr = String(menuItemId || '').trim();
+                                    if (!isValidObjectId(idStr)) {
+                                        console.warn('Skipping cart item with invalid menuItem id', item);
+                                        return null;
+                                    }
+                                    const rawType = String(item.itemType || 'Menu').toLowerCase();
+                                    const itemType = rawType === 'meat' || rawType === 'butchery' ? 'Meat'
+                                                     : rawType === 'mealofday' || rawType === 'mod' || rawType === 'meal of day' ? 'MealOfDay'
+                                                     : 'Menu';
+                                    return {
+                                        menuItem: idStr,
+                                        itemType,
+                                        quantity: Number(item.quantity) || 1,
+                                        ...(item.selectedSize ? { selectedSize: item.selectedSize } : {})
+                                    };
+                                })
+                                .filter(Boolean);
 
                             // Validate delivery fields if delivery is selected
                             if (orderType === 'delivery') {
