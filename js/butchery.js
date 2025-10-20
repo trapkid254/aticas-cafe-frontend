@@ -288,7 +288,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h3>${item.name}</h3>
                     <p class="meat-description">${item.description || 'Fresh quality meat'}</p>
                     <div class="meat-footer">
-                        <span class="price">Ksh ${typeof item.price === 'number' ? item.price.toFixed(2) : 'N/A'}</span>
+                        <span class="price">Ksh ${typeof item.price === 'number' ? item.price.toFixed(2) : 'N/A'}/kg</span>
                         <span class="quantity ${quantityClass}">${quantityText}</span>
                     </div>
                 </div>
@@ -306,8 +306,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (item.priceOptions && item.priceOptions.length > 0) {
                     openPriceOptionsModal(item);
                 } else {
-                    await addToCartApi(item);
-                    showToast(`${item.name} added to cart!`);
+                    // Ask user to order by kg or by amount (Ksh)
+                    const pricePerKg = Number(item.price) || 0;
+                    if (!pricePerKg) {
+                        showToast('Invalid price for this item', 'error');
+                        return;
+                    }
+                    const mode = prompt('Order by:\n1) Kilograms (kg)\n2) Amount (Ksh)\nEnter 1 or 2:');
+                    if (!mode) return;
+                    const trimmed = String(mode).trim();
+                    let kg = 0, amount = 0;
+                    if (trimmed === '1') {
+                        const kgInput = prompt('Enter weight in kg (e.g., 0.5):');
+                        if (!kgInput) return;
+                        kg = Math.max(0, Number(kgInput));
+                        if (!kg) { showToast('Invalid kilograms', 'error'); return; }
+                        amount = kg * pricePerKg;
+                    } else if (trimmed === '2') {
+                        const amtInput = prompt('Enter amount in Ksh (e.g., 300):');
+                        if (!amtInput) return;
+                        amount = Math.max(0, Number(amtInput));
+                        if (!amount) { showToast('Invalid amount', 'error'); return; }
+                        kg = amount / pricePerKg;
+                    } else {
+                        return;
+                    }
+
+                    const selected = { size: `${kg.toFixed(2)} kg`, price: Math.round(amount) };
+                    await addToCartApi(item, selected);
+                    showToast(`${item.name} (${selected.size}) added to cart!`);
                     fetchMeatItems();
                 }
             });

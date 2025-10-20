@@ -153,7 +153,7 @@
                             <h3>${meat.name}</h3>
                             <p class="menu-item-description">${meat.description || 'Fresh and delicious meat'}</p>
                             <div class="menu-item-footer">
-                                <span class="price">Ksh ${meat.price?.toFixed(2) || '0.00'}</span>
+                                <span class="price">Ksh ${meat.price?.toFixed(2) || '0.00'}/kg</span>
                                 <button class="add-to-cart-btn" data-id="${meat._id}" data-name="${meat.name}" data-price="${meat.price}">
                                     <i class="fas fa-plus"></i> Add to Cart
                                 </button>
@@ -164,14 +164,45 @@
 
                 // Add event listeners to the add to cart buttons
                 document.querySelectorAll('.add-to-cart-btn').forEach(button => {
-                    button.addEventListener('click', function() {
+                    button.addEventListener('click', async function() {
+                        const basePrice = parseFloat(this.dataset.price) || 0;
                         const item = {
                             _id: this.dataset.id,
                             name: this.dataset.name,
-                            price: parseFloat(this.dataset.price),
+                            price: basePrice,
                             type: 'meat'
                         };
-                        addToCart(item);
+                        if (!basePrice) { alert('Invalid price'); return; }
+                        const mode = prompt('Order by:\n1) Kilograms (kg)\n2) Amount (Ksh)\nEnter 1 or 2:');
+                        if (!mode) return;
+                        const trimmed = String(mode).trim();
+                        let kg = 0, amount = 0;
+                        if (trimmed === '1') {
+                            const kgInput = prompt('Enter weight in kg (e.g., 0.5):');
+                            if (!kgInput) return;
+                            kg = Math.max(0, Number(kgInput));
+                            if (!kg) { alert('Invalid kilograms'); return; }
+                            amount = kg * basePrice;
+                        } else if (trimmed === '2') {
+                            const amtInput = prompt('Enter amount in Ksh (e.g., 300):');
+                            if (!amtInput) return;
+                            amount = Math.max(0, Number(amtInput));
+                            if (!amount) { alert('Invalid amount'); return; }
+                            kg = amount / basePrice;
+                        } else {
+                            return;
+                        }
+                        item.selectedSize = { size: `${kg.toFixed(2)} kg`, price: Math.round(amount) };
+                        item.price = item.selectedSize.price;
+                        item.quantity = 1;
+                        // Expose addToCart via global if available
+                        if (typeof window.addToCart === 'function') {
+                            await window.addToCart(item);
+                        } else if (typeof addToCart === 'function') {
+                            await addToCart(item);
+                        } else {
+                            alert('Cart is not initialized');
+                        }
                     });
                 });
             }
