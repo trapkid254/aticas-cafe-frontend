@@ -3,7 +3,21 @@ body {
     font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
     background: #f4f6fa;
     color: #222;
+    position: relative; /* for watermark stacking context */
 }
+
+/* Global watermark for admin pages */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: url('../images/1b.jpg') center center no-repeat;
+    background-size: clamp(260px, 40vw, 520px);
+    opacity: 0.06; /* subtle watermark */
+    pointer-events: none;
+    z-index: 0;
+}
+
 .admin-navbar {
     display: flex;
     flex-direction: row;
@@ -109,6 +123,8 @@ body {
     padding: 2.5rem 2rem 2rem 2rem;
     background: #f4f6fa;
     min-height: 100vh;
+    position: relative;
+    z-index: 1; /* render above watermark */
 }
 .dashboard-cards {
     display: flex;
