@@ -184,7 +184,7 @@
                             <p class="menu-item-description" style="color:#607d8b;">${meat.description || 'Fresh and delicious meat'}</p>
                             <div class="menu-item-footer" style="display:flex;align-items:center;justify-content:space-between;gap:0.6rem;">
                                 <span class="price" style="font-weight:800;color:#2e7d32;">Ksh ${meat.price?.toFixed(2) || '0.00'}/kg</span>
-                                <button class="add-to-cart-btn" data-id="${meat._id}" data-name="${meat.name}" data-price="${meat.price}" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.6rem 0.9rem;border-radius:10px;border:1.5px solid #27ae60;background:#27ae60;color:#fff;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(39,174,96,0.18);">
+                                <button class="add-to-cart-btn" data-id="${meat._id}" data-name="${meat.name}" data-price="${meat.price}" data-image="${meat.image || 'images/meat.jpg'}" data-category="${meat.category || ''}" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.6rem 0.9rem;border-radius:10px;border:1.5px solid #27ae60;background:#27ae60;color:#fff;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(39,174,96,0.18);">
                                     <i class="fas fa-cart-plus"></i> Add to Cart
                                 </button>
                             </div>
@@ -268,6 +268,8 @@
                             name: currentItem.name,
                             price: Math.round(finalAmt),
                             type: 'meat',
+                            image: currentItem.image || 'images/meat.jpg',
+                            category: currentItem.category || '',
                             selectedSize: { size: `${finalKg.toFixed(2)} kg`, price: Math.round(finalAmt) },
                             quantity: 1
                         };
@@ -282,10 +284,14 @@
 
                 document.querySelectorAll('.add-to-cart-btn').forEach(button => {
                     button.addEventListener('click', function() {
+                        const price = parseFloat(this.dataset.price);
+                        if (!price || isNaN(price) || price <= 0) { alert('Price is not set for this item. Please check back later.'); return; }
                         const item = {
                             _id: this.dataset.id,
                             name: this.dataset.name,
-                            price: parseFloat(this.dataset.price) || 0
+                            price: price,
+                            image: this.dataset.image,
+                            category: this.dataset.category
                         };
                         openOrderModal(item);
                     });

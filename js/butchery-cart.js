@@ -174,6 +174,9 @@ document.addEventListener('DOMContentLoaded', function() {
         showToast(`${item.name} added to cart!`);
     }
 
+    // Expose globally for pages that need to add items via inline scripts (e.g., butchery-menu.html)
+    window.addToCart = addToCart;
+
     // Remove item from cart
     async function removeFromCart(menuItemId, itemType, selectedSize = null) {
         const cart = await fetchCart();
