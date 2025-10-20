@@ -170,7 +170,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         await saveCart(cart);
         await updateCartCount();
-        await displayCartItems();
+        // Only try to render the cart UI if present on this page
+        if (cartContainer) {
+            await displayCartItems();
+        }
         showToast(`${item.name} added to cart!`);
     }
 
@@ -216,6 +219,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Display cart items
     async function displayCartItems() {
+        // If this page has no cart UI, skip rendering
+        if (!cartContainer) return;
         const cart = await fetchCart();
         
         if (!cart || !cart.items || cart.items.length === 0) {
