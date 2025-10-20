@@ -211,7 +211,6 @@
                 function openOrderModal(item) {
                     currentItem = item;
                     pricePerKg = parseFloat(item.price) || 0;
-                    if (!pricePerKg) { alert('Invalid price'); return; }
                     if (orderTitle) orderTitle.textContent = `Order ${item.name}`;
                     if (pricePerKgLabel) pricePerKgLabel.textContent = `Ksh ${pricePerKg.toLocaleString()}`;
                     if (kgInput) kgInput.value = '';
@@ -285,11 +284,10 @@
                 document.querySelectorAll('.add-to-cart-btn').forEach(button => {
                     button.addEventListener('click', function() {
                         const price = parseFloat(this.dataset.price);
-                        if (!price || isNaN(price) || price <= 0) { alert('Price is not set for this item. Please check back later.'); return; }
                         const item = {
                             _id: this.dataset.id,
                             name: this.dataset.name,
-                            price: price,
+                            price: (!isNaN(price) && price > 0) ? price : 0,
                             image: this.dataset.image,
                             category: this.dataset.category
                         };
