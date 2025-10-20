@@ -407,12 +407,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert('Sorry, this item is out of stock!');
                     return;
                 }
-                if (item.priceOptions && item.priceOptions.length > 0) {
-                    openPriceOptionsModal(item);
-                } else {
-                    // Open professional modal for kg/amount selection
-                    openOrderMeatModal(item);
-                }
+                // On butchery homepage, always use kg/amount modal selection
+                openOrderMeatModal(item);
             });
         });
     }
