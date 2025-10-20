@@ -113,64 +113,84 @@ document.addEventListener('DOMContentLoaded', function() {
         return getGuestButcheryCart();
     }
 
-    // Save cart to backend or local storage
+    // Save cart for guests only (logged-in flows patch per item)
     async function saveCart(cart) {
         const userId = localStorage.getItem('userId');
         const token = localStorage.getItem('userToken');
-        
         if (userId && token) {
-            try {
-                await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
-                    method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(cart)
-                });
-            } catch (error) {
-                console.error('Error saving cart:', error);
-            }
-        } else {
-            // Merge butchery-only changes back into unified guestCart
-            mergeGuestButcheryCart(cart);
+            // No-op: logged-in updates are handled via PATCH /api/cart/items
+            return;
         }
+        // Merge butchery-only changes back into unified guestCart
+        mergeGuestButcheryCart(cart);
     }
 
     // Update cart count in the header
     async function updateCartCount() {
         const cart = await fetchCart();
-        const count = cart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
-        document.querySelectorAll('.cart-count').forEach(el => el.textContent = count);
+        const count = cart?.items?.reduce((total, item) => total + (item.quantity || 0), 0) || 0;
+        if (typeof window.updateCartIndicators === 'function') {
+            try { window.updateCartIndicators(); } catch (_) {}
+        } else {
+            document.querySelectorAll('.cart-count').forEach(el => el.textContent = count);
+        }
+        return count;
     }
 
     // Add item to cart
     async function addToCart(item) {
+        const userId = localStorage.getItem('userId');
+        const token = localStorage.getItem('userToken');
         const cart = await fetchCart();
         const existingItem = cart.items.find(i => {
             const sameId = String(getItemId(i)) === String(item._id);
-            const sameType = isButcheryType(i.itemType);
+            const sameType = isButcheryType(i.itemType) || i.itemType === 'Meat';
             const sameSize = !item.selectedSize || i.selectedSize?.size === item.selectedSize?.size;
             return sameId && sameType && sameSize;
         });
 
-        if (existingItem) {
-            existingItem.quantity += item.quantity || 1;
+        const newQty = (existingItem ? existingItem.quantity : 0) + (item.quantity || 1);
+
+        if (userId && token) {
+            // Logged-in: patch server cart
+            try {
+                const res = await fetch('https://aticas-backend.onrender.com/api/cart/items', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        menuItemId: String(item._id),
+                        quantity: newQty,
+                        itemType: 'Meat',
+                        ...(item.selectedSize ? { selectedSize: item.selectedSize } : {})
+                    })
+                });
+                if (!res.ok) throw new Error(await res.text());
+            } catch (e) {
+                console.error('Failed to add to cart (logged-in):', e);
+            }
         } else {
-            cart.items.push({
-                menuItem: { _id: item._id, name: item.name, price: item.price, image: item.image, category: item.category },
-                itemType: 'Meat',
-                quantity: item.quantity || 1,
-                selectedSize: item.selectedSize || null,
-                name: item.name,
-                price: item.price,
-                image: item.image
-            });
+            // Guest: update local cart
+            if (existingItem) {
+                existingItem.quantity = newQty;
+            } else {
+                cart.items.push({
+                    menuItem: { _id: item._id, name: item.name, price: item.price, image: item.image, category: item.category },
+                    itemType: 'Meat',
+                    quantity: newQty,
+                    selectedSize: item.selectedSize || null,
+                    name: item.name,
+                    price: item.price,
+                    image: item.image
+                });
+            }
+            await saveCart(cart);
         }
 
-        await saveCart(cart);
         await updateCartCount();
-        // Only try to render the cart UI if present on this page
+        if (typeof window.updateCartIndicators === 'function') { try { window.updateCartIndicators(); } catch (_) {} }
         if (cartContainer) {
             await displayCartItems();
         }
@@ -182,15 +202,40 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Remove item from cart
     async function removeFromCart(menuItemId, itemType, selectedSize = null) {
-        const cart = await fetchCart();
-        cart.items = cart.items.filter(item => {
-            const sameId = String(getItemId(item)) === String(menuItemId);
-            const sameType = isButcheryType(item.itemType) && isButcheryType(itemType);
-            const sameSize = (selectedSize && item.selectedSize?.size === selectedSize) || (!selectedSize && !item.selectedSize);
-            return !(sameId && sameType && sameSize);
-        });
-        await saveCart(cart);
+        const userId = localStorage.getItem('userId');
+        const token = localStorage.getItem('userToken');
+        if (userId && token) {
+            // Logged-in: set quantity to 0 via PATCH
+            try {
+                await fetch('https://aticas-backend.onrender.com/api/cart/items', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        menuItemId: String(menuItemId),
+                        quantity: 0,
+                        itemType: 'Meat',
+                        ...(selectedSize ? { selectedSize: { size: selectedSize } } : {})
+                    })
+                });
+            } catch (e) {
+                console.error('Failed to remove from cart (logged-in):', e);
+            }
+        } else {
+            // Guest: mutate local
+            const cart = await fetchCart();
+            cart.items = cart.items.filter(item => {
+                const sameId = String(getItemId(item)) === String(menuItemId);
+                const sameType = isButcheryType(item.itemType) && isButcheryType(itemType);
+                const sameSize = (selectedSize && item.selectedSize?.size === selectedSize) || (!selectedSize && !item.selectedSize);
+                return !(sameId && sameType && sameSize);
+            });
+            await saveCart(cart);
+        }
         await updateCartCount();
+        if (typeof window.updateCartIndicators === 'function') { try { window.updateCartIndicators(); } catch (_) {} }
         await displayCartItems();
     }
 
@@ -201,20 +246,43 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const cart = await fetchCart();
-        const item = cart.items.find(item => {
-            const sameId = String(getItemId(item)) === String(menuItemId);
-            const sameType = isButcheryType(item.itemType) && isButcheryType(itemType);
-            const sameSize = (selectedSize && item.selectedSize?.size === selectedSize) || (!selectedSize && !item.selectedSize);
-            return sameId && sameType && sameSize;
-        });
-
-        if (item) {
-            item.quantity = quantity;
-            await saveCart(cart);
-            await updateCartCount();
-            await displayCartItems();
+        const userId = localStorage.getItem('userId');
+        const token = localStorage.getItem('userToken');
+        if (userId && token) {
+            // Logged-in: patch server
+            try {
+                await fetch('https://aticas-backend.onrender.com/api/cart/items', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        menuItemId: String(menuItemId),
+                        quantity: Number(quantity),
+                        itemType: 'Meat',
+                        ...(selectedSize ? { selectedSize: { size: selectedSize } } : {})
+                    })
+                });
+            } catch (e) {
+                console.error('Failed to update cart item (logged-in):', e);
+            }
+        } else {
+            // Guest: update local
+            const cart = await fetchCart();
+            const item = cart.items.find(item => {
+                const sameId = String(getItemId(item)) === String(menuItemId);
+                const sameType = isButcheryType(item.itemType) && isButcheryType(itemType);
+                const sameSize = (selectedSize && item.selectedSize?.size === selectedSize) || (!selectedSize && !item.selectedSize);
+                return sameId && sameType && sameSize;
+            });
+            if (item) {
+                item.quantity = quantity;
+                await saveCart(cart);
+            }
         }
+        await updateCartCount();
+        await displayCartItems();
     }
 
     // Display cart items
@@ -343,7 +411,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize cart
     async function init() {
+        // Persist department context so cart.html shows butchery subset
+        try { localStorage.setItem('cartDepartment', 'butchery'); } catch (_) {}
         await updateCartCount();
+        if (typeof window.updateCartIndicators === 'function') { try { window.updateCartIndicators(); } catch (_) {} }
         await displayCartItems();
         
         // Toggle checkout form

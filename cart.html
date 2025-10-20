@@ -863,6 +863,44 @@
                 const checkoutModal = document.getElementById('checkoutModal');
                 const closeCheckout = checkoutModal?.querySelector('.close-modal');
                 const checkoutForm = document.getElementById('checkoutForm');
+                // If user is logged in, hide Name/Phone fields and remove required
+                try {
+                    const isLoggedIn = !!localStorage.getItem('userToken');
+                    const nameInput = document.getElementById('name');
+                    const phoneInput = document.getElementById('phone');
+                    const nameGroup = nameInput?.closest('.form-group');
+                    const phoneGroup = phoneInput?.closest('.form-group');
+                    if (isLoggedIn) {
+                        if (nameInput) nameInput.required = false;
+                        if (phoneInput) phoneInput.required = false;
+                        if (nameGroup) nameGroup.style.display = 'none';
+                        if (phoneGroup) phoneGroup.style.display = 'none';
+                    } else {
+                        if (nameGroup) nameGroup.style.display = '';
+                        if (phoneGroup) phoneGroup.style.display = '';
+                        if (nameInput) nameInput.required = true;
+                        if (phoneInput) phoneInput.required = true;
+                    }
+                } catch(_) {}
+                // If user is logged in, hide Name/Phone fields and remove required
+                try {
+                    const isLoggedIn = !!localStorage.getItem('userToken');
+                    const nameInput = document.getElementById('name');
+                    const phoneInput = document.getElementById('phone');
+                    const nameGroup = nameInput?.closest('.form-group');
+                    const phoneGroup = phoneInput?.closest('.form-group');
+                    if (isLoggedIn) {
+                        if (nameInput) nameInput.required = false;
+                        if (phoneInput) phoneInput.required = false;
+                        if (nameGroup) nameGroup.style.display = 'none';
+                        if (phoneGroup) phoneGroup.style.display = 'none';
+                    } else {
+                        if (nameGroup) nameGroup.style.display = '';
+                        if (phoneGroup) phoneGroup.style.display = '';
+                        if (nameInput) nameInput.required = true;
+                        if (phoneInput) phoneInput.required = true;
+                    }
+                } catch(_) {}
 
                 function openCheckoutModal() {
                     if (!checkoutModal) return;
@@ -1188,10 +1226,10 @@
                             // Prepare common order data
                             const computedFee = orderType === 'delivery' ? (window.__computedDeliveryFee || 0) : 0;
                             const userId = localStorage.getItem('userId') || undefined;
+                            const isLoggedInNow = !!localStorage.getItem('userToken');
                             const orderDetails = {
                                 items: itemsPayload,
-                                customerName: name,
-                                customerPhone: phone,
+                                ...(isLoggedInNow ? {} : { customerName: name, customerPhone: phone }),
                                 orderType,
                                 paymentMethod,
                                 deliveryLocation,
