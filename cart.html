@@ -366,10 +366,13 @@
                                 item.itemType !== 'Meat' && item.itemType !== 'meat' && item.itemType !== 'butchery'
                             );
                         }
-                        // Recalculate total
+                        // Recalculate total (match per-item display fallback to menuItem.price)
                         const total = items.reduce((sum, item) => {
-                            const price = item.selectedSize?.price || item.price || 0;
-                            return sum + (price * item.quantity);
+                            const menuItem = item.menuItem || {};
+                            const price = (item.selectedSize && typeof item.selectedSize.price === 'number')
+                                ? item.selectedSize.price
+                                : (typeof item.price === 'number' ? item.price : (typeof menuItem.price === 'number' ? menuItem.price : 0));
+                            return sum + (price * (item.quantity || 1));
                         }, 0);
                         
                         return { items, total };
@@ -440,10 +443,13 @@
                             return item.itemType !== 'Meat' && item.itemType !== 'meat' && item.itemType !== 'butchery';
                         }
                     });
-                    // Recalculate total
+                    // Recalculate total (match per-item display fallback to menuItem.price)
                     const total = validItems.reduce((sum, item) => {
-                        const price = item.selectedSize?.price || item.price || 0;
-                        return sum + (price * item.quantity);
+                        const menuItem = item.menuItem || {};
+                        const price = (item.selectedSize && typeof item.selectedSize.price === 'number')
+                            ? item.selectedSize.price
+                            : (typeof item.price === 'number' ? item.price : (typeof menuItem.price === 'number' ? menuItem.price : 0));
+                        return sum + (price * (item.quantity || 1));
                     }, 0);
                     
                     return {
@@ -608,7 +614,22 @@
                 const isButchery = item.itemType === 'Meat' || item.itemType === 'meat' || item.itemType === 'butchery';
                 const menuItem = item.menuItem || {};
                 const name = item.name || menuItem.name || 'Unnamed Item';
-                const unitPrice = (item.selectedSize?.price ?? item.price ?? menuItem.price ?? 0);
+                // Compute unit price with robust fallbacks
+                const basePerKg = typeof menuItem.price === 'number' ? Number(menuItem.price) : (typeof item.price === 'number' ? Number(item.price) : 0);
+                let unitPrice = 0;
+                if (item.selectedSize && typeof item.selectedSize.price === 'number') {
+                    unitPrice = Number(item.selectedSize.price);
+                } else if (isButchery && item.selectedSize && item.selectedSize.size && basePerKg) {
+                    const sizeStr = String(item.selectedSize.size).toLowerCase();
+                    const kg = parseFloat(sizeStr.replace(/[^0-9.]/g, ''));
+                    if (sizeStr.includes('kg') && !isNaN(kg)) {
+                        unitPrice = Math.round(kg * basePerKg);
+                    } else {
+                        unitPrice = basePerKg || 0;
+                    }
+                } else {
+                    unitPrice = (typeof item.price === 'number' ? item.price : (typeof menuItem.price === 'number' ? menuItem.price : 0));
+                }
                 const qty = item.quantity || 1;
                 const total = unitPrice * qty;
                 const defaultImage = isButchery ? 'images/meat.jpg' : 'images/default-meal.jpg';
