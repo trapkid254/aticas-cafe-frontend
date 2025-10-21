@@ -355,6 +355,44 @@
                             ...item,
                             itemType: item.itemType || 'food'
                         }));
+
+                        // Enrich Meat items missing selectedSize.price by deriving from per-kg
+                        async function enrichMeatItems(arr) {
+                            const baseUrl = 'https://aticas-backend.onrender.com';
+                            return Promise.all(arr.map(async it => {
+                                const t = String(it.itemType || '').toLowerCase();
+                                const isMeat = t === 'meat' || t === 'butchery';
+                                const hasSize = !!(it.selectedSize && it.selectedSize.size);
+                                const hasPrice = !!(it.selectedSize && typeof it.selectedSize.price === 'number');
+                                if (!isMeat || !hasSize || hasPrice) return it;
+                                // Try compute from populated menuItem.price first
+                                const menu = it.menuItem || {};
+                                let perKg = typeof menu.price === 'number' ? Number(menu.price) : NaN;
+                                if (!Number.isFinite(perKg)) {
+                                    // Fallback: fetch meat record to get price
+                                    const id = (menu._id || menu.id || it.menuItem || '').toString();
+                                    if (id && /^[0-9a-fA-F]{24}$/.test(id)) {
+                                        try {
+                                            const res = await fetch(`${baseUrl}/api/meats/${id}`);
+                                            if (res.ok) {
+                                                const meat = await res.json();
+                                                if (meat && typeof meat.price === 'number') perKg = Number(meat.price);
+                                            }
+                                        } catch (_) {}
+                                    }
+                                }
+                                if (Number.isFinite(perKg)) {
+                                    const sizeStr = String(it.selectedSize.size).toLowerCase();
+                                    const kg = parseFloat(sizeStr.replace(/[^0-9.]/g, ''));
+                                    if (sizeStr.includes('kg') && !isNaN(kg)) {
+                                        const derived = Math.round(kg * perKg);
+                                        it.selectedSize = { size: it.selectedSize.size, price: derived };
+                                    }
+                                }
+                                return it;
+                            }));
+                        }
+                        items = await enrichMeatItems(items);
                         
                         // Filter items based on type
                         if (isButchery) {
@@ -1103,11 +1141,11 @@
                 // Add event delegation for cart item actions
                 document.addEventListener('click', async (e) => {
                     // Handle quantity increase
-                    if (e.target.closest('.increase-quantity')) {
+                    if (e.target.closest('.plus')) {
                         const itemElement = e.target.closest('.cart-item');
                         const itemId = itemElement?.dataset?.id;
                         const itemType = itemElement?.dataset?.type || 'food';
-                        const quantityElement = itemElement?.querySelector('.item-quantity');
+                        const quantityElement = itemElement?.querySelector('.quantity');
                         const sizeAttr = itemElement?.dataset?.size || null;
                         const priceAttr = itemElement?.dataset?.price || null;
                         const selObj = sizeAttr ? { size: sizeAttr, ...(priceAttr ? { price: Number(priceAttr) } : {}) } : null;
@@ -1120,11 +1158,11 @@
                     }
                     
                     // Handle quantity decrease
-                    if (e.target.closest('.decrease-quantity')) {
+                    if (e.target.closest('.minus')) {
                         const itemElement = e.target.closest('.cart-item');
                         const itemId = itemElement?.dataset?.id;
                         const itemType = itemElement?.dataset?.type || 'food';
-                        const quantityElement = itemElement?.querySelector('.item-quantity');
+                        const quantityElement = itemElement?.querySelector('.quantity');
                         const sizeAttr = itemElement?.dataset?.size || null;
                         const priceAttr = itemElement?.dataset?.price || null;
                         const selObj = sizeAttr ? { size: sizeAttr, ...(priceAttr ? { price: Number(priceAttr) } : {}) } : null;
@@ -1141,7 +1179,7 @@
                     }
                     
                     // Handle remove item
-                    if (e.target.closest('.remove-item')) {
+                    if (e.target.closest('.remove-btn')) {
                         const itemElement = e.target.closest('.cart-item');
                         const itemId = itemElement?.dataset?.id;
                         const itemType = itemElement?.dataset?.type || 'food';
