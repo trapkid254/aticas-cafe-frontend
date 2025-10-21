@@ -972,10 +972,12 @@
             async function updateCartItem(menuItemId, quantity, itemType, selectedSize = null) {
                 const userId = localStorage.getItem('userId');
                 const token = localStorage.getItem('userToken');
+                const isButchery = (localStorage.getItem('cartDepartment') || 'cafeteria') === 'butchery';
                 
                 if (userId && token) {
                     try {
-                        const response = await fetch('https://aticas-backend.onrender.com/api/cart/update', {
+                        // Use the correct API endpoint
+                        const response = await fetch('https://aticas-backend.onrender.com/api/cart/items', {
                             method: 'PATCH',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -984,8 +986,8 @@
                             body: JSON.stringify({
                                 menuItemId,
                                 quantity,
-                                itemType,
-                                selectedSize
+                                itemType: isButchery ? 'Meat' : (itemType === 'mealofday' ? 'MealOfDay' : 'Menu'),
+                                ...(selectedSize && { selectedSize })
                             })
                         });
                         
@@ -999,8 +1001,8 @@
                         throw error;
                     }
                 } else {
-                    // Handle guest cart update
-                    const guestCart = getGuestCart();
+                    // Handle guest cart update - replicate guest cart behavior
+                    const guestCart = getGuestCart(isButchery);
                     const itemIndex = guestCart.items.findIndex(item => {
                         const id = item.menuItem?._id || item.menuItem?.id || item.menuItem;
                         const sameId = String(id) === String(menuItemId);
@@ -1017,7 +1019,7 @@
                             const price = item.selectedSize?.price || item.menuItem?.price || 0;
                             return sum + (price * item.quantity);
                         }, 0);
-                        localStorage.setItem('guestCart', JSON.stringify(guestCart));
+                        setGuestCart(guestCart, isButchery);
                     }
                 }
             }
@@ -1026,10 +1028,12 @@
             async function removeCartItem(menuItemId, itemType, selectedSize = null) {
                 const userId = localStorage.getItem('userId');
                 const token = localStorage.getItem('userToken');
+                const isButchery = (localStorage.getItem('cartDepartment') || 'cafeteria') === 'butchery';
                 
                 if (userId && token) {
                     try {
-                        const response = await fetch('https://aticas-backend.onrender.com/api/cart/remove', {
+                        // Use the correct API endpoint for removal
+                        const response = await fetch('https://aticas-backend.onrender.com/api/cart/items', {
                             method: 'DELETE',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -1037,8 +1041,8 @@
                             },
                             body: JSON.stringify({
                                 menuItemId,
-                                itemType,
-                                selectedSize
+                                itemType: isButchery ? 'Meat' : (itemType === 'mealofday' ? 'MealOfDay' : 'Menu'),
+                                ...(selectedSize && { selectedSize })
                             })
                         });
                         
@@ -1052,8 +1056,8 @@
                         throw error;
                     }
                 } else {
-                    // Handle guest cart removal
-                    const guestCart = getGuestCart();
+                    // Handle guest cart removal - replicate guest cart behavior
+                    const guestCart = getGuestCart(isButchery);
                     guestCart.items = guestCart.items.filter(item => {
                         const id = item.menuItem?._id || item.menuItem?.id || item.menuItem;
                         const sameId = String(id) === String(menuItemId);
@@ -1068,8 +1072,64 @@
                         const price = item.selectedSize?.price || item.menuItem?.price || 0;
                         return sum + (price * item.quantity);
                     }, 0);
-                    localStorage.setItem('guestCart', JSON.stringify(guestCart));
+                    setGuestCart(guestCart, isButchery);
                 }
+            }
+
+            // Guest cart helper functions (replicated from cart.js)
+            function getGuestCart(isButchery = false) {
+                const raw = localStorage.getItem('guestCart') || '{"items":[],"total":0}';
+                let fullCart;
+                try {
+                    fullCart = JSON.parse(raw);
+                } catch (e) {
+                    fullCart = { items: [], total: 0 };
+                }
+
+                const predicate = (item) => {
+                    const t = String(item.itemType || '').toLowerCase();
+                    const isMeat = t === 'meat' || t === 'butchery';
+                    return isButchery ? isMeat : !isMeat;
+                };
+
+                const items = Array.isArray(fullCart.items) ? fullCart.items.filter(predicate) : [];
+                const total = items.reduce((sum, item) => {
+                    const price = item.selectedSize?.price || item.price || item.menuItem?.price || 0;
+                    return sum + (price * (item.quantity || 1));
+                }, 0);
+
+                return { items, total };
+            }
+
+            function setGuestCart(filteredCart, isButchery = false) {
+                // Merge changes for the specific subset back into the unified guestCart
+                const raw = localStorage.getItem('guestCart') || '{"items":[],"total":0}';
+                let fullCart;
+                try {
+                    fullCart = JSON.parse(raw);
+                } catch (e) {
+                    fullCart = { items: [], total: 0 };
+                }
+
+                const predicate = (item) => {
+                    const t = String(item.itemType || '').toLowerCase();
+                    const isMeat = t === 'meat' || t === 'butchery';
+                    return isButchery ? isMeat : !isMeat;
+                };
+
+                // Keep items from the other department
+                const otherItems = Array.isArray(fullCart.items) ? fullCart.items.filter(item => !predicate(item)) : [];
+                
+                // Merge with new items from this department
+                const mergedItems = [...otherItems, ...(filteredCart.items || [])];
+                
+                // Recalculate total
+                const total = mergedItems.reduce((sum, item) => {
+                    const price = item.selectedSize?.price || item.price || item.menuItem?.price || 0;
+                    return sum + (price * (item.quantity || 1));
+                }, 0);
+
+                localStorage.setItem('guestCart', JSON.stringify({ items: mergedItems, total }));
             }
 
             // Make sure cart functions are available globally
@@ -1077,6 +1137,8 @@
             window.displayCombinedCart = displayCombinedCart;
             window.updateCartItem = updateCartItem;
             window.removeCartItem = removeCartItem;
+            window.getGuestCart = getGuestCart;
+            window.setGuestCart = setGuestCart;
 
             // Initialize navigation buttons and UI elements
             function initializeUI() {
