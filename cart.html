@@ -826,7 +826,8 @@
                         e.preventDefault();
                         const nameEl = cartItem.querySelector('.item-details h4');
                         const removedName = nameEl ? nameEl.textContent.trim() : 'Item';
-                        await removeCartItem(itemId, itemType);
+                        const sizeAttr2 = cartItem.dataset.size || null;
+                        await removeCartItem(itemId, itemType, sizeAttr2 || null);
                         await loadCarts();
                         if (window.showToast) {
                             showToast(`${removedName} removed`);
@@ -1107,10 +1108,13 @@
                         const itemId = itemElement?.dataset?.id;
                         const itemType = itemElement?.dataset?.type || 'food';
                         const quantityElement = itemElement?.querySelector('.item-quantity');
+                        const sizeAttr = itemElement?.dataset?.size || null;
+                        const priceAttr = itemElement?.dataset?.price || null;
+                        const selObj = sizeAttr ? { size: sizeAttr, ...(priceAttr ? { price: Number(priceAttr) } : {}) } : null;
                         
                         if (itemId && quantityElement) {
                             const currentQty = parseInt(quantityElement.textContent) || 0;
-                            await updateCartItem(itemId, currentQty + 1, itemType);
+                            await updateCartItem(itemId, currentQty + 1, itemType, selObj);
                             await loadCarts();
                         }
                     }
@@ -1121,13 +1125,16 @@
                         const itemId = itemElement?.dataset?.id;
                         const itemType = itemElement?.dataset?.type || 'food';
                         const quantityElement = itemElement?.querySelector('.item-quantity');
+                        const sizeAttr = itemElement?.dataset?.size || null;
+                        const priceAttr = itemElement?.dataset?.price || null;
+                        const selObj = sizeAttr ? { size: sizeAttr, ...(priceAttr ? { price: Number(priceAttr) } : {}) } : null;
                         
                         if (itemId && quantityElement) {
                             const currentQty = parseInt(quantityElement.textContent) || 1;
                             if (currentQty > 1) {
-                                await updateCartItem(itemId, currentQty - 1, itemType);
+                                await updateCartItem(itemId, currentQty - 1, itemType, selObj);
                             } else {
-                                await removeCartItem(itemId, itemType);
+                                await removeCartItem(itemId, itemType, sizeAttr || null);
                             }
                             await loadCarts();
                         }
@@ -1138,9 +1145,10 @@
                         const itemElement = e.target.closest('.cart-item');
                         const itemId = itemElement?.dataset?.id;
                         const itemType = itemElement?.dataset?.type || 'food';
+                        const sizeAttr = itemElement?.dataset?.size || null;
                         
                         if (itemId) {
-                            await removeCartItem(itemId, itemType);
+                            await removeCartItem(itemId, itemType, sizeAttr || null);
                             await loadCarts();
                         }
                     }
