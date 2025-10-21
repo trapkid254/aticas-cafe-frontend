@@ -652,26 +652,35 @@
                 const isButchery = item.itemType === 'Meat' || item.itemType === 'meat' || item.itemType === 'butchery';
                 const menuItem = item.menuItem || {};
                 const name = item.name || menuItem.name || 'Unnamed Item';
+                
                 // Compute unit price with robust fallbacks
-                const basePerKg = typeof menuItem.price === 'number' ? Number(menuItem.price) : (typeof item.price === 'number' ? Number(item.price) : 0);
                 let unitPrice = 0;
+                
+                // Priority 1: Use selectedSize.price if available (this is the correct price for logged-in users)
                 if (item.selectedSize && typeof item.selectedSize.price === 'number') {
                     unitPrice = Number(item.selectedSize.price);
-                } else if (isButchery && item.selectedSize && item.selectedSize.size && basePerKg) {
+                }
+                // Priority 2: For butchery items, try to compute from size and base price
+                else if (isButchery && item.selectedSize && item.selectedSize.size) {
+                    const basePerKg = typeof menuItem.price === 'number' ? Number(menuItem.price) : (typeof item.price === 'number' ? Number(item.price) : 0);
                     const sizeStr = String(item.selectedSize.size).toLowerCase();
                     const kg = parseFloat(sizeStr.replace(/[^0-9.]/g, ''));
-                    if (sizeStr.includes('kg') && !isNaN(kg)) {
+                    if (sizeStr.includes('kg') && !isNaN(kg) && basePerKg > 0) {
                         unitPrice = Math.round(kg * basePerKg);
                     } else {
                         unitPrice = basePerKg || 0;
                     }
-                } else {
+                }
+                // Priority 3: Fallback to item price or menuItem price
+                else {
                     unitPrice = (typeof item.price === 'number' ? item.price : (typeof menuItem.price === 'number' ? menuItem.price : 0));
                 }
+                
                 const qty = item.quantity || 1;
                 const total = unitPrice * qty;
                 const defaultImage = isButchery ? 'images/meat.jpg' : 'images/default-meal.jpg';
                 const image = item.image || menuItem.image || defaultImage;
+                
                 // Normalize type for reliable updates/removals
                 const rawType = (item.itemType || 'Menu').toString().toLowerCase();
                 const normalizedType = rawType === 'meat' || rawType === 'butchery' ? 'butchery'
@@ -682,7 +691,7 @@
                     <div class="cart-item" data-id="${menuItem._id || menuItem.id || item.id}" 
                          data-type="${normalizedType}"
                          ${item.selectedSize?.size ? `data-size="${item.selectedSize.size}"` : ''}
-                         ${item.selectedSize?.price != null ? `data-price="${Number(unitPrice)}"` : `data-price="${Number(unitPrice)}"`}>
+                         data-price="${Number(unitPrice)}">
                         <img src="${image}" 
                              alt="${name || 'Item'}" 
                              onerror="this.src='${defaultImage}'">
@@ -820,8 +829,13 @@
             
             // Initialize cart event listeners for both butchery and cafeteria carts
             function initCartEventListeners() {
+                // Remove any existing listeners to prevent duplicates
+                document.removeEventListener('click', handleCartItemClick);
+                
                 // Handle quantity controls and remove buttons with event delegation
-                document.addEventListener('click', async (e) => {
+                document.addEventListener('click', handleCartItemClick);
+                
+                async function handleCartItemClick(e) {
                     const cartItem = e.target.closest('.cart-item');
                     if (!cartItem) return;
 
@@ -835,26 +849,49 @@
                     // Handle quantity increase
                     if (e.target.closest('.plus')) {
                         e.preventDefault();
-                        const currentQty = parseInt(quantityElement.textContent) || 0;
-                        await updateCartItem(itemId, currentQty + 1, itemType, selObj);
-                        await loadCarts();
+                        e.stopPropagation();
+                        try {
+                            const currentQty = parseInt(quantityElement.textContent) || 0;
+                            await updateCartItem(itemId, currentQty + 1, itemType, selObj);
+                            await loadCarts();
+                            if (window.showToast) {
+                                showToast('Quantity updated');
+                            }
+                        } catch (error) {
+                            console.error('Error updating quantity:', error);
+                            if (window.showToast) {
+                                showToast('Error updating quantity', 'error');
+                            }
+                        }
                         return;
                     }
 
                     // Handle quantity decrease
                     if (e.target.closest('.minus')) {
                         e.preventDefault();
-                        const currentQty = parseInt(quantityElement.textContent) || 1;
-                        const nameEl = cartItem.querySelector('.item-details h4');
-                        const removedName = nameEl ? nameEl.textContent.trim() : 'Item';
-                        if (currentQty > 1) {
-                            await updateCartItem(itemId, currentQty - 1, itemType, selObj);
-                        } else {
-                            await removeCartItem(itemId, itemType, sizeAttr || null);
-                        }
-                        await loadCarts();
-                        if (window.showToast && currentQty <= 1) {
-                            showToast(`${removedName} removed`);
+                        e.stopPropagation();
+                        try {
+                            const currentQty = parseInt(quantityElement.textContent) || 1;
+                            const nameEl = cartItem.querySelector('.item-details h4');
+                            const removedName = nameEl ? nameEl.textContent.trim() : 'Item';
+                            if (currentQty > 1) {
+                                await updateCartItem(itemId, currentQty - 1, itemType, selObj);
+                                await loadCarts();
+                                if (window.showToast) {
+                                    showToast('Quantity updated');
+                                }
+                            } else {
+                                await removeCartItem(itemId, itemType, sizeAttr || null);
+                                await loadCarts();
+                                if (window.showToast) {
+                                    showToast(`${removedName} removed`);
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Error updating quantity:', error);
+                            if (window.showToast) {
+                                showToast('Error updating quantity', 'error');
+                            }
                         }
                         return;
                     }
@@ -862,17 +899,25 @@
                     // Handle remove item
                     if (e.target.closest('.remove-btn')) {
                         e.preventDefault();
-                        const nameEl = cartItem.querySelector('.item-details h4');
-                        const removedName = nameEl ? nameEl.textContent.trim() : 'Item';
-                        const sizeAttr2 = cartItem.dataset.size || null;
-                        await removeCartItem(itemId, itemType, sizeAttr2 || null);
-                        await loadCarts();
-                        if (window.showToast) {
-                            showToast(`${removedName} removed`);
+                        e.stopPropagation();
+                        try {
+                            const nameEl = cartItem.querySelector('.item-details h4');
+                            const removedName = nameEl ? nameEl.textContent.trim() : 'Item';
+                            const sizeAttr2 = cartItem.dataset.size || null;
+                            await removeCartItem(itemId, itemType, sizeAttr2 || null);
+                            await loadCarts();
+                            if (window.showToast) {
+                                showToast(`${removedName} removed`);
+                            }
+                        } catch (error) {
+                            console.error('Error removing item:', error);
+                            if (window.showToast) {
+                                showToast('Error removing item', 'error');
+                            }
                         }
                         return;
                     }
-                });
+                }
             }
             
             // Initialize button handlers with event delegation
@@ -923,9 +968,115 @@
                 }
             }
             
+            // Update cart item quantity
+            async function updateCartItem(menuItemId, quantity, itemType, selectedSize = null) {
+                const userId = localStorage.getItem('userId');
+                const token = localStorage.getItem('userToken');
+                
+                if (userId && token) {
+                    try {
+                        const response = await fetch('https://aticas-backend.onrender.com/api/cart/update', {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                menuItemId,
+                                quantity,
+                                itemType,
+                                selectedSize
+                            })
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`Failed to update cart: ${response.status}`);
+                        }
+                        
+                        return await response.json();
+                    } catch (error) {
+                        console.error('Error updating cart item:', error);
+                        throw error;
+                    }
+                } else {
+                    // Handle guest cart update
+                    const guestCart = getGuestCart();
+                    const itemIndex = guestCart.items.findIndex(item => {
+                        const id = item.menuItem?._id || item.menuItem?.id || item.menuItem;
+                        const sameId = String(id) === String(menuItemId);
+                        const sameType = item.itemType === itemType;
+                        const sameSize = (!selectedSize && !item.selectedSize) || 
+                                       (selectedSize && item.selectedSize && 
+                                        item.selectedSize.size === selectedSize.size);
+                        return sameId && sameType && sameSize;
+                    });
+                    
+                    if (itemIndex > -1) {
+                        guestCart.items[itemIndex].quantity = quantity;
+                        guestCart.total = guestCart.items.reduce((sum, item) => {
+                            const price = item.selectedSize?.price || item.menuItem?.price || 0;
+                            return sum + (price * item.quantity);
+                        }, 0);
+                        localStorage.setItem('guestCart', JSON.stringify(guestCart));
+                    }
+                }
+            }
+            
+            // Remove cart item
+            async function removeCartItem(menuItemId, itemType, selectedSize = null) {
+                const userId = localStorage.getItem('userId');
+                const token = localStorage.getItem('userToken');
+                
+                if (userId && token) {
+                    try {
+                        const response = await fetch('https://aticas-backend.onrender.com/api/cart/remove', {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                menuItemId,
+                                itemType,
+                                selectedSize
+                            })
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`Failed to remove cart item: ${response.status}`);
+                        }
+                        
+                        return await response.json();
+                    } catch (error) {
+                        console.error('Error removing cart item:', error);
+                        throw error;
+                    }
+                } else {
+                    // Handle guest cart removal
+                    const guestCart = getGuestCart();
+                    guestCart.items = guestCart.items.filter(item => {
+                        const id = item.menuItem?._id || item.menuItem?.id || item.menuItem;
+                        const sameId = String(id) === String(menuItemId);
+                        const sameType = item.itemType === itemType;
+                        const sameSize = (!selectedSize && !item.selectedSize) || 
+                                       (selectedSize && item.selectedSize && 
+                                        item.selectedSize.size === selectedSize.size);
+                        return !(sameId && sameType && sameSize);
+                    });
+                    
+                    guestCart.total = guestCart.items.reduce((sum, item) => {
+                        const price = item.selectedSize?.price || item.menuItem?.price || 0;
+                        return sum + (price * item.quantity);
+                    }, 0);
+                    localStorage.setItem('guestCart', JSON.stringify(guestCart));
+                }
+            }
+
             // Make sure cart functions are available globally
             window.loadCarts = loadCarts;
             window.displayCombinedCart = displayCombinedCart;
+            window.updateCartItem = updateCartItem;
+            window.removeCartItem = removeCartItem;
 
             // Initialize navigation buttons and UI elements
             function initializeUI() {
@@ -1138,59 +1289,7 @@
                 initializeUI();
                 loadCarts();
                 
-                // Add event delegation for cart item actions
-                document.addEventListener('click', async (e) => {
-                    // Handle quantity increase
-                    if (e.target.closest('.plus')) {
-                        const itemElement = e.target.closest('.cart-item');
-                        const itemId = itemElement?.dataset?.id;
-                        const itemType = itemElement?.dataset?.type || 'food';
-                        const quantityElement = itemElement?.querySelector('.quantity');
-                        const sizeAttr = itemElement?.dataset?.size || null;
-                        const priceAttr = itemElement?.dataset?.price || null;
-                        const selObj = sizeAttr ? { size: sizeAttr, ...(priceAttr ? { price: Number(priceAttr) } : {}) } : null;
-                        
-                        if (itemId && quantityElement) {
-                            const currentQty = parseInt(quantityElement.textContent) || 0;
-                            await updateCartItem(itemId, currentQty + 1, itemType, selObj);
-                            await loadCarts();
-                        }
-                    }
-                    
-                    // Handle quantity decrease
-                    if (e.target.closest('.minus')) {
-                        const itemElement = e.target.closest('.cart-item');
-                        const itemId = itemElement?.dataset?.id;
-                        const itemType = itemElement?.dataset?.type || 'food';
-                        const quantityElement = itemElement?.querySelector('.quantity');
-                        const sizeAttr = itemElement?.dataset?.size || null;
-                        const priceAttr = itemElement?.dataset?.price || null;
-                        const selObj = sizeAttr ? { size: sizeAttr, ...(priceAttr ? { price: Number(priceAttr) } : {}) } : null;
-                        
-                        if (itemId && quantityElement) {
-                            const currentQty = parseInt(quantityElement.textContent) || 1;
-                            if (currentQty > 1) {
-                                await updateCartItem(itemId, currentQty - 1, itemType, selObj);
-                            } else {
-                                await removeCartItem(itemId, itemType, sizeAttr || null);
-                            }
-                            await loadCarts();
-                        }
-                    }
-                    
-                    // Handle remove item
-                    if (e.target.closest('.remove-btn')) {
-                        const itemElement = e.target.closest('.cart-item');
-                        const itemId = itemElement?.dataset?.id;
-                        const itemType = itemElement?.dataset?.type || 'food';
-                        const sizeAttr = itemElement?.dataset?.size || null;
-                        
-                        if (itemId) {
-                            await removeCartItem(itemId, itemType, sizeAttr || null);
-                            await loadCarts();
-                        }
-                    }
-                });
+                // Event delegation is now handled in initCartEventListeners()
                 
                 // Checkout modal controls
                 const checkoutBtn = document.getElementById('checkoutBtn');
