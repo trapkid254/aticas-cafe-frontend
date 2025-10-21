@@ -301,17 +301,40 @@
                 if (userId && token) {
                     try {
                         console.log('Fetching cart from API...');
-                        const response = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
+                        if (typeof navigator !== 'undefined' && navigator && navigator.onLine === false) {
+                            console.warn('Offline: cannot fetch cart. Showing empty cart.');
+                            return { items: [], total: 0 };
+                        }
+                        const controller = new AbortController();
+                        const timeout = setTimeout(() => controller.abort(), 8000);
+                        const doFetch = () => fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
                             headers: { 
                                 'Authorization': `Bearer ${token}`,
-                                'Content-Type': 'application/json'
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
                             },
-                            credentials: 'include'  // Important for sessions/cookies
+                            signal: controller.signal
                         });
+                        let response;
+                        try {
+                            response = await doFetch();
+                        } catch (err) {
+                            console.warn('Cart fetch failed, retrying once...', err?.message || err);
+                            response = await doFetch();
+                        } finally {
+                            clearTimeout(timeout);
+                        }
                         
                         console.log('Cart API response status:', response.status);
                         
                         if (!response.ok) {
+                            if (response.status === 401 || response.status === 403) {
+                                console.warn('Auth error fetching cart, clearing session.');
+                                try { localStorage.removeItem('userToken'); } catch(_) {}
+                                try { localStorage.removeItem('userId'); } catch(_) {}
+                                try { localStorage.removeItem('isLoggedIn'); } catch(_) {}
+                                return { items: [], total: 0 };
+                            }
                             const errorText = await response.text();
                             console.error('Failed to fetch cart:', response.status, errorText);
                             throw new Error(`Failed to fetch cart: ${response.status} ${errorText}`);
