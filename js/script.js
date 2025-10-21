@@ -140,6 +140,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 const newQuantity = Number(currentQty) + Number(quantity || 1);
 
+                // Normalize selectedSize for Meat: ensure price is included when possible
+                let selectedSizeFinal = selectedSize;
+                if (itemType === 'Meat') {
+                    const basePerKg = menuItem && typeof menuItem.price === 'number' ? Number(menuItem.price) : null;
+                    // If selectedSize is a string, convert to object { size }
+                    if (selectedSizeFinal && typeof selectedSizeFinal === 'string') {
+                        selectedSizeFinal = { size: selectedSizeFinal };
+                    }
+                    // If we have a size but no price, try compute from per-kg
+                    if (selectedSizeFinal && !('price' in selectedSizeFinal) && basePerKg) {
+                        const sizeStr = String(selectedSizeFinal.size || '').toLowerCase();
+                        let kg = parseFloat(sizeStr.replace(/[^0-9.]/g, ''));
+                        if (sizeStr.includes('kg') && !isNaN(kg)) {
+                            selectedSizeFinal.price = Math.round(kg * basePerKg);
+                        }
+                    }
+                }
+
                 // Use the PATCH endpoint with absolute quantity
                 const response = await fetch(`https://aticas-backend.onrender.com/api/cart/items`, {
                     method: 'PATCH',
@@ -151,7 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         menuItemId,
                         quantity: newQuantity,
                         itemType,
-                        selectedSize: selectedSize || undefined
+                        selectedSize: selectedSizeFinal || undefined
                     })
                 });
                 

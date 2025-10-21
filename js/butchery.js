@@ -188,10 +188,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 let existingItem = null;
                 if (cart.items) {
                     existingItem = cart.items.find(item => {
-                        const itemId = item.menuItem?._id || item.menuItem?.id;
-                        return itemId === meatItemId &&
-                               item.itemType === itemType &&
-                               ((selectedSize && item.selectedSize?.size === selectedSize.size) || (!selectedSize && !item.selectedSize));
+                        const id = (item.menuItem && (item.menuItem._id || item.menuItem.id)) || item.menuItem;
+                        const sameId = String(id) === String(meatItemId);
+                        const sameType = item.itemType === itemType;
+                        const sameSize = (selectedSize && item.selectedSize?.size === selectedSize.size) || (!selectedSize && !item.selectedSize);
+                        return sameId && sameType && sameSize;
                     });
                 }
 
