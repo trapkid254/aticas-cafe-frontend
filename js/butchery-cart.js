@@ -207,6 +207,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (userId && token) {
             // Logged-in: set quantity to 0 via PATCH
             try {
+                const selObj = typeof selectedSize === 'string' || selectedSize === null
+                    ? (selectedSize ? { size: selectedSize } : null)
+                    : selectedSize;
                 await fetch('https://aticas-backend.onrender.com/api/cart/items', {
                     method: 'PATCH',
                     headers: {
@@ -217,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         menuItemId: String(menuItemId),
                         quantity: 0,
                         itemType: 'Meat',
-                        ...(selectedSize ? { selectedSize: { size: selectedSize } } : {})
+                        ...(selObj ? { selectedSize: selObj } : {})
                     })
                 });
             } catch (e) {
@@ -251,6 +254,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (userId && token) {
             // Logged-in: patch server
             try {
+                const selObj = typeof selectedSize === 'string' || selectedSize === null
+                    ? (selectedSize ? { size: selectedSize } : null)
+                    : selectedSize;
                 await fetch('https://aticas-backend.onrender.com/api/cart/items', {
                     method: 'PATCH',
                     headers: {
@@ -261,7 +267,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         menuItemId: String(menuItemId),
                         quantity: Number(quantity),
                         itemType: 'Meat',
-                        ...(selectedSize ? { selectedSize: { size: selectedSize } } : {})
+                        ...(selObj ? { selectedSize: selObj } : {})
                     })
                 });
             } catch (e) {
@@ -310,27 +316,32 @@ document.addEventListener('DOMContentLoaded', function() {
             const itemTotal = item.quantity * (item.selectedSize?.price || item.price || item.menuItem?.price || 0);
             subtotal += itemTotal;
 
+            const unit = (item.selectedSize?.price || item.price || item.menuItem?.price || 0);
             cartHTML += `
                 <div class="cart-item" data-id="${getItemId(item)}" data-type="${item.itemType}" 
-                     ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>
+                     ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}
+                     data-price="${unit}">
                     <img src="${getItemImage(item)}" alt="${getItemName(item)}" onerror="this.src='images/meat.jpg';">
                     <div class="cart-item-details">
                         <h3>${getItemName(item)} <span class="butchery-badge">Butchery</span></h3>
                         ${item.selectedSize ? `<p>Size: ${item.selectedSize.size}</p>` : ''}
-                        <p class="price">Ksh ${(item.selectedSize?.price || item.price || item.menuItem?.price || 0).toLocaleString()}</p>
+                        <p class="price">Ksh ${unit.toLocaleString()}</p>
                         <div class="quantity-controls">
                             <button class="quantity-btn minus" data-id="${getItemId(item)}" 
                                 data-type="${item.itemType}" 
-                                ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>-</button>
+                                ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}
+                                data-price="${unit}">-</button>
                             <span class="quantity">${item.quantity}</span>
                             <button class="quantity-btn plus" data-id="${getItemId(item)}" 
                                 data-type="${item.itemType}" 
-                                ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>+</button>
+                                ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}
+                                data-price="${unit}">+</button>
                         </div>
                     </div>
                     <button class="remove-btn" data-id="${getItemId(item)}" 
                         data-type="${item.itemType}" 
-                        ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}>
+                        ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}
+                        data-price="${unit}">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -369,6 +380,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const id = this.dataset.id;
                 const type = this.dataset.type;
                 const size = this.dataset.size || null;
+                const price = this.dataset.price ? Number(this.dataset.price) : null;
                 const quantityElement = this.parentElement.querySelector('.quantity');
                 let quantity = parseInt(quantityElement.textContent);
 
@@ -378,7 +390,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     quantity = Math.max(1, quantity - 1);
                 }
 
-                await updateCartItem(id, type, quantity, size);
+                const selObj = size ? { size, ...(price != null ? { price } : {}) } : null;
+                await updateCartItem(id, type, quantity, selObj);
             });
         });
 
@@ -388,7 +401,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const id = this.dataset.id;
                 const type = this.dataset.type;
                 const size = this.dataset.size || null;
-                await removeFromCart(id, type, size);
+                const price = this.dataset.price ? Number(this.dataset.price) : null;
+                const selObj = size ? { size, ...(price != null ? { price } : {}) } : null;
+                await removeFromCart(id, type, selObj);
             });
         });
     }

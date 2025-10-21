@@ -622,7 +622,8 @@
                 return `
                     <div class="cart-item" data-id="${menuItem._id || menuItem.id || item.id}" 
                          data-type="${normalizedType}"
-                         ${item.selectedSize?.size ? `data-size="${item.selectedSize.size}"` : ''}>
+                         ${item.selectedSize?.size ? `data-size="${item.selectedSize.size}"` : ''}
+                         ${item.selectedSize?.price != null ? `data-price="${Number(unitPrice)}"` : `data-price="${Number(unitPrice)}"`}>
                         <img src="${image}" 
                              alt="${name || 'Item'}" 
                              onerror="this.src='${defaultImage}'">
@@ -768,13 +769,15 @@
                     const itemId = cartItem.dataset.id;
                     const itemType = cartItem.dataset.type || 'food';
                     const sizeAttr = cartItem.dataset.size || null;
+                    const priceAttr = cartItem.dataset.price || null;
+                    const selObj = sizeAttr ? { size: sizeAttr, ...(priceAttr ? { price: Number(priceAttr) } : {}) } : null;
                     const quantityElement = cartItem.querySelector('.quantity');
 
                     // Handle quantity increase
                     if (e.target.closest('.plus')) {
                         e.preventDefault();
                         const currentQty = parseInt(quantityElement.textContent) || 0;
-                        await updateCartItem(itemId, currentQty + 1, itemType, sizeAttr ? { size: sizeAttr } : null);
+                        await updateCartItem(itemId, currentQty + 1, itemType, selObj);
                         await loadCarts();
                         return;
                     }
@@ -786,7 +789,7 @@
                         const nameEl = cartItem.querySelector('.item-details h4');
                         const removedName = nameEl ? nameEl.textContent.trim() : 'Item';
                         if (currentQty > 1) {
-                            await updateCartItem(itemId, currentQty - 1, itemType, sizeAttr ? { size: sizeAttr } : null);
+                            await updateCartItem(itemId, currentQty - 1, itemType, selObj);
                         } else {
                             await removeCartItem(itemId, itemType, sizeAttr || null);
                         }
