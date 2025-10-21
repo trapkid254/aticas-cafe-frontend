@@ -305,24 +305,32 @@
                             console.warn('Offline: cannot fetch cart. Showing empty cart.');
                             return { items: [], total: 0 };
                         }
-                        const controller = new AbortController();
-                        const timeout = setTimeout(() => controller.abort(), 8000);
-                        const doFetch = () => fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
-                            headers: { 
-                                'Authorization': `Bearer ${token}`,
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json'
-                            },
-                            signal: controller.signal
-                        });
+                        const url = `https://aticas-backend.onrender.com/api/cart/${userId}`;
+                        const headers = {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        };
+                        async function fetchWithTimeout(u, h, ms) {
+                            return new Promise((resolve, reject) => {
+                                const controller = new AbortController();
+                                const timeout = setTimeout(() => controller.abort(), ms);
+                                fetch(u, { headers: h, signal: controller.signal })
+                                    .then(res => { clearTimeout(timeout); resolve(res); })
+                                    .catch(err => { clearTimeout(timeout); reject(err); });
+                            });
+                        }
                         let response;
                         try {
-                            response = await doFetch();
-                        } catch (err) {
-                            console.warn('Cart fetch failed, retrying once...', err?.message || err);
-                            response = await doFetch();
-                        } finally {
-                            clearTimeout(timeout);
+                            response = await fetchWithTimeout(url, headers, 8000);
+                        } catch (err1) {
+                            console.warn('Cart fetch attempt 1 failed, retrying...', err1?.name, err1?.message || err1);
+                            try {
+                                response = await fetchWithTimeout(url, headers, 8000);
+                            } catch (err2) {
+                                console.error('Cart fetch attempt 2 failed. Showing empty cart.', err2?.name, err2?.message || err2);
+                                return { items: [], total: 0 };
+                            }
                         }
                         
                         console.log('Cart API response status:', response.status);
