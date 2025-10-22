@@ -610,7 +610,9 @@
                                 name: item.name || item.menuItem?.name,
                                 selectedSize: item.selectedSize,
                                 itemType: item.itemType,
-                                quantity: item.quantity
+                                quantity: item.quantity,
+                                menuItem: item.menuItem,
+                                price: item.price
                             });
                         });
                     }
@@ -680,6 +682,7 @@
                 // Priority 1: Use selectedSize.price if available (this is the correct price for logged-in users)
                 if (item.selectedSize && typeof item.selectedSize.price === 'number') {
                     unitPrice = Number(item.selectedSize.price);
+                    console.log('Using selectedSize.price:', unitPrice, 'for item:', name);
                 }
                 // Priority 2: For butchery items, try to compute from size and base price
                 else if (isButchery && item.selectedSize && item.selectedSize.size) {
@@ -688,13 +691,16 @@
                     const kg = parseFloat(sizeStr.replace(/[^0-9.]/g, ''));
                     if (sizeStr.includes('kg') && !isNaN(kg) && basePerKg > 0) {
                         unitPrice = Math.round(kg * basePerKg);
+                        console.log('Computed price from size:', unitPrice, 'for item:', name, 'size:', item.selectedSize.size);
                     } else {
                         unitPrice = basePerKg || 0;
+                        console.log('Using base price:', unitPrice, 'for item:', name);
                     }
                 }
                 // Priority 3: Fallback to item price or menuItem price
                 else {
                     unitPrice = (typeof item.price === 'number' ? item.price : (typeof menuItem.price === 'number' ? menuItem.price : 0));
+                    console.log('Using fallback price:', unitPrice, 'for item:', name);
                 }
                 
                 const qty = item.quantity || 1;
@@ -1059,6 +1065,14 @@
                     try {
                         // Use PATCH with quantity 0 for removal (working approach from cart.js)
                         const normalizedItemType = isButchery ? 'Meat' : (itemType === 'mealofday' ? 'MealOfDay' : 'Menu');
+                        
+                        console.log('Removing cart item:', {
+                            menuItemId,
+                            itemType: normalizedItemType,
+                            selectedSize,
+                            isButchery
+                        });
+                        
                         const response = await fetch('https://aticas-backend.onrender.com/api/cart/items', {
                             method: 'PATCH',
                             headers: {
@@ -1074,7 +1088,9 @@
                         });
                         
                         if (!response.ok) {
-                            throw new Error(`Failed to remove cart item: ${response.status}`);
+                            const errorText = await response.text();
+                            console.error('Remove cart error response:', response.status, errorText);
+                            throw new Error(`Failed to remove cart item: ${response.status} - ${errorText}`);
                         }
                         
                         return await response.json();
