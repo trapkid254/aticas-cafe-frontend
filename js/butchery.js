@@ -198,19 +198,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 const newQuantity = existingItem ? (existingItem.quantity + 1) : 1;
 
+                const requestBody = {
+                    menuItemId: meatItemId,
+                    itemType: itemType,
+                    quantity: newQuantity,
+                    selectedSize: selectedSize || undefined,
+                    price: selectedSize ? selectedSize.price : (meatItem.price || 0)
+                };
+                
+                console.log('Adding to cart with data:', requestBody);
+                
                 const response = await fetch('https://aticas-backend.onrender.com/api/cart/items', {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('userToken')}`
                     },
-                    body: JSON.stringify({
-                        menuItemId: meatItemId,
-                        itemType: itemType,
-                        quantity: newQuantity,
-                        selectedSize: selectedSize || undefined,
-                        price: selectedSize ? selectedSize.price : (meatItem.price || 0)
-                    })
+                    body: JSON.stringify(requestBody)
                 });
 
                 if (response.ok) {
@@ -254,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (existingItemIndex > -1) {
                     cart.items[existingItemIndex].quantity += 1;
                 } else {
-                    cart.items.push({
+                    const newItem = {
                         menuItem: {
                             _id: meatItemId,
                             id: meatItemId,
@@ -266,7 +270,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         quantity: 1,
                         itemType,
                         selectedSize
-                    });
+                    };
+                    console.log('Adding new item to guest cart:', newItem);
+                    cart.items.push(newItem);
                 }
 
                 cart.total = cart.items.reduce((total, item) => {

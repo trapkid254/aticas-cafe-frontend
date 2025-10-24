@@ -367,6 +367,7 @@
                                 
                                 // If it's meat with size but no price, try to compute it
                                 if (isMeat && hasSize && !hasPrice) {
+                                    console.log('Enriching meat item with size but no price:', it.name, 'selectedSize:', it.selectedSize);
                                     // Try compute from populated menuItem.price first
                                     const menu = it.menuItem || {};
                                     let perKg = typeof menu.price === 'number' ? Number(menu.price) : NaN;
@@ -388,9 +389,17 @@
                                         const kg = parseFloat(sizeStr.replace(/[^0-9.]/g, ''));
                                         if (sizeStr.includes('kg') && !isNaN(kg)) {
                                             const derived = Math.round(kg * perKg);
-                                            it.selectedSize = { size: it.selectedSize.size, price: derived };
+                                            // Only set price if it doesn't already exist (preserve original price)
+                                            if (!it.selectedSize.price) {
+                                                it.selectedSize.price = derived;
+                                            }
                                         }
                                     }
+                                }
+                                
+                                // Debug: Log the final selectedSize for meat items
+                                if (isMeat && it.selectedSize) {
+                                    console.log('Final selectedSize for', it.name, ':', it.selectedSize);
                                 }
                                 
                                 // Always return the item (preserve original selectedSize if it has price)
@@ -682,7 +691,7 @@
                 // Priority 1: Use selectedSize.price if available (this is the correct price for logged-in users)
                 if (item.selectedSize && typeof item.selectedSize.price === 'number') {
                     unitPrice = Number(item.selectedSize.price);
-                    console.log('Using selectedSize.price:', unitPrice, 'for item:', name);
+                    console.log('Using selectedSize.price:', unitPrice, 'for item:', name, 'selectedSize:', item.selectedSize);
                 }
                 // Priority 2: For butchery items, try to compute from size and base price
                 else if (isButchery && item.selectedSize && item.selectedSize.size) {
