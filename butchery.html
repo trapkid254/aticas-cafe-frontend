@@ -18,6 +18,16 @@
             <img src="images/1b.jpg" alt="Cafeteria Logo" class="logo">
             <span class="cafeteria-name">ATICAS BUTCHERY</span>
         </div>
+    
+    <!-- Price Options Modal (for items with predefined sizes) -->
+    <div id="price-options-modal" class="modal" style="display:none;align-items:center;justify-content:center;">
+        <div class="modal-content" style="width:100%;max-width:520px;border-radius:14px;border:1.5px solid #e0e0e0;box-shadow:0 10px 30px rgba(0,0,0,0.12);padding:1.2rem 1.2rem;background:#fff;">
+            <span class="close-modal" style="cursor:pointer;font-size:1.4rem;line-height:1;color:#888;float:right">&times;</span>
+            <h3 id="modal-item-name" style="margin-top:0;margin-bottom:0.8rem;color:#2e7d32;">Choose Size</h3>
+            <div id="modal-price-options"></div>
+            <button id="modal-add-to-cart-btn" class="add-to-cart-btn" type="button" style="width:100%;margin-top:0.9rem;padding:0.85rem 1rem;border:none;border-radius:10px;background:#27ae60;color:#fff;font-weight:800;cursor:pointer;">Add to Cart</button>
+        </div>
+    </div>
         <div class="navbar-center">
             <div class="moving-text">Welcome to <b>Aticas Butchery</b>.Your Hospitality Partner-Enjoy our freshly butchered Beef,Goat meat(Chevon) and Chicken at affordable prices! Open from Mon - Sat @ 6:00am - 12:00am</div>
         </div>
@@ -66,7 +76,7 @@
                 <!-- Meats will be loaded here by JS -->
             </div>
         </div>
-    </section>
+    </div>
 
     <!-- Order Meat Modal -->
     <div id="order-meat-modal" class="modal" style="display:none;align-items:center;justify-content:center;">

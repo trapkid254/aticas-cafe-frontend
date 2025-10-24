@@ -393,8 +393,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert('Sorry, this item is out of stock!');
                     return;
                 }
-                // On butchery homepage, always use kg/amount modal selection
-                openOrderMeatModal(item);
+                // If item has predefined price options, use the price options modal; otherwise use kg/amount modal
+                if (Array.isArray(item.priceOptions) && item.priceOptions.length > 0) {
+                    openPriceOptionsModal(item);
+                } else {
+                    openOrderMeatModal(item);
+                }
             });
         });
     }
