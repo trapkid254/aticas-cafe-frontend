@@ -100,12 +100,27 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (userId && token) {
             try {
+                // Add timeout to prevent hanging
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+                
                 const response = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    signal: controller.signal
                 });
-                if (response.ok) return await response.json();
+                
+                clearTimeout(timeoutId);
+                
+                if (response.ok) {
+                    return await response.json();
+                } else {
+                    console.warn('Cart API returned non-ok status:', response.status);
+                    // Fall through to guest cart
+                }
             } catch (error) {
                 console.error('Error fetching cart:', error);
+                console.log('Falling back to guest cart due to network error');
+                // Fall through to guest cart
             }
         }
         
@@ -151,9 +166,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const newQty = (existingItem ? existingItem.quantity : 0) + (item.quantity || 1);
 
+        let useGuestCart = false;
+        
         if (userId && token) {
             // Logged-in: patch server cart
             try {
+                // Add timeout to prevent hanging
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+                
                 const res = await fetch('https://aticas-backend.onrender.com/api/cart/items', {
                     method: 'PATCH',
                     headers: {
@@ -165,13 +186,29 @@ document.addEventListener('DOMContentLoaded', function() {
                         quantity: newQty,
                         itemType: 'Meat',
                         ...(item.selectedSize ? { selectedSize: item.selectedSize } : {})
-                    })
+                    }),
+                    signal: controller.signal
                 });
-                if (!res.ok) throw new Error(await res.text());
+                
+                clearTimeout(timeoutId);
+                
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    throw new Error(`Server error: ${res.status} - ${errorText}`);
+                }
+                
+                console.log('Successfully added item to server cart');
             } catch (e) {
                 console.error('Failed to add to cart (logged-in):', e);
+                console.log('Falling back to guest cart due to network error');
+                useGuestCart = true;
             }
         } else {
+            useGuestCart = true;
+        }
+        
+        // Guest cart logic (also used as fallback for logged-in users when API fails)
+        if (useGuestCart) {
             // Guest: update local cart
             if (existingItem) {
                 existingItem.quantity = newQty;
@@ -210,7 +247,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const selObj = typeof selectedSize === 'string' || selectedSize === null
                     ? (selectedSize ? { size: selectedSize } : null)
                     : selectedSize;
-                await fetch('https://aticas-backend.onrender.com/api/cart/items', {
+                
+                // Add timeout to prevent hanging
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+                
+                const response = await fetch('https://aticas-backend.onrender.com/api/cart/items', {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
@@ -221,12 +263,27 @@ document.addEventListener('DOMContentLoaded', function() {
                         quantity: 0,
                         itemType: 'Meat',
                         ...(selObj ? { selectedSize: selObj } : {})
-                    })
+                    }),
+                    signal: controller.signal
                 });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server error: ${response.status} - ${errorText}`);
+                }
+                
+                console.log('Successfully removed item from server cart');
             } catch (e) {
                 console.error('Failed to remove from cart (logged-in):', e);
+                console.log('Falling back to guest cart due to network error');
+                // Fall through to guest cart logic
             }
-        } else {
+        }
+        
+        // Guest cart logic (also used as fallback for logged-in users when API fails)
+        if (!userId || !token) {
             // Guest: mutate local
             const cart = await fetchCart();
             cart.items = cart.items.filter(item => {
@@ -257,7 +314,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const selObj = typeof selectedSize === 'string' || selectedSize === null
                     ? (selectedSize ? { size: selectedSize } : null)
                     : selectedSize;
-                await fetch('https://aticas-backend.onrender.com/api/cart/items', {
+                
+                // Add timeout to prevent hanging
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+                
+                const response = await fetch('https://aticas-backend.onrender.com/api/cart/items', {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
@@ -268,12 +330,27 @@ document.addEventListener('DOMContentLoaded', function() {
                         quantity: Number(quantity),
                         itemType: 'Meat',
                         ...(selObj ? { selectedSize: selObj } : {})
-                    })
+                    }),
+                    signal: controller.signal
                 });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server error: ${response.status} - ${errorText}`);
+                }
+                
+                console.log('Successfully updated item in server cart');
             } catch (e) {
                 console.error('Failed to update cart item (logged-in):', e);
+                console.log('Falling back to guest cart due to network error');
+                // Fall through to guest cart logic
             }
-        } else {
+        }
+        
+        // Guest cart logic (also used as fallback for logged-in users when API fails)
+        if (!userId || !token) {
             // Guest: update local
             const cart = await fetchCart();
             const item = cart.items.find(item => {
