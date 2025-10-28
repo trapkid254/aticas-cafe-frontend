@@ -12,9 +12,14 @@ body {
     line-height: 1.6;
 }
 
+/* Responsive media defaults */
+img, video, iframe {
+    max-width: 100%;
+    height: auto;
+}
+
 /* Navbar Styles */
 .navbar {
-    height: 100px;
     min-height: 100px;
     display: flex;
     justify-content: space-between;
@@ -202,7 +207,7 @@ body {
     pointer-events: auto;
 }
 .video-overlay h1 {
-    font-size: 3rem;
+    font-size: clamp(1.25rem, 4vw + 0.5rem, 3rem);
     margin-bottom: 1.2rem;
     text-align: center;
 }
@@ -961,7 +966,7 @@ body {
 @media (max-width: 600px) {
     .menu-items, .meals-container {
         display: grid !important;
-        grid-template-columns: 1fr 1fr 1fr !important;
+        grid-template-columns: 1fr 1fr !important;
         gap: 0.5rem !important;
     }
     .menu-item, .meal-card {
@@ -980,7 +985,7 @@ body {
 @media (max-width: 576px) {
     .menu-items, .meals-container {
         display: grid !important;
-        grid-template-columns: 1fr 1fr 1fr !important;
+        grid-template-columns: 1fr 1fr !important;
         gap: 0.5rem !important;
     }
     .menu-item, .meal-card {
