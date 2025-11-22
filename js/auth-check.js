@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     // Only apply admin auth checks on admin-related routes
-    const isAdminSection = cleanPath.includes('/admin') || cleanPath.includes('butchery-admin');
+    const isAdminSection = cleanPath.includes('/admin') || cleanPath.includes('butchery-admin') || cleanPath.includes('garage-carwash-admin');
     if (!isAdminSection) {
         // Skip auth checks for public/customer-facing pages (e.g., cart, menu, home)
         console.log('Auth Check - Non-admin page, skipping auth enforcement');
@@ -69,9 +69,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Helper function to redirect to login (use explicit, existing routes)
     const redirectToLogin = () => {
         const isButcheryPath = cleanPath.includes('butchery-admin');
-        const loginPath = isButcheryPath 
-            ? `${basePath}/butchery-admin/login` // server has explicit route
-            : `${basePath}/admin/admin-login.html`; // static file
+        const isGarageCarwashPath = cleanPath.includes('garage-carwash-admin');
+        let loginPath;
+        if (isGarageCarwashPath) {
+            loginPath = `${basePath}/shared-admin-login.html`; // shared login for garage-carwash
+        } else if (isButcheryPath) {
+            loginPath = `${basePath}/butchery-admin/login`; // server has explicit route
+        } else {
+            loginPath = `${basePath}/admin/admin-login.html`; // static file for regular admin
+        }
         const normalizedTarget = normalizePath(loginPath);
         const normalizedHere = normalizePath(currentPath);
         // compare both full and without basePath
@@ -97,31 +103,39 @@ document.addEventListener('DOMContentLoaded', function() {
         cleanPath.includes('/admin/admin-login') ||
         cleanPath.endsWith('/butchery-admin/login') ||
         cleanPath.includes('/butchery-admin/login') ||
+        cleanPath.includes('shared-admin-login') ||
         cleanPath.endsWith('login') || cleanPath.includes('-login')
     );
     console.log('Auth Check - Is Login Page:', isLoginPage);
     
     // Helper function to get dashboard path
-    const getDashboardPath = (isButchery) => {
+    const getDashboardPath = (adminType) => {
         // Use base urls that the server actually serves
-        return isButchery 
-            ? `${basePath}/butchery-admin`
-            : `${basePath}/admin`;
+        if (adminType === 'butchery') {
+            return `${basePath}/butchery-admin`;
+        } else if (adminType === 'garage-carwash') {
+            return `${basePath}/garage-carwash-admin`;
+        } else {
+            return `${basePath}/admin`;
+        }
     };
     
     // Function to get the correct login path
-    const getLoginPath = (isButchery = false) => {
-        return isButchery 
-            ? `${basePath}/butchery-admin/butcheryadmin-login` 
-            : `${basePath}/admin/admin-login`;
+    const getLoginPath = (adminType = 'cafeteria') => {
+        if (adminType === 'butchery') {
+            return `${basePath}/butchery-admin/butcheryadmin-login`;
+        } else if (adminType === 'garage-carwash') {
+            return `${basePath}/shared-admin-login.html`;
+        } else {
+            return `${basePath}/admin/admin-login.html`;
+        }
     };
 
     // If on login page and already logged in, redirect to appropriate dashboard
     if (isLoginPage && adminToken && adminData && adminType) {
         console.log('Auth Check - Already logged in, checking redirection...');
-        const isButchery = adminType === 'butchery';
-        const targetPath = getDashboardPath(isButchery);
-        
+        const targetPath = getDashboardPath(adminType);
+
         // Only redirect if we're not already on the target page
         const normalizedTarget = normalizePath(targetPath);
         const normalizedHere = normalizePath(currentPath);
@@ -140,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Strong guard: if we have a token and a resolvable adminType and we're already under the correct base, do nothing
     if (adminToken && adminType) {
-        const expectedBase = normalizePath(getDashboardPath(adminType === 'butchery'));
+        const expectedBase = normalizePath(getDashboardPath(adminType));
         const here = normalizePath(currentPath);
         const hereNoBase = here.replace(normalizePath(basePath), '');
         const expectedNoBase = expectedBase.replace(normalizePath(basePath), '');
@@ -165,12 +179,26 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Check if user is on the correct admin page based on their type
-    const isButchery = adminType === 'butchery';
-    const shouldBeOnButchery = cleanPath.includes('butchery-admin');
-    
+    const isOnButchery = cleanPath.includes('butchery-admin');
+    const isOnGarageCarwash = cleanPath.includes('garage-carwash-admin');
+    const isOnRegularAdmin = cleanPath.includes('/admin') && !isOnButchery && !isOnGarageCarwash;
+
+    let shouldRedirect = false;
+    let targetPath = '';
+
+    if (adminType === 'butchery' && !isOnButchery) {
+        shouldRedirect = true;
+        targetPath = getDashboardPath('butchery');
+    } else if (adminType === 'garage-carwash' && !isOnGarageCarwash) {
+        shouldRedirect = true;
+        targetPath = getDashboardPath('garage-carwash');
+    } else if (adminType === 'cafeteria' && !isOnRegularAdmin) {
+        shouldRedirect = true;
+        targetPath = getDashboardPath('cafeteria');
+    }
+
     // Only redirect if we're on the wrong admin section
-    if (isButchery !== shouldBeOnButchery) {
-        const targetPath = getDashboardPath(isButchery);
+    if (shouldRedirect) {
         const normalizedTarget = normalizePath(targetPath);
         const normalizedHere = normalizePath(currentPath);
         const hereNoBase = normalizedHere.replace(normalizePath(basePath), '');

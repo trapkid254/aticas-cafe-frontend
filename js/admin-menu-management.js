@@ -36,12 +36,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fetch menu items from API
     async function fetchMenuItems() {
         try {
-            const res = await fetch('https://aticas-backend.onrender.com/api/menu');
-            
+            const { token, adminType } = getAdminAuth();
+            const res = await fetch('https://aticas-backend.onrender.com/api/admin/menu', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'X-Admin-Type': adminType
+                }
+            });
+
             if (!res.ok) {
                 throw new Error(`HTTP error! status: ${res.status}`);
             }
-            
+
             const data = await res.json();
             menuItems = Array.isArray(data) ? data : data.data || [];
             renderMenuMeals();

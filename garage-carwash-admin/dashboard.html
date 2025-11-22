@@ -84,7 +84,7 @@
         try {
             const adminToken = localStorage.getItem('adminToken');
             if (!adminToken) {
-                window.location.href = 'garage-carwash-admin-login.html';
+                window.location.href = '../shared-admin-login.html';
                 return;
             }
 
@@ -164,7 +164,7 @@
                     localStorage.removeItem('adminType');
                     localStorage.removeItem('isAdminLoggedIn');
                 } catch (_) {}
-                window.location.href = 'garage-carwash-admin-login.html';
+                window.location.href = '../shared-admin-login.html';
             });
         }
     });
