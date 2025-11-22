@@ -78,9 +78,15 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="meat-item">
                 <img src="${meat.image || 'placeholder.jpg'}" alt="${meat.name}">
                 <h4>${meat.name}</h4>
-                <p>Ksh ${meat.price}</p>
-                <button onclick="editMeat('${meat._id}')">Edit</button>
-                <button onclick="deleteMeat('${meat._id}')">Delete</button>
+                <p>Ksh ${Number(meat.price).toLocaleString()}</p>
+                <div class="button-group">
+                    <button onclick="editMeat('${meat._id}')" class="btn-edit">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button onclick="deleteMeat('${meat._id}')" class="btn-delete">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
             </div>
         `).join('');
     }
@@ -93,9 +99,15 @@ document.addEventListener('DOMContentLoaded', function() {
         meatsOfDayList.innerHTML = meatsOfDay.map(meat => `
             <div class="meat-of-day">
                 <h4>${meat.name}</h4>
-                <p>Ksh ${meat.price}</p>
-                <button onclick="editMeatOfDay('${meat._id}')">Edit</button>
-                <button onclick="removeMeatOfDay('${meat._id}')">Remove</button>
+                <p>Ksh ${Number(meat.price).toLocaleString()}</p>
+                <div class="button-group">
+                    <button onclick="editMeatOfDay('${meat._id}')" class="btn-edit-remove">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button onclick="removeMeatOfDay('${meat._id}')" class="btn-remove">
+                        <i class="fas fa-times"></i> Remove
+                    </button>
+                </div>
             </div>
         `).join('');
     }
@@ -298,7 +310,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     description: String(payload.description || ''),
                     quantity: Number(payload.quantity || 1),
                     category: String(payload.category || 'beef'),
-                    image: String(payload.image || '')
+                    image: String(payload.image || ''),
+                    adminType: 'butchery'
                 };
                 
                 // Log the payload being sent
