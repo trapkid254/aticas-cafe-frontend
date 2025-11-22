@@ -45,6 +45,13 @@
     <!-- Menu Content -->
     <section class="menu-section">
         <h2 class="typewriter-on-scroll">Our Meats</h2>
+        <div class="menu-filter">
+            <button class="filter-btn active" data-category="all">All</button>
+            <button class="filter-btn" data-category="beef">Beef</button>
+            <button class="filter-btn" data-category="goat">Goat meat(Chevon)</button>
+            <button class="filter-btn" data-category="chicken">Chicken</button>
+            <button class="filter-btn" data-category="drinks">Ready Made</button>
+        </div>
         <div class="menu-items" id="menuItems">
             <!-- Butchery items will be loaded here by JavaScript -->
         </div>
@@ -121,16 +128,17 @@
             try { localStorage.setItem('cartDepartment', 'butchery'); } catch(e) {}
             const menuContainer = document.getElementById('menuItems');
             const loadingIndicator = document.getElementById('loadingIndicator');
+            const filterButtons = document.querySelectorAll('.filter-btn');
 
             // Function to fetch and display butchery items
-            async function fetchAndDisplayMeats() {
+            async function fetchAndDisplayMeats(category = 'all') {
                 try {
                     loadingIndicator.style.display = 'block';
                     const response = await fetch('https://aticas-backend.onrender.com/api/meats');
                     if (!response.ok) throw new Error('Failed to fetch meats');
 
                     const meats = await response.json();
-                    displayMeats(meats);
+                    displayMeats(meats, category);
                 } catch (error) {
                     console.error('Error:', error);
                     menuContainer.innerHTML = `
@@ -145,8 +153,13 @@
             }
 
             // Function to display meats
-            function displayMeats(meats) {
-                const filteredMeats = meats;
+            function displayMeats(meats, category) {
+                const filteredMeats = category === 'all'
+                    ? meats
+                    : meats.filter(meat =>
+                        meat.category?.toLowerCase() === category.toLowerCase() ||
+                        meat.name.toLowerCase().includes(category.toLowerCase())
+                    );
 
                 if (filteredMeats.length === 0) {
                     menuContainer.innerHTML = `
@@ -280,6 +293,16 @@
                     });
                 });
             }
+
+            // Filter buttons event listeners
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    const category = this.dataset.category;
+                    fetchAndDisplayMeats(category);
+                });
+            });
 
             // Initial load
             fetchAndDisplayMeats();
