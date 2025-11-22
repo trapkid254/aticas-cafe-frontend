@@ -197,6 +197,13 @@
             <form id="tourBookingForm" style="display:none;max-width:420px;margin:1.5rem auto 0 auto;background:#fff;padding:2rem 1.2rem 1.5rem 1.2rem;border-radius:14px;box-shadow:0 4px 24px rgba(39,174,96,0.10);">
                 <h2 style="color:#27ae60;font-family:'UnifrakturCook','Arial',cursive,sans-serif;text-align:center;margin-bottom:0.5rem;font-size:2rem;">ATICAS Tours</h2>
                 <h3 style="color:#222;text-align:center;font-size:1.2rem;margin-bottom:1.2rem;">Booking Form</h3>
+
+                <!-- Payment Notice -->
+                <div style="background:#fff3cd;border:1px solid #ffeaa7;border-radius:8px;padding:1rem;margin-bottom:1.5rem;">
+                    <h4 style="color:#856404;margin:0 0 0.5rem 0;font-size:1rem;">💰 Payment Requirement</h4>
+                    <p style="color:#856404;margin:0;font-size:0.9rem;">A 70% deposit is required to confirm your tour booking. The remaining 30% will be due before departure. Pricing will be provided after initial consultation.</p>
+                </div>
+
                 <div style="margin-bottom:1.1rem;"><input type="text" name="name" placeholder="Your Name" required class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;"></div>
                 <div style="margin-bottom:1.1rem;"><input type="tel" name="phone" placeholder="Phone Number" required class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;"></div>
                 <div style="margin-bottom:1.1rem;"><input type="email" name="email" placeholder="Email Address" required class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;"></div>
@@ -204,8 +211,9 @@
                 <div style="margin-bottom:1.1rem;"><input type="date" name="date" required class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;"></div>
                 <div style="margin-bottom:1.1rem;"><input type="number" name="people" placeholder="Number of People" required min="1" class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;"></div>
                 <div style="margin-bottom:1.1rem;"><input type="text" name="pickup" placeholder="Pickup Location" required class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;"></div>
+                <div style="margin-bottom:1.1rem;"><input type="number" name="estimatedCost" placeholder="Estimated Total Cost (Ksh)" min="0" step="100" class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;"></div>
                 <div style="margin-bottom:1.1rem;"><textarea name="notes" placeholder="Additional Notes" class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;min-height:60px;"></textarea></div>
-                <button type="submit" class="menu-btn" style="width:100%;margin-bottom:0.7rem;font-size:1.1rem;padding:0.7rem 0;">Submit Booking</button>
+                <button type="submit" class="menu-btn" style="width:100%;margin-bottom:0.7rem;font-size:1.1rem;padding:0.7rem 0;">Submit Booking Request</button>
                 <button type="button" id="closeTourForm" style="width:100%;background:#eee;color:#333;border:none;padding:0.6rem 0;border-radius:5px;font-weight:600;font-size:1rem;">Close</button>
             </form>
         </div>
@@ -279,6 +287,9 @@
         document.getElementById('tourBookingForm').onsubmit = async function(e) {
   e.preventDefault();
   const form = e.target;
+  const estimatedCost = parseFloat(form.estimatedCost.value) || 0;
+  const depositRequired = Math.round(estimatedCost * 0.7);
+
   const data = {
     type: 'tour',
     name: form.name.value,
@@ -288,8 +299,16 @@
     date: form.date.value,
     people: form.people.value,
     pickup: form.pickup.value,
-    notes: form.notes.value
+    notes: form.notes.value,
+    totalAmount: estimatedCost,
+    depositRequired: depositRequired
   };
+
+  // Confirm deposit payment
+  const confirmPayment = confirm(`Your estimated total cost is Ksh ${estimatedCost.toLocaleString()}. A 70% deposit of Ksh ${depositRequired.toLocaleString()} is required to confirm this booking. You will be redirected to make the payment. Continue?`);
+
+  if (!confirmPayment) return;
+
   try {
     const res = await fetch('https://aticas-backend.onrender.com/api/bookings', {
       method: 'POST',
@@ -297,7 +316,13 @@
       body: JSON.stringify(data)
     });
     if (!res.ok) throw new Error('Failed to submit booking');
-    alert('Thank you for your booking! We will contact you soon.');
+
+    const result = await res.json();
+    alert('Booking request submitted! You will be contacted with payment instructions.');
+
+    // Here we would typically redirect to M-Pesa payment
+    // window.location.href = `/payment?bookingId=${result.booking._id}&amount=${depositRequired}`;
+
   } catch (err) {
     alert('Failed to submit booking. Please try again later.');
   }

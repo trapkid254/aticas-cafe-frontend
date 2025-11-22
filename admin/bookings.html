@@ -58,8 +58,12 @@
                     <th>Date</th>
                     <th>Guests/People</th>
                     <th>Location/Pickup</th>
+                    <th>Total Cost</th>
+                    <th>Deposit</th>
+                    <th>Payment Status</th>
                     <th>Notes</th>
                     <th>Created At</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -84,7 +88,7 @@
                 return;
             }
             if (!data.bookings.length) {
-                tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center;">No bookings found.</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="14" style="text-align:center;">No bookings found.</td></tr>';
                 return;
             }
             tableBody.innerHTML = data.bookings.map(b => `
@@ -97,8 +101,21 @@
                     <td>${b.date ? new Date(b.date).toLocaleDateString() : ''}</td>
                     <td>${b.type === 'catering' ? (b.guests || '') : (b.people || '')}</td>
                     <td>${b.type === 'catering' ? (b.location || '') : (b.pickup || '')}</td>
+                    <td>Ksh ${b.totalAmount ? b.totalAmount.toLocaleString() : 'N/A'}</td>
+                    <td>Ksh ${b.depositRequired ? b.depositRequired.toLocaleString() : 'N/A'}</td>
+                    <td>
+                        <select onchange="updatePaymentStatus('${b._id}', this.value)" style="padding:0.25rem 0.5rem;border:1px solid #ddd;border-radius:4px;">
+                            <option value="pending" ${b.paymentStatus === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="deposit_paid" ${b.paymentStatus === 'deposit_paid' ? 'selected' : ''}>Deposit Paid</option>
+                            <option value="fully_paid" ${b.paymentStatus === 'fully_paid' ? 'selected' : ''}>Fully Paid</option>
+                            <option value="cancelled" ${b.paymentStatus === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                        </select>
+                    </td>
                     <td>${b.notes || ''}</td>
                     <td>${b.createdAt ? new Date(b.createdAt).toLocaleString() : ''}</td>
+                    <td>
+                        <button onclick="viewBooking('${b._id}')" style="padding:0.25rem 0.5rem;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;">View</button>
+                    </td>
                 </tr>
             `).join('');
         } catch (err) {
@@ -106,6 +123,35 @@
             errorMsg.textContent = 'Failed to load bookings.';
         }
     });
+
+    async function updatePaymentStatus(bookingId, status) {
+        try {
+            const response = await fetch(`https://aticas-backend.onrender.com/api/bookings/${bookingId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': localStorage.getItem('adminToken') || ''
+                },
+                body: JSON.stringify({ paymentStatus: status })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update payment status');
+            }
+
+            // Reload the page to show updated data
+            location.reload();
+        } catch (error) {
+            console.error('Error updating payment status:', error);
+            alert('Failed to update payment status. Please try again.');
+        }
+    }
+
+    function viewBooking(bookingId) {
+        // For now, just show an alert with booking ID
+        // In a full implementation, this could open a modal with detailed booking info
+        alert(`Viewing booking details for ID: ${bookingId}`);
+    }
     </script>
     <script src="../js/admin.js"></script>
     <script src="../js/script.js"></script>
