@@ -931,6 +931,9 @@
                             const currentQty = parseInt(quantityElement.textContent) || 0;
                             await updateCartItem(itemId, currentQty + 1, itemType, selObj);
                             await loadCarts();
+                            if (window.updateCartIndicators) {
+                                window.updateCartIndicators();
+                            }
                             if (window.showToast) {
                                 showToast('Quantity updated');
                             }
@@ -954,6 +957,9 @@
                             if (currentQty > 1) {
                                 await updateCartItem(itemId, currentQty - 1, itemType, selObj);
                                 await loadCarts();
+                                if (window.updateCartIndicators) {
+                                    window.updateCartIndicators();
+                                }
                                 if (window.showToast) {
                                     showToast('Quantity updated');
                                 }
@@ -982,6 +988,9 @@
                             const removedName = nameEl ? nameEl.textContent.trim() : 'Item';
                             await removeCartItem(itemId, itemType, selObj);
                             await loadCarts();
+                            if (window.updateCartIndicators) {
+                                window.updateCartIndicators();
+                            }
                             if (window.showToast) {
                                 showToast(`${removedName} removed`);
                             }
@@ -1630,6 +1639,9 @@
                                 // Clear cart after successful order (guest cart only; server handles user cart)
                                 localStorage.setItem('guestCart', JSON.stringify({ items: [] }));
                                 updateCartCount();
+                                if (window.updateCartIndicators) {
+                                    window.updateCartIndicators();
+                                }
 
                                 // Redirect to Orders page; instructions will be shown there above the receipt
                                 window.location.href = 'orders.html';
@@ -1673,6 +1685,9 @@
                                 // Clear cart after successful order (guest cart only; server handles user cart)
                                 localStorage.setItem('guestCart', JSON.stringify({ items: [] }));
                                 updateCartCount();
+                                if (window.updateCartIndicators) {
+                                    window.updateCartIndicators();
+                                }
 
                                 // Redirect to confirmation page with orderId
                                 window.location.href = `order-confirmation.html?orderId=${encodeURIComponent(createdOrder?._id)}`;

@@ -2,12 +2,22 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Function to update cart indicators
     function updateCartIndicators() {
-        // Get cart counts
-        const cafeteriaCart = JSON.parse(localStorage.getItem('cafeteriaGuestCart') || '{"items":[],"total":0}');
-        const butcheryCart = JSON.parse(localStorage.getItem('butcheryGuestCart') || '{"items":[],"total":0}');
-        
-        const cafeteriaCount = cafeteriaCart.items?.reduce((total, item) => total + (item.quantity || 1), 0) || 0;
-        const butcheryCount = butcheryCart.items?.reduce((total, item) => total + (item.quantity || 1), 0) || 0;
+        // Get cart counts from unified guestCart structure
+        const guestCart = JSON.parse(localStorage.getItem('guestCart') || '{"items":[],"total":0}');
+
+        // Separate cafeteria and butchery items
+        const cafeteriaItems = guestCart.items?.filter(item => {
+            const t = String(item.itemType || '').toLowerCase();
+            return t !== 'meat' && t !== 'butchery';
+        }) || [];
+
+        const butcheryItems = guestCart.items?.filter(item => {
+            const t = String(item.itemType || '').toLowerCase();
+            return t === 'meat' || t === 'butchery';
+        }) || [];
+
+        const cafeteriaCount = cafeteriaItems.reduce((total, item) => total + (item.quantity || 1), 0);
+        const butcheryCount = butcheryItems.reduce((total, item) => total + (item.quantity || 1), 0);
         
         // Update all cart indicators
         document.querySelectorAll('.cart-indicator').forEach(indicator => {
@@ -81,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Listen for storage events to update indicators when cart changes
     window.addEventListener('storage', function(e) {
-        if (e.key === 'cafeteriaGuestCart' || e.key === 'butcheryGuestCart') {
+        if (e.key === 'guestCart') {
             updateCartIndicators();
         }
     });
