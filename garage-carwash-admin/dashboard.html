@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garage & Car Wash Admin Dashboard - ATICAS CAFE'</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
+    <script src="../js/auth-check.js"></script>
+</head>
+<body>
+    <!-- Admin Navbar -->
+    <nav class="admin-navbar">
+        <div class="admin-navbar-left">
+            <img src="../images/1b.jpg" alt="Cafeteria Logo" class="logo">
+            <span class="cafeteria-name">ATICAS GARAGE & CAR WASH - Admin</span>
+        </div>
+        <div class="admin-navbar-right">
+            <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+        <!-- Responsive horizontal nav for small screens -->
+        <div class="admin-navbar-tabs">
+            <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="bookings.html"><i class="fas fa-calendar-check"></i> Service Bookings</a>
+            <a href="reports.html"><i class="fas fa-chart-line"></i> Reports</a>
+        </div>
+    </nav>
+
+    <!-- Admin Sidebar -->
+    <div class="admin-sidebar">
+        <a href="dashboard.html" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="bookings.html"><i class="fas fa-calendar-check"></i> Service Bookings</a>
+        <a href="reports.html"><i class="fas fa-chart-bar"></i> Reports</a>
+    </div>
+
+    <!-- Admin Content -->
+    <div class="admin-content">
+        <h2>Garage & Car Wash Admin Dashboard</h2>
+        <div class="dashboard-cards">
+            <div class="dashboard-card">
+                <h3>Total Service Bookings</h3>
+                <p id="totalBookings">0</p>
+            </div>
+            <div class="dashboard-card">
+                <h3>Pending Bookings</h3>
+                <p id="pendingBookings">0</p>
+            </div>
+            <div class="dashboard-card">
+                <h3>Completed Bookings</h3>
+                <p id="completedBookings">0</p>
+            </div>
+            <div class="dashboard-card">
+                <h3>Today's Bookings</h3>
+                <p id="todayBookings">0</p>
+            </div>
+        </div>
+
+        <!-- Recent Bookings -->
+        <div class="recent-orders">
+            <h3>Recent Service Bookings</h3>
+            <table id="recentBookingsTable">
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Bookings will be loaded via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="../js/admin.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            const adminToken = localStorage.getItem('adminToken');
+            if (!adminToken) {
+                window.location.href = 'garage-carwash-admin-login.html';
+                return;
+            }
+
+            // Fetch service bookings
+            const response = await fetch('https://aticas-backend.onrender.com/api/service-bookings', {
+                headers: { 'Authorization': `Bearer ${adminToken}` }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const bookings = data.bookings || [];
+
+                // Update stats
+                document.getElementById('totalBookings').textContent = bookings.length;
+                document.getElementById('pendingBookings').textContent = bookings.filter(b => b.status === 'pending').length;
+                document.getElementById('completedBookings').textContent = bookings.filter(b => b.status === 'completed').length;
+
+                // Today's bookings
+                const today = new Date().toDateString();
+                const todayCount = bookings.filter(b => new Date(b.date).toDateString() === today).length;
+                document.getElementById('todayBookings').textContent = todayCount;
+
+                // Recent bookings table
+                const tbody = document.getElementById('recentBookingsTable').querySelector('tbody');
+                tbody.innerHTML = '';
+
+                bookings.slice(0, 10).forEach(booking => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${booking.serviceName} (${booking.serviceType})</td>
+                        <td>${booking.name}</td>
+                        <td>${new Date(booking.date).toLocaleDateString()}</td>
+                        <td><span class="status-${booking.status}">${booking.status}</span></td>
+                        <td>
+                            <button onclick="updateStatus('${booking._id}', 'confirmed')" class="action-btn-small">Confirm</button>
+                            <button onclick="updateStatus('${booking._id}', 'completed')" class="action-btn-small">Complete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        } catch (error) {
+            console.error('Failed to load dashboard data:', error);
+        }
+    });
+
+    async function updateStatus(bookingId, status) {
+        try {
+            const adminToken = localStorage.getItem('adminToken');
+            const response = await fetch(`https://aticas-backend.onrender.com/api/service-bookings/${bookingId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${adminToken}`
+                },
+                body: JSON.stringify({ status })
+            });
+
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Failed to update booking status');
+            }
+        } catch (error) {
+            console.error('Update error:', error);
+            alert('Failed to update booking status');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function() {
+                try {
+                    localStorage.removeItem('adminToken');
+                    localStorage.removeItem('adminData');
+                    localStorage.removeItem('adminType');
+                    localStorage.removeItem('isAdminLoggedIn');
+                } catch (_) {}
+                window.location.href = 'garage-carwash-admin-login.html';
+            });
+        }
+    });
+    </script>
+</body>
+</html>
