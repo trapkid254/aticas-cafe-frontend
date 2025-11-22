@@ -761,11 +761,12 @@
                                       : 'menu';
                 
                 return `
-                    <div class="cart-item" data-id="${menuItem._id || menuItem.id || item.id}" 
-                         data-type="${normalizedType}"
-                         ${item.selectedSize?.size ? `data-size="${item.selectedSize.size}"` : ''}
-                         ${item.selectedSize?.price ? `data-selected-price="${item.selectedSize.price}"` : ''}
-                         data-price="${Number(unitPrice)}">
+                    <div class="cart-item" data-id="${menuItem._id || menuItem.id || item.id}"
+                          data-type="${normalizedType}"
+                          ${item.selectedSize?.size ? `data-size="${item.selectedSize.size}"` : ''}
+                          ${item.selectedSize?.price ? `data-selected-price="${item.selectedSize.price}"` : ''}
+                          data-price="${Number(unitPrice)}"
+                          data-name="${name}">
                         <img src="${image}" 
                              alt="${name || 'Item'}" 
                              onerror="this.src='${defaultImage}'">
@@ -923,7 +924,7 @@
             
             // Initialize meat order controls
             function initMeatOrderControls() {
-                document.addEventListener('click', function(e) {
+                document.addEventListener('click', async function(e) {
                     // Handle order type button clicks
                     if (e.target.classList.contains('order-type-btn')) {
                         const cartItem = e.target.closest('.cart-item');
@@ -976,24 +977,60 @@
                             size = `${kg.toFixed(2)} kg`;
                         }
 
-                        // Calculate quantity (for butchery, quantity represents kg)
-                        const quantity = kg;
+                        // For guest users, directly modify the cart in localStorage
+                        const userId = localStorage.getItem('userId');
+                        if (!userId) {
+                            // Guest user - modify localStorage directly
+                            const guestCart = getGuestCart(true); // Get butchery cart
+                            const itemIndex = guestCart.items.findIndex(item => {
+                                const menuId = item.menuItem?._id || item.menuItem?.id || item.menuItem;
+                                return String(menuId) === String(itemId) &&
+                                       item.itemType === itemType;
+                            });
 
-                        const selectedSize = { size, price };
+                            if (itemIndex > -1) {
+                                // Update existing item
+                                guestCart.items[itemIndex].quantity = kg;
+                                guestCart.items[itemIndex].selectedSize = { size, price };
+                                guestCart.total = guestCart.items.reduce((sum, item) => {
+                                    const itemPrice = item.selectedSize?.price || item.price || 0;
+                                    return sum + (itemPrice * item.quantity);
+                                }, 0);
 
-                        try {
-                            updateCartItem(itemId, quantity, itemType, selectedSize);
-                            loadCarts();
-                            if (window.updateCartIndicators) {
-                                window.updateCartIndicators();
+                                setGuestCart(guestCart, true); // Save butchery cart
+
+                                loadCarts();
+                                if (window.updateCartIndicators) {
+                                    window.updateCartIndicators();
+                                }
+                                if (window.showToast) {
+                                    showToast('Meat quantity updated');
+                                }
                             }
-                            if (window.showToast) {
-                                showToast('Meat quantity updated');
-                            }
-                        } catch (error) {
-                            console.error('Error updating meat quantity:', error);
-                            if (window.showToast) {
-                                showToast('Error updating quantity', 'error');
+                        } else {
+                            // Logged-in user - use API
+                            try {
+                                // Remove old item first
+                                const oldSize = cartItem.dataset.size;
+                                const oldSelectedSize = oldSize ? { size: oldSize, price: parseFloat(cartItem.dataset.selectedPrice || 0) } : null;
+                                await removeCartItem(itemId, itemType, oldSelectedSize);
+
+                                // Add new item
+                                const newSelectedSize = { size, price };
+                                await updateCartItem(itemId, kg, itemType, newSelectedSize);
+
+                                loadCarts();
+                                if (window.updateCartIndicators) {
+                                    window.updateCartIndicators();
+                                }
+                                if (window.showToast) {
+                                    showToast('Meat quantity updated');
+                                }
+                            } catch (error) {
+                                console.error('Error updating meat quantity:', error);
+                                if (window.showToast) {
+                                    showToast('Error updating quantity', 'error');
+                                }
                             }
                         }
                     }
