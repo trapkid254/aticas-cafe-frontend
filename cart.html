@@ -775,12 +775,32 @@
                             <p class="price">Ksh ${unitPrice.toFixed(2)}</p>
                         </div>
                         <div class="quantity-controls">
-                            <button class="quantity-btn minus">-</button>
-                            <span class="quantity">${qty}</span>
-                            <button class="quantity-btn plus">+</button>
+                            ${isButchery ? `
+                                <div class="meat-order-controls" style="display:flex;flex-direction:column;gap:0.5rem;width:100%;">
+                                    <div class="order-type-buttons" style="display:flex;gap:0.3rem;">
+                                        <button class="order-type-btn active" data-type="kg" style="flex:1;padding:0.4rem 0.6rem;border-radius:6px;border:1.5px solid #27ae60;background:#e8f5e9;color:#1b5e20;font-weight:600;font-size:0.85rem;cursor:pointer;">By Kg</button>
+                                        <button class="order-type-btn" data-type="price" style="flex:1;padding:0.4rem 0.6rem;border-radius:6px;border:1.5px solid #e0e0e0;background:#fafafa;color:#37474f;font-weight:600;font-size:0.85rem;cursor:pointer;">By Price</button>
+                                    </div>
+                                    <div class="order-inputs" style="display:flex;gap:0.5rem;">
+                                        <div style="flex:1;">
+                                            <input type="number" class="kg-input" min="0" step="0.1" placeholder="0.5" value="${item.selectedSize?.size?.replace(/[^0-9.]/g, '') || '0.5'}" style="width:100%;padding:0.4rem;border:1px solid #ddd;border-radius:4px;font-size:0.9rem;text-align:center;">
+                                            <label style="font-size:0.75rem;color:#666;display:block;text-align:center;margin-top:0.2rem;">Kg</label>
+                                        </div>
+                                        <div style="flex:1;">
+                                            <input type="number" class="price-input" min="0" step="10" placeholder="300" value="${item.selectedSize?.price || Math.round((item.selectedSize?.size?.replace(/[^0-9.]/g, '') || 0.5) * unitPrice)}" style="width:100%;padding:0.4rem;border:1px solid #ddd;border-radius:4px;font-size:0.9rem;text-align:center;display:none;">
+                                            <label style="font-size:0.75rem;color:#666;display:block;text-align:center;margin-top:0.2rem;">Ksh</label>
+                                        </div>
+                                    </div>
+                                    <button class="update-meat-btn" style="padding:0.5rem 1rem;border-radius:6px;border:none;background:#27ae60;color:#fff;font-weight:600;font-size:0.9rem;cursor:pointer;">Update</button>
+                                </div>
+                            ` : `
+                                <button class="quantity-btn minus">-</button>
+                                <span class="quantity">${qty}</span>
+                                <button class="quantity-btn plus">+</button>
+                            `}
                         </div>
                         <div class="item-total">
-                            <p>Ksh ${total.toFixed(2)}</p>
+                            <p>Ksh ${isButchery ? (item.selectedSize?.price || total).toFixed(2) : total.toFixed(2)}</p>
                             <button class="remove-btn"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
@@ -901,14 +921,117 @@
                 initButtonHandlers();
             }
             
+            // Initialize meat order controls
+            function initMeatOrderControls() {
+                document.addEventListener('click', function(e) {
+                    // Handle order type button clicks
+                    if (e.target.classList.contains('order-type-btn')) {
+                        const cartItem = e.target.closest('.cart-item');
+                        if (!cartItem) return;
+
+                        const buttons = cartItem.querySelectorAll('.order-type-btn');
+                        const kgInput = cartItem.querySelector('.kg-input');
+                        const priceInput = cartItem.querySelector('.price-input');
+                        const unitPrice = parseFloat(cartItem.dataset.price) || 0;
+
+                        buttons.forEach(btn => btn.classList.remove('active'));
+                        e.target.classList.add('active');
+
+                        const orderType = e.target.dataset.type;
+                        if (orderType === 'kg') {
+                            kgInput.style.display = 'block';
+                            priceInput.style.display = 'none';
+                            // Calculate price from kg
+                            const kg = parseFloat(kgInput.value) || 0;
+                            priceInput.value = Math.round(kg * unitPrice);
+                        } else {
+                            kgInput.style.display = 'none';
+                            priceInput.style.display = 'block';
+                            // Calculate kg from price
+                            const price = parseFloat(priceInput.value) || 0;
+                            kgInput.value = (price / unitPrice).toFixed(2);
+                        }
+                    }
+
+                    // Handle update meat button clicks
+                    if (e.target.classList.contains('update-meat-btn')) {
+                        const cartItem = e.target.closest('.cart-item');
+                        if (!cartItem) return;
+
+                        const itemId = cartItem.dataset.id;
+                        const itemType = cartItem.dataset.type;
+                        const kgInput = cartItem.querySelector('.kg-input');
+                        const priceInput = cartItem.querySelector('.price-input');
+                        const activeBtn = cartItem.querySelector('.order-type-btn.active');
+                        const unitPrice = parseFloat(cartItem.dataset.price) || 0;
+
+                        let kg, price, size;
+                        if (activeBtn.dataset.type === 'kg') {
+                            kg = parseFloat(kgInput.value) || 0;
+                            price = Math.round(kg * unitPrice);
+                            size = `${kg} kg`;
+                        } else {
+                            price = parseFloat(priceInput.value) || 0;
+                            kg = price / unitPrice;
+                            size = `${kg.toFixed(2)} kg`;
+                        }
+
+                        // Calculate quantity (for butchery, quantity represents kg)
+                        const quantity = kg;
+
+                        const selectedSize = { size, price };
+
+                        try {
+                            updateCartItem(itemId, quantity, itemType, selectedSize);
+                            loadCarts();
+                            if (window.updateCartIndicators) {
+                                window.updateCartIndicators();
+                            }
+                            if (window.showToast) {
+                                showToast('Meat quantity updated');
+                            }
+                        } catch (error) {
+                            console.error('Error updating meat quantity:', error);
+                            if (window.showToast) {
+                                showToast('Error updating quantity', 'error');
+                            }
+                        }
+                    }
+                });
+
+                // Handle input changes for auto-calculation
+                document.addEventListener('input', function(e) {
+                    if (e.target.classList.contains('kg-input') || e.target.classList.contains('price-input')) {
+                        const cartItem = e.target.closest('.cart-item');
+                        if (!cartItem) return;
+
+                        const kgInput = cartItem.querySelector('.kg-input');
+                        const priceInput = cartItem.querySelector('.price-input');
+                        const activeBtn = cartItem.querySelector('.order-type-btn.active');
+                        const unitPrice = parseFloat(cartItem.dataset.price) || 0;
+
+                        if (activeBtn.dataset.type === 'kg' && e.target === kgInput) {
+                            const kg = parseFloat(kgInput.value) || 0;
+                            priceInput.value = Math.round(kg * unitPrice);
+                        } else if (activeBtn.dataset.type === 'price' && e.target === priceInput) {
+                            const price = parseFloat(priceInput.value) || 0;
+                            kgInput.value = (price / unitPrice).toFixed(2);
+                        }
+                    }
+                });
+            }
+
             // Initialize cart event listeners for both butchery and cafeteria carts
             function initCartEventListeners() {
                 // Remove any existing listeners to prevent duplicates
                 document.removeEventListener('click', handleCartItemClick);
-                
+
+                // Handle meat order controls
+                initMeatOrderControls();
+
                 // Handle quantity controls and remove buttons with event delegation
                 document.addEventListener('click', handleCartItemClick);
-                
+
                 async function handleCartItemClick(e) {
                     const cartItem = e.target.closest('.cart-item');
                     if (!cartItem) return;
