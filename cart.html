@@ -751,29 +751,20 @@
                 
                 // Compute unit price with robust fallbacks
                 let unitPrice = 0;
-                
-                // Priority 1: Use selectedSize.price if available (this is the correct price for logged-in users)
-                if (item.selectedSize && typeof item.selectedSize.price === 'number') {
-                    unitPrice = Number(item.selectedSize.price);
-                    console.log('Using selectedSize.price:', unitPrice, 'for item:', name, 'selectedSize:', item.selectedSize);
-                }
-                // Priority 2: For butchery items, try to compute from size and base price
-                else if (isButchery && item.selectedSize && item.selectedSize.size) {
-                    const basePerKg = typeof menuItem.price === 'number' ? Number(menuItem.price) : (typeof item.price === 'number' ? Number(item.price) : 0);
-                    const sizeStr = String(item.selectedSize.size).toLowerCase();
-                    const kg = parseFloat(sizeStr.replace(/[^0-9.]/g, ''));
-                    if (sizeStr.includes('kg') && !isNaN(kg) && basePerKg > 0) {
-                        unitPrice = Math.round(kg * basePerKg);
-                        console.log('Computed price from size:', unitPrice, 'for item:', name, 'size:', item.selectedSize.size);
+
+                if (isButchery) {
+                    // For butchery items, always use per-kg price from menuItem
+                    unitPrice = typeof menuItem.price === 'number' ? Number(menuItem.price) : 0;
+                    console.log('Using per-kg price for butchery item:', unitPrice, 'for item:', name);
+                } else {
+                    // For cafeteria items, use selectedSize.price if available, otherwise menuItem.price
+                    if (item.selectedSize && typeof item.selectedSize.price === 'number') {
+                        unitPrice = Number(item.selectedSize.price);
+                        console.log('Using selectedSize.price for cafeteria item:', unitPrice, 'for item:', name);
                     } else {
-                        unitPrice = basePerKg || 0;
-                        console.log('Using base price:', unitPrice, 'for item:', name);
+                        unitPrice = (typeof item.price === 'number' ? item.price : (typeof menuItem.price === 'number' ? menuItem.price : 0));
+                        console.log('Using fallback price for cafeteria item:', unitPrice, 'for item:', name);
                     }
-                }
-                // Priority 3: Fallback to item price or menuItem price
-                else {
-                    unitPrice = (typeof item.price === 'number' ? item.price : (typeof menuItem.price === 'number' ? menuItem.price : 0));
-                    console.log('Using fallback price:', unitPrice, 'for item:', name);
                 }
                 
                 const qty = item.quantity || 1;
@@ -1020,8 +1011,8 @@
                             });
 
                             if (itemIndex > -1) {
-                                // Update existing item
-                                guestCart.items[itemIndex].quantity = 1;
+                                // Update existing item - for meat items, quantity is kg amount
+                                guestCart.items[itemIndex].quantity = kg;
                                 guestCart.items[itemIndex].selectedSize = { size, price };
                                 guestCart.total = guestCart.items.reduce((sum, item) => {
                                     const itemPrice = item.selectedSize?.price || item.price || 0;
