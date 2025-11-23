@@ -281,52 +281,6 @@ async function updateCartItem(menuItemId, quantity, itemType = 'food', selectedS
     }
 }
 
-// Initialize button handlers
-function initButtonHandlers() {
-    const cartContainer = document.querySelector('.cart-items');
-    if (!cartContainer) return;
-
-    cartContainer.addEventListener('click', async function(e) {
-        const button = e.target.closest('.quantity-btn') || e.target.closest('.remove-btn');
-        if (!button) return;
-
-        const itemId = button.dataset.id;
-        const itemType = button.dataset.type;
-        const itemSize = button.dataset.size || null;
-        const selectedSize = itemSize ? { size: itemSize } : null;
-        
-        const cart = getGuestCart();
-        const item = cart.items.find(i => 
-            i.menuItem === itemId && 
-            i.itemType === itemType &&
-            (!selectedSize || JSON.stringify(i.selectedSize) === JSON.stringify(selectedSize))
-        );
-
-        if (!item) return;
-
-        try {
-            if (button.classList.contains('remove-btn')) {
-                await updateCartItem(itemId, 0, itemType, selectedSize);
-            } 
-            else if (button.classList.contains('minus')) {
-                const newQty = item.quantity - 1;
-                await updateCartItem(itemId, newQty, itemType, selectedSize);
-            } 
-            else if (button.classList.contains('plus')) {
-                await updateCartItem(itemId, item.quantity + 1, itemType, selectedSize);
-            }
-            
-            // Refresh cart display
-            if (window.displayCartItems) {
-                await window.displayCartItems();
-            }
-            updateCartCount();
-        } catch (error) {
-            console.error('Error updating cart:', error);
-            alert('Failed to update cart. Please try again.');
-        }
-    });
-}
 
 // Remove item from cart
 async function removeCartItem(menuItemId, itemType = 'food', size = null) {
@@ -401,12 +355,9 @@ window.removeCartItem = removeCartItem;
 
 // Initialize cart functionality when DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
-    // Initialize button handlers
-    initButtonHandlers();
-    
     // Update cart count on page load
     await updateCartCount();
-    
+
     // If there's a displayCartItems function, call it
     if (typeof window.displayCartItems === 'function') {
         await window.displayCartItems();

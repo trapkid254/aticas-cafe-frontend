@@ -1018,7 +1018,7 @@
 
                             if (itemIndex > -1) {
                                 // Update existing item
-                                guestCart.items[itemIndex].quantity = kg;
+                                guestCart.items[itemIndex].quantity = 1;
                                 guestCart.items[itemIndex].selectedSize = { size, price };
                                 guestCart.total = guestCart.items.reduce((sum, item) => {
                                     const itemPrice = item.selectedSize?.price || item.price || 0;
