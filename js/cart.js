@@ -235,6 +235,9 @@ async function updateCartItem(menuItemId, quantity, itemType = 'food', selectedS
             if (existingItemIndex > -1) {
                 // Update existing item quantity
                 guestCart.items[existingItemIndex].quantity = quantity;
+                if (quantity === 0) {
+                    guestCart.items.splice(existingItemIndex, 1);
+                }
             } else {
                 // Add new item - fetch details only for guests when needed
                 const fetched = await fetchMenuItem(menuItemId, isButchery ? 'meat' : (isMealOfDay ? 'mealofday' : 'food'));

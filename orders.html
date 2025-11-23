@@ -247,6 +247,8 @@
         }
 
         function createOrderCard(order) {
+            const isButcheryOrder = order.items.some(item => item.itemType === 'Meat');
+            const businessName = isButcheryOrder ? 'Aticas Butchery' : 'Aticas Cafe';
             return `
                 <div class="receipt" style="background:#fff;border-radius:14px;border:1.5px solid #e0e0e0;box-shadow:0 6px 24px rgba(39,174,96,0.08);padding:2.5rem 2rem 2rem 2rem;width:100%;max-width:540px;margin:2.5rem auto 0 auto;font-family:'Segoe UI',Arial,sans-serif;">
                     ${order?.paymentMethod === 'mpesa' ? `
@@ -258,7 +260,7 @@
                         </div>
                     ` : ''}
                     <div class="receipt-header" style="text-align:center;margin-bottom:2.2rem;">
-                        <div style="font-family:'UnifrakturCook',cursive;font-size:2.3rem;color:#27ae60;letter-spacing:2px;">Aticas Cafe</div>
+                        <div style="font-family:'UnifrakturCook',cursive;font-size:2.3rem;color:#27ae60;letter-spacing:2px;">${businessName}</div>
                         <div style="font-size:1.1rem;color:#888;margin-top:0.2rem;">Order Receipt</div>
                         <div style="margin-top:0.7rem;font-size:1rem;"><b>Date:</b> ${new Date(order.date).toLocaleString()}</div>
                         <div style="margin-top:0.2rem;font-size:1rem;"><b>Order ID:</b> ${order._id}</div>

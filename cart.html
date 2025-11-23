@@ -253,18 +253,46 @@
     <style>
         .toast {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.8);
+            bottom: 24px;
+            right: 24px;
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
             color: #fff;
-            padding: 10px 16px;
-            border-radius: 6px;
+            padding: 16px 20px;
+            border-radius: 12px;
             font-size: 14px;
+            font-weight: 500;
             opacity: 0;
-            transition: opacity 0.25s ease;
+            transform: translateY(20px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 2000;
+            box-shadow: 0 8px 32px rgba(39, 174, 96, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 320px;
+            word-wrap: break-word;
         }
-        .toast.show { opacity: 1; }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .toast.error {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            box-shadow: 0 8px 32px rgba(231, 76, 60, 0.3);
+        }
+        .toast.success {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            box-shadow: 0 8px 32px rgba(39, 174, 96, 0.3);
+        }
+        .toast i {
+            margin-right: 8px;
+        }
+        @media (max-width: 480px) {
+            .toast {
+                left: 16px;
+                right: 16px;
+                bottom: 16px;
+                max-width: none;
+            }
+        }
 
         /* Centered modal layout, mobile-friendly */
         .modal {
@@ -1004,7 +1032,7 @@
                                     window.updateCartIndicators();
                                 }
                                 if (window.showToast) {
-                                    showToast('Meat quantity updated');
+                                    showToast('Meat quantity updated', 'success');
                                 }
                             }
                         } else {
@@ -1058,6 +1086,53 @@
                 });
             }
 
+            // Toast management system
+            let activeToast = null;
+            let toastQueue = [];
+            let isToastShowing = false;
+
+            function showToast(message, type = 'success') {
+                // Add to queue
+                toastQueue.push({ message, type });
+
+                // Process queue if not currently showing
+                if (!isToastShowing) {
+                    processToastQueue();
+                }
+            }
+
+            function processToastQueue() {
+                if (toastQueue.length === 0) {
+                    isToastShowing = false;
+                    return;
+                }
+
+                isToastShowing = true;
+                const { message, type } = toastQueue.shift();
+
+                const toast = document.getElementById('toast');
+                if (!toast) return;
+
+                // Clear any existing timeout
+                if (activeToast) {
+                    clearTimeout(activeToast);
+                }
+
+                // Set toast content and styling
+                const icon = type === 'error' ? 'fas fa-exclamation-triangle' : 'fas fa-check-circle';
+                toast.innerHTML = `<i class="${icon}"></i>${message}`;
+                toast.className = `toast ${type} show`;
+
+                // Auto-hide after 3 seconds
+                activeToast = setTimeout(() => {
+                    toast.classList.remove('show');
+                    // Process next toast after animation
+                    setTimeout(() => {
+                        processToastQueue();
+                    }, 300);
+                }, 3000);
+            }
+
             // Initialize cart event listeners for both butchery and cafeteria carts
             function initCartEventListeners() {
                 // Remove any existing listeners to prevent duplicates
@@ -1095,7 +1170,7 @@
                                 window.updateCartIndicators();
                             }
                             if (window.showToast) {
-                                showToast('Quantity updated');
+                                showToast('Quantity updated', 'success');
                             }
                         } catch (error) {
                             console.error('Error updating quantity:', error);
@@ -1127,7 +1202,7 @@
                                 await removeCartItem(itemId, itemType, sizeAttr || null);
                                 await loadCarts();
                                 if (window.showToast) {
-                                    showToast(`${removedName} removed`);
+                                    showToast(`${removedName} removed`, 'success');
                                 }
                             }
                         } catch (error) {
@@ -1152,7 +1227,7 @@
                                 window.updateCartIndicators();
                             }
                             if (window.showToast) {
-                                showToast(`${removedName} removed`);
+                                showToast(`${removedName} removed`, 'success');
                             }
                         } catch (error) {
                             console.error('Error removing item:', error);
@@ -1547,6 +1622,14 @@
                             window.__computedDeliveryFee = fee;
                             if (checkoutDeliveryFeeRow) checkoutDeliveryFeeRow.style.display = 'flex';
                             if (checkoutDeliveryFeeEl) checkoutDeliveryFeeEl.textContent = `Ksh ${fee.toFixed(2)}`;
+                            // Update total
+                            const subtotalEl = document.getElementById('checkoutSubtotal');
+                            const totalEl = document.getElementById('checkoutTotal');
+                            if (subtotalEl && totalEl) {
+                                const subtotal = parseFloat(subtotalEl.textContent.replace('Ksh ', '').replace(',', '')) || 0;
+                                const total = subtotal + fee;
+                                totalEl.textContent = `Ksh ${total.toFixed(2)}`;
+                            }
                         }
                     } catch (_) {}
                 }
@@ -1558,7 +1641,21 @@
                     // Set required attributes dynamically
                     [buildingNameEl, streetAddressEl].forEach(el => { if (el) el.required = isDelivery; });
                     [latitudeEl, longitudeEl].forEach(el => { if (el) el.required = isDelivery; });
-                    if (isDelivery) updateDeliveryFee();
+                    if (isDelivery) {
+                        updateDeliveryFee();
+                    } else {
+                        // Reset delivery fee when not delivery
+                        window.__computedDeliveryFee = 0;
+                        if (checkoutDeliveryFeeRow) checkoutDeliveryFeeRow.style.display = 'none';
+                        if (checkoutDeliveryFeeEl) checkoutDeliveryFeeEl.textContent = 'Ksh 0';
+                        // Update total
+                        const subtotalEl = document.getElementById('checkoutSubtotal');
+                        const totalEl = document.getElementById('checkoutTotal');
+                        if (subtotalEl && totalEl) {
+                            const subtotal = parseFloat(subtotalEl.textContent.replace('Ksh ', '').replace(',', '')) || 0;
+                            totalEl.textContent = `Ksh ${subtotal.toFixed(2)}`;
+                        }
+                    }
                 }
 
                 orderTypeRadios.forEach(r => r.addEventListener('change', toggleDeliveryFields));
