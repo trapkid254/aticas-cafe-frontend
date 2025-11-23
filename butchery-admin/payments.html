@@ -21,47 +21,88 @@
             <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
     </nav>
-    <div class="admin-navbar-tabs">
+
+    <!-- Admin Sidebar -->
+    <div class="admin-sidebar">
         <a href="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
         <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
         <a href="meat-management.html"><i class="fas fa-utensils"></i> Meat Management</a>
         <a href="reports.html"><i class="fas fa-chart-line"></i> Reports</a>
         <a href="payments.html" class="active"><i class="fas fa-credit-card"></i> Payments</a>
-        <a href="place-order.html"><i class="fas fa-phone"></i> Place Order for Customer</a>
+        <a href="place-order.html"><i class="fas fa-phone"></i> Place Order</a>
     </div>
+
     <!-- Admin Content -->
-    <div class="main-content">
-        <h2>Payments</h2>
-        <div class="dashboard-cards" style="margin-bottom:2.5rem;">
-            <div class="dashboard-card" id="todayPaymentsCard">
-                <h3>Today's Payments</h3>
-                <p id="todayPayments">Ksh 0</p>
+    <div class="admin-content">
+        <div class="page-header">
+            <h2><i class="fas fa-credit-card"></i> Payments</h2>
+            <p class="page-subtitle">Track and manage all payment transactions</p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="todayPayments">Ksh 0</h3>
+                    <p>Today's Payments</p>
+                </div>
             </div>
-            <div class="dashboard-card" id="monthPaymentsCard">
-                <h3>This Month</h3>
-                <p id="monthPayments">Ksh 0</p>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="monthPayments">Ksh 0</h3>
+                    <p>This Month</p>
+                </div>
             </div>
-            <div class="dashboard-card" id="yearPaymentsCard">
-                <h3>This Year</h3>
-                <p id="yearPayments">Ksh 0</p>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="yearPayments">Ksh 0</h3>
+                    <p>This Year</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="totalPayments">Ksh 0</h3>
+                    <p>Total Payments</p>
+                </div>
             </div>
         </div>
-        <div class="recent-orders">
-            <h3>All Payments (Completed Orders)</h3>
-            <table id="paymentsTable">
+
+        <!-- Payments Table -->
+        <div class="table-container">
+            <table id="paymentsTable" class="modern-table">
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Order ID</th>
-                        <th>Customer</th>
-                        <th>Amount</th>
-                        <th>Payment Method</th>
+                        <th><i class="fas fa-calendar"></i> Date</th>
+                        <th><i class="fas fa-hashtag"></i> Order ID</th>
+                        <th><i class="fas fa-user"></i> Customer</th>
+                        <th><i class="fas fa-dollar-sign"></i> Amount</th>
+                        <th><i class="fas fa-credit-card"></i> Payment Method</th>
+                        <th><i class="fas fa-tasks"></i> Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     <!-- Payments will be loaded via JavaScript -->
                 </tbody>
             </table>
+        </div>
+
+        <!-- No Results Message -->
+        <div id="noResults" class="no-results" style="display: none;">
+            <i class="fas fa-credit-card"></i>
+            <h3>No payments found</h3>
+            <p>No completed orders with payments yet</p>
         </div>
     </div>
     <script src="../js/admin-payments.js"></script>

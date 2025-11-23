@@ -95,16 +95,22 @@
             <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
     </nav>
-    <div class="admin-navbar-tabs">
+
+    <!-- Admin Sidebar -->
+    <div class="admin-sidebar">
         <a href="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
         <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
         <a href="meat-management.html"><i class="fas fa-utensils"></i> Meat Management</a>
         <a href="reports.html"><i class="fas fa-chart-line"></i> Reports</a>
         <a href="payments.html"><i class="fas fa-credit-card"></i> Payments</a>
-        <a href="place-order.html" class="active"><i class="fas fa-phone"></i> Place Order for Customer</a>
+        <a href="place-order.html" class="active"><i class="fas fa-phone"></i> Place Order</a>
     </div>
-    <div class="main-content">
-        <h2 style="text-align:center;margin-bottom:2.5rem;font-size:2.1rem;color:#27ae60;letter-spacing:1px;">Place Order for Customer</h2>
+
+    <div class="admin-content">
+        <div class="page-header">
+            <h2><i class="fas fa-phone"></i> Place Order for Customer</h2>
+            <p class="page-subtitle">Create and place orders on behalf of customers</p>
+        </div>
         <form id="placeOrderForm" class="dashboard-card" style="max-width:600px;margin:2rem auto 2rem auto;box-shadow:0 4px 24px rgba(39,174,96,0.10);border-radius:16px;padding:2.5rem 2rem 2rem 2rem;">
             <div class="form-group" style="margin-bottom:1.5rem;">
                 <label for="customerName" style="font-weight:600;color:#222;font-size:1.08rem;">Customer Name</label>

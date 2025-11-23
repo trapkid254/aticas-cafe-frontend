@@ -32,6 +32,11 @@
             color: #155724;
         }
 
+        .price-status.set {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
         .price-status.pending {
             background: #fff3cd;
             color: #856404;
@@ -298,7 +303,8 @@
                     <div class="price-section">
                         ${booking.totalAmount ? `
                             <div class="price-display">Ksh ${Number(booking.totalAmount).toLocaleString()}</div>
-                            ${booking.priceAccepted ? '<div class="price-status accepted">Accepted</div>' : '<div class="price-status pending">Pending Acceptance</div>'}
+                            <div class="price-status set">Price Set</div>
+                            ${booking.priceAccepted ? '<div class="price-status accepted">Accepted by Customer</div>' : '<div class="price-status pending">Awaiting Customer Acceptance</div>'}
                         ` : `
                             <div class="price-input-group">
                                 <input type="number" id="price-${booking._id}" placeholder="Enter price" min="0" step="100" class="price-input">

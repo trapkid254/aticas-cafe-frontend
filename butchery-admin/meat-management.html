@@ -33,40 +33,83 @@
 
     <!-- Admin Sidebar -->
     <div class="admin-sidebar">
-        <div class="sidebar-header">
-            <h3>Admin Panel</h3>
-        </div>
-        <ul class="sidebar-menu">
-            <li><a href="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-            <li><a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a></li>
-            <li><a href="meat-management.html" class="active"><i class="fas fa-drumstick-bite"></i> Meat Management</a></li>
-            <li><a href="reports.html"><i class="fas fa-chart-line"></i> Reports</a></li>
-            <li><a href="payments.html"><i class="fas fa-credit-card"></i> Payments</a></li>
-        </ul>
+        <a href="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
+        <a href="meat-management.html" class="active"><i class="fas fa-drumstick-bite"></i> Meat Management</a>
+        <a href="reports.html"><i class="fas fa-chart-line"></i> Reports</a>
+        <a href="payments.html"><i class="fas fa-credit-card"></i> Payments</a>
+        <a href="place-order.html"><i class="fas fa-phone"></i> Place Order</a>
     </div>
 
     <!-- Admin Content -->
     <div class="admin-content">
-        <h2>Meat Management</h2>
-        <div class="dashboard-cards" style="margin-bottom: 2.5rem;">
-            <div class="dashboard-card" style="flex: 2 1 400px; background: #ffffff;">
-                <h3>Meats of the Day</h3>
-                <button class="action-btn" id="addMeatOfDayBtn" style="margin-bottom: 1rem;"><i class="fas fa-plus"></i> Add Meat of the Day</button>
-                <div id="meatsOfDayList" style="margin-top: 1rem;"></div>
+        <div class="page-header">
+            <h2><i class="fas fa-drumstick-bite"></i> Meat Management</h2>
+            <p class="page-subtitle">Manage meats of the day and regular meat menu items</p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="meatsOfDayCount">0</h3>
+                    <p>Meats of the Day</p>
+                </div>
             </div>
-            <div class="dashboard-card" style="flex: 3 1 600px; background: #ffffff;">
-                <h3>Meat Menu</h3>
-                <button class="action-btn" id="addMenuMeatBtn" style="margin-bottom: 1rem;"><i class="fas fa-plus"></i> Add Meat Item</button>
-                <div id="meatMenuList" style="margin-top: 1rem;"></div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="menuMeatsCount">0</h3>
+                    <p>Menu Items</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-boxes"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="totalStock">0</h3>
+                    <p>Total Stock</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-tags"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="categoriesCount">0</h3>
+                    <p>Categories</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Management Sections -->
+        <div class="form-section">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div>
+                    <h3 style="color: #27ae60; margin-bottom: 1rem;"><i class="fas fa-star"></i> Meats of the Day</h3>
+                    <button class="submit-btn" id="addMeatOfDayBtn" style="margin-bottom: 1rem;"><i class="fas fa-plus"></i> Add Meat of the Day</button>
+                    <div id="meatsOfDayList"></div>
+                </div>
+                <div>
+                    <h3 style="color: #27ae60; margin-bottom: 1rem;"><i class="fas fa-utensils"></i> Meat Menu</h3>
+                    <button class="submit-btn" id="addMenuMeatBtn" style="margin-bottom: 1rem;"><i class="fas fa-plus"></i> Add Meat Item</button>
+                    <div id="meatMenuList"></div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Add Meat Modal (shared for both types) -->
-    <div class="modal" id="addMeatModal" style="display: flex; align-items: flex-start; padding: 20px; overflow-y: auto;">
-        <div class="modal-content" style="width: 90%; max-width: 600px; margin: 2rem auto; padding: 2rem; border-radius: 14px; background: #fff; box-shadow: 0 4px 24px rgba(0,0,0,0.1); position: relative;">
-            <span class="close-modal" style="position: absolute; top: 1rem; right: 1.5rem; font-size: 2rem; color: #e74c3c; cursor: pointer;">&times;</span>
-            <h3 id="addMeatModalTitle" style="color: #27ae60; font-size: 1.5rem; margin-bottom: 1.5rem; text-align: center; padding-bottom: 1rem; border-bottom: 1px solid #eee;">
+    <div class="modal" id="addMeatModal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3 id="addMeatModalTitle" style="color: #27ae60; font-size: 1.5rem; margin-bottom: 1.5rem; text-align: center;">
                 <i class="fas fa-drumstick-bite"></i> Add Meat
             </h3>
             <form id="addMeatForm" style="display: flex; flex-direction: column; gap: 1rem; max-height: 70vh; overflow-y: auto; padding-right: 0.5rem;">
