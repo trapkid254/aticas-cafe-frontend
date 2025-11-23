@@ -8,6 +8,64 @@
     <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="../css/admin-professional.css">
     <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
+    <style>
+        .price-section {
+            min-width: 150px;
+        }
+
+        .price-display {
+            font-weight: bold;
+            color: #27ae60;
+            font-size: 1.1em;
+        }
+
+        .price-status {
+            font-size: 0.85em;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-top: 2px;
+            display: inline-block;
+        }
+
+        .price-status.accepted {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .price-status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .price-input-group {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .price-input {
+            width: 80px;
+            padding: 4px 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        .price-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .price-btn:hover {
+            background: #219a52;
+        }
+    </style>
     <script src="../js/auth-check.js"></script>
 </head>
 <body>
@@ -114,6 +172,7 @@
                         <th><i class="fas fa-phone"></i> Contact</th>
                         <th><i class="fas fa-calendar"></i> Date & Time</th>
                         <th><i class="fas fa-info-circle"></i> Details</th>
+                        <th><i class="fas fa-dollar-sign"></i> Price</th>
                         <th><i class="fas fa-tasks"></i> Status</th>
                         <th><i class="fas fa-cog"></i> Actions</th>
                     </tr>
@@ -236,6 +295,19 @@
                     </div>
                 </td>
                 <td>
+                    <div class="price-section">
+                        ${booking.totalAmount ? `
+                            <div class="price-display">Ksh ${Number(booking.totalAmount).toLocaleString()}</div>
+                            ${booking.priceAccepted ? '<div class="price-status accepted">Accepted</div>' : '<div class="price-status pending">Pending Acceptance</div>'}
+                        ` : `
+                            <div class="price-input-group">
+                                <input type="number" id="price-${booking._id}" placeholder="Enter price" min="0" step="100" class="price-input">
+                                <button onclick="setPrice('${booking._id}')" class="price-btn">Set Price</button>
+                            </div>
+                        `}
+                    </div>
+                </td>
+                <td>
                     <span class="status-badge ${statusClass}">
                         <i class="fas fa-circle"></i>
                         ${statusText}
@@ -281,6 +353,39 @@
         }
 
         displayBookings(filtered);
+    }
+
+    async function setPrice(bookingId) {
+        const priceInput = document.getElementById(`price-${bookingId}`);
+        const price = parseFloat(priceInput.value);
+
+        if (!price || price <= 0) {
+            showNotification('Please enter a valid price', 'error');
+            return;
+        }
+
+        try {
+            const adminToken = localStorage.getItem('adminToken');
+            const response = await fetch(`https://aticas-backend.onrender.com/api/service-bookings/${bookingId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${adminToken}`
+                },
+                body: JSON.stringify({ totalAmount: price })
+            });
+
+            if (response.ok) {
+                // Reload bookings to update display
+                await loadBookings();
+                showNotification('Price set successfully! Customer will be notified.', 'success');
+            } else {
+                showNotification('Failed to set price', 'error');
+            }
+        } catch (error) {
+            console.error('Price setting error:', error);
+            showNotification('Failed to set price', 'error');
+        }
     }
 
     async function updateStatus(bookingId, status) {
