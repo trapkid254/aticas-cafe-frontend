@@ -236,6 +236,19 @@
 
             if (result.success) {
                 alert('Booking request submitted successfully! We will contact you soon.');
+
+                // Store booking for guest users
+                const token = localStorage.getItem('userToken');
+                if (!token) {
+                    try {
+                        const existing = JSON.parse(localStorage.getItem('guestBookings') || '[]');
+                        existing.unshift(result.booking);
+                        localStorage.setItem('guestBookings', JSON.stringify(existing.slice(0, 20)));
+                    } catch (_) {
+                        localStorage.setItem('guestBookings', JSON.stringify([result.booking]));
+                    }
+                }
+
                 document.getElementById('carwashBookingForm').reset();
                 document.getElementById('bookingSection').style.display = 'none';
             } else {
