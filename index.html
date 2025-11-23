@@ -35,9 +35,7 @@
         .preloader-logo {
             width: 120px;
             height: 120px;
-            border-radius: 50%;
             object-fit: cover;
-            border: 4px solid rgba(255, 255, 255, 0.3);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             margin-bottom: 2rem;
             animation: pulse 2s infinite;
@@ -233,7 +231,7 @@
                         preloader.remove();
                     }, 500);
                 }
-            }, 2000); // Show preloader for 2 seconds minimum
+            }, 10000); // Show preloader for 10 seconds minimum
         });
 
         // Fallback: hide preloader on window load if DOMContentLoaded doesn't fire
