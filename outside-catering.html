@@ -154,8 +154,9 @@ document.getElementById('cateringBookingForm').onsubmit = async function(e) {
     guests: form.guests.value,
     location: form.location.value,
     notes: form.notes.value,
-    totalAmount: estimatedCost,
+    estimatedCost: estimatedCost,
     depositRequired: depositRequired
+    // totalAmount will be set by admin later
   };
 
   // Confirm deposit payment

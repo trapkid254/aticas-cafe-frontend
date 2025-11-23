@@ -343,20 +343,19 @@
 
     <script>
         // Unified cart functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            // Determine which department cart to show: 'cafeteria' or 'butchery'
-            const urlDept = new URLSearchParams(window.location.search).get('dept');
-            const cartDepartment = (urlDept || localStorage.getItem('cartDepartment') || 'cafeteria').toLowerCase();
-            localStorage.setItem('cartDepartment', cartDepartment);
-            // Initialize cart indicators
-            if (window.updateCartIndicators) {
-                window.updateCartIndicators();
-            }
-            
-            // Load cart immediately when DOM is ready
-            setTimeout(() => {
-                loadCarts();
-            }, 100);
+        // Determine which department cart to show: 'cafeteria' or 'butchery'
+        const urlDept = new URLSearchParams(window.location.search).get('dept');
+        const cartDepartment = (urlDept || localStorage.getItem('cartDepartment') || 'cafeteria').toLowerCase();
+        localStorage.setItem('cartDepartment', cartDepartment);
+        // Initialize cart indicators
+        if (window.updateCartIndicators) {
+            window.updateCartIndicators();
+        }
+
+        // Load cart immediately
+        setTimeout(() => {
+            loadCarts();
+        }, 100);
 
             // Function to fetch cart
             async function fetchCart(isButchery = false) {
@@ -952,6 +951,10 @@
             
             // Initialize meat order controls
             function initMeatOrderControls() {
+                // Prevent duplicate event listeners
+                if (window.meatOrderControlsInitialized) return;
+                window.meatOrderControlsInitialized = true;
+
                 document.addEventListener('click', async function(e) {
                     // Handle order type button clicks
                     if (e.target.classList.contains('order-type-btn')) {
@@ -1960,8 +1963,7 @@
                     });
                 }
                 
-            // End of DOMContentLoaded handler
-        });
+            // End of cart functionality
     </script>
     </body>
     </html>
