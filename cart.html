@@ -1036,9 +1036,14 @@
                                     guestCart.items[itemIndex].selectedSize = { size, price };
                                     guestCart.total = guestCart.items.reduce((sum, item) => {
                                         const itemPrice = item.selectedSize?.price || item.price || 0;
-                                        return sum + (itemPrice * item.quantity);
+                                        const isButcheryItem = item.itemType === 'Meat' || item.itemType === 'meat' || item.itemType === 'butchery';
+                                        if (isButcheryItem) {
+                                            return sum + itemPrice;
+                                        } else {
+                                            return sum + (itemPrice * (item.quantity || 1));
+                                        }
                                     }, 0);
-
+    
                                     setGuestCart(guestCart, true); // Save butchery cart
 
                                     loadCarts();
