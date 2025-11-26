@@ -253,22 +253,23 @@
     <style>
         .toast {
             position: fixed;
-            bottom: 24px;
-            right: 24px;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
             background: linear-gradient(135deg, #27ae60, #2ecc71);
             color: #fff;
-            padding: 16px 20px;
-            border-radius: 12px;
-            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
             font-weight: 500;
             opacity: 0;
-            transform: translateY(20px);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 2000;
-            box-shadow: 0 8px 32px rgba(39, 174, 96, 0.3);
+            box-shadow: 0 2px 8px rgba(39, 174, 96, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            max-width: 320px;
+            max-width: 240px;
             word-wrap: break-word;
+            text-align: center;
         }
         .toast.show {
             opacity: 1;
@@ -1094,36 +1095,17 @@
                 });
             }
 
-            // Toast management system
-            let activeToast = null;
-            let toastQueue = [];
-            let isToastShowing = false;
-
+            // Simple toast system like menu
+            let toastVisible = false;
             function showToast(message, type = 'success') {
-                // Add to queue
-                toastQueue.push({ message, type });
-
-                // Process queue if not currently showing
-                if (!isToastShowing) {
-                    processToastQueue();
-                }
-            }
-
-            function processToastQueue() {
-                if (toastQueue.length === 0) {
-                    isToastShowing = false;
-                    return;
-                }
-
-                isToastShowing = true;
-                const { message, type } = toastQueue.shift();
-
                 const toast = document.getElementById('toast');
-                if (!toast) return;
+                if (!toast || toastVisible) return;
+
+                toastVisible = true;
 
                 // Clear any existing timeout
-                if (activeToast) {
-                    clearTimeout(activeToast);
+                if (toast.hideTimeout) {
+                    clearTimeout(toast.hideTimeout);
                 }
 
                 // Set toast content and styling
@@ -1131,14 +1113,11 @@
                 toast.innerHTML = `<i class="${icon}"></i>${message}`;
                 toast.className = `toast ${type} show`;
 
-                // Auto-hide after 3 seconds
-                activeToast = setTimeout(() => {
-                    toast.classList.remove('show');
-                    // Process next toast after animation
-                    setTimeout(() => {
-                        processToastQueue();
-                    }, 300);
-                }, 3000);
+                // Auto-hide after 2 seconds
+                toast.hideTimeout = setTimeout(() => {
+                    toast.className = 'toast';
+                    toastVisible = false;
+                }, 2000);
             }
 
             // Initialize cart event listeners for both butchery and cafeteria carts
@@ -1170,6 +1149,12 @@
                     if (e.target.closest('.plus')) {
                         e.preventDefault();
                         e.stopPropagation();
+                        const plusBtn = e.target.closest('.plus');
+                        const minusBtn = cartItem.querySelector('.minus');
+                        const removeBtn = cartItem.querySelector('.remove-btn');
+                        plusBtn.disabled = true;
+                        if (minusBtn) minusBtn.disabled = true;
+                        if (removeBtn) removeBtn.disabled = true;
                         try {
                             const currentQty = parseInt(quantityElement.textContent) || 0;
                             await updateCartItem(itemId, currentQty + 1, itemType, selObj);
@@ -1185,6 +1170,10 @@
                             if (window.showToast) {
                                 showToast('Error updating quantity', 'error');
                             }
+                        } finally {
+                            plusBtn.disabled = false;
+                            if (minusBtn) minusBtn.disabled = false;
+                            if (removeBtn) removeBtn.disabled = false;
                         }
                         return;
                     }
@@ -1193,6 +1182,12 @@
                     if (e.target.closest('.minus')) {
                         e.preventDefault();
                         e.stopPropagation();
+                        const minusBtn = e.target.closest('.minus');
+                        const plusBtn = cartItem.querySelector('.plus');
+                        const removeBtn = cartItem.querySelector('.remove-btn');
+                        minusBtn.disabled = true;
+                        if (plusBtn) plusBtn.disabled = true;
+                        if (removeBtn) removeBtn.disabled = true;
                         try {
                             const currentQty = parseInt(quantityElement.textContent) || 1;
                             const nameEl = cartItem.querySelector('.item-details h4');
@@ -1218,6 +1213,10 @@
                             if (window.showToast) {
                                 showToast('Error updating quantity', 'error');
                             }
+                        } finally {
+                            minusBtn.disabled = false;
+                            if (plusBtn) plusBtn.disabled = false;
+                            if (removeBtn) removeBtn.disabled = false;
                         }
                         return;
                     }
@@ -1226,6 +1225,12 @@
                     if (e.target.closest('.remove-btn')) {
                         e.preventDefault();
                         e.stopPropagation();
+                        const removeBtn = e.target.closest('.remove-btn');
+                        const plusBtn = cartItem.querySelector('.plus');
+                        const minusBtn = cartItem.querySelector('.minus');
+                        removeBtn.disabled = true;
+                        if (plusBtn) plusBtn.disabled = true;
+                        if (minusBtn) minusBtn.disabled = true;
                         try {
                             const nameEl = cartItem.querySelector('.item-details h4');
                             const removedName = nameEl ? nameEl.textContent.trim() : 'Item';
@@ -1242,6 +1247,10 @@
                             if (window.showToast) {
                                 showToast('Error removing item', 'error');
                             }
+                        } finally {
+                            removeBtn.disabled = false;
+                            if (plusBtn) plusBtn.disabled = false;
+                            if (minusBtn) minusBtn.disabled = false;
                         }
                         return;
                     }
