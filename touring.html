@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Touring Services - ATICAS CAFE'</title>
+    <link rel="icon" type="image/png" href="images/aticas.png">
+    <link rel="shortcut icon" href="images/aticas.png" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
@@ -100,6 +102,67 @@
             .touring-intro-on-bg { font-size: 0.95rem; padding: 0.3rem 0.5rem; left: 50%; bottom: 0.5rem; max-width: 80%; transform: translateX(-50%); }
             .slider-arrow { width: 36px; height: 36px; font-size: 1.3rem; }
         }
+
+        /* Tour Routes Responsive */
+        @media (max-width: 768px) {
+            .tour-routes-section {
+                margin: 2rem 0;
+                padding: 1rem;
+            }
+            .tour-routes-section h2 {
+                font-size: 2rem;
+            }
+            .route-card {
+                padding: 1rem;
+            }
+        }
+
+        /* Gallery Responsive */
+        @media (max-width: 768px) {
+            .gallery-section {
+                margin: 2rem 0;
+                padding: 1rem;
+            }
+            .gallery-section h2 {
+                font-size: 2rem;
+            }
+            .gallery-item {
+                margin-bottom: 1rem;
+            }
+        }
+
+        /* Booking Section Responsive */
+        @media (max-width: 768px) {
+            .booking-section {
+                margin: 2rem 0;
+                padding: 2rem 1rem;
+            }
+            .booking-section h2 {
+                font-size: 2rem;
+            }
+            .booking-section .menu-btn {
+                padding: 0.8rem 1.5rem;
+                font-size: 1rem;
+            }
+        }
+
+        /* Modal Responsive */
+        @media (max-width: 768px) {
+            #bookingModal {
+                padding: 1rem;
+            }
+            #bookingModal > div {
+                margin: 1rem auto;
+                max-width: 95vw;
+            }
+            #tourBookingForm {
+                padding: 1rem;
+            }
+            #tourBookingForm .grid-cols-2 {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -152,6 +215,87 @@
                 Explore Kenya with Aticas Cafe' - We organize and cater for group tours, hikes, and adventure retreats. Enjoy delicious meals and seamless experiences wherever you go!
             </div>
         </div>
+        <!-- Tour Routes Section -->
+        <section class="tour-routes-section" style="margin: 4rem 0; padding: 2rem; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 20px;">
+            <h2 style="text-align: center; color: #27ae60; font-family: 'UnifrakturCook', cursive; margin-bottom: 2rem; font-size: 2.5rem;">Tour Routes & Paths</h2>
+            <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                <div class="route-card" style="background: white; border-radius: 15px; padding: 1.5rem; box-shadow: 0 8px 32px rgba(39,174,96,0.1); border: 2px solid #27ae60;">
+                    <h3 style="color: #27ae60; margin-bottom: 1rem; font-size: 1.4rem;">Safari Adventure Route</h3>
+                    <div style="margin-bottom: 1rem;">
+                        <i class="fas fa-route" style="color: #27ae60; margin-right: 0.5rem;"></i>
+                        <strong>Path:</strong> Nairobi → Maasai Mara → Lake Nakuru → Amboseli
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <i class="fas fa-clock" style="color: #27ae60; margin-right: 0.5rem;"></i>
+                        <strong>Duration:</strong> 5-7 Days
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <i class="fas fa-users" style="color: #27ae60; margin-right: 0.5rem;"></i>
+                        <strong>Highlights:</strong> Big Five, Maasai Culture, Bird Watching
+                    </div>
+                </div>
+                <div class="route-card" style="background: white; border-radius: 15px; padding: 1.5rem; box-shadow: 0 8px 32px rgba(39,174,96,0.1); border: 2px solid #27ae60;">
+                    <h3 style="color: #27ae60; margin-bottom: 1rem; font-size: 1.4rem;">Coastal Paradise Route</h3>
+                    <div style="margin-bottom: 1rem;">
+                        <i class="fas fa-route" style="color: #27ae60; margin-right: 0.5rem;"></i>
+                        <strong>Path:</strong> Mombasa → Diani Beach → Watamu → Malindi
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <i class="fas fa-clock" style="color: #27ae60; margin-right: 0.5rem;"></i>
+                        <strong>Duration:</strong> 4-6 Days
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <i class="fas fa-users" style="color: #27ae60; margin-right: 0.5rem;"></i>
+                        <strong>Highlights:</strong> Marine Life, Beach Relaxation, Cultural Sites
+                    </div>
+                </div>
+                <div class="route-card" style="background: white; border-radius: 15px; padding: 1.5rem; box-shadow: 0 8px 32px rgba(39,174,96,0.1); border: 2px solid #27ae60;">
+                    <h3 style="color: #27ae60; margin-bottom: 1rem; font-size: 1.4rem;">Mountain Expedition Route</h3>
+                    <div style="margin-bottom: 1rem;">
+                        <i class="fas fa-route" style="color: #27ae60; margin-right: 0.5rem;"></i>
+                        <strong>Path:</strong> Nairobi → Mount Kenya → Aberdare → Kinangop
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <i class="fas fa-clock" style="color: #27ae60; margin-right: 0.5rem;"></i>
+                        <strong>Duration:</strong> 3-5 Days
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <i class="fas fa-users" style="color: #27ae60; margin-right: 0.5rem;"></i>
+                        <strong>Highlights:</strong> Hiking, Wildlife, Scenic Views
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Professional Booking Section -->
+        <section class="booking-section" style="margin: 4rem 0; padding: 3rem; background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); border-radius: 20px; color: white;">
+            <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+                <h2 style="font-family: 'UnifrakturCook', cursive; margin-bottom: 1rem; font-size: 2.5rem;">Book Your Adventure</h2>
+                <p style="font-size: 1.2rem; margin-bottom: 2rem; opacity: 0.9;">Ready to explore Kenya? Contact us for personalized tour packages and unforgettable experiences.</p>
+
+                <div style="display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                    <div style="text-align: center;">
+                        <i class="fas fa-phone" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                        <div style="font-weight: 600;">Call Us</div>
+                        <a href="tel:+254786181670" style="color: white; text-decoration: none; display: block;">+254 786 181 670</a>
+                        <a href="tel:+254759995245" style="color: white; text-decoration: none; display: block;">+254 759 995 245</a>
+                    </div>
+                    <div style="text-align: center;">
+                        <i class="fas fa-envelope" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                        <div style="font-weight: 600;">Email Us</div>
+                        <div>info@aticascafe.com</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <i class="fas fa-clock" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                        <div style="font-weight: 600;">Business Hours</div>
+                        <div>Mon-Sat: 6AM-12AM</div>
+                    </div>
+                </div>
+
+                <button id="bookTourBtn" class="menu-btn" style="background: white; color: #27ae60; border: none; padding: 1rem 2rem; font-size: 1.2rem; font-weight: 600; border-radius: 10px; cursor: pointer; transition: all 0.3s;">Book Your Tour Now</button>
+            </div>
+        </section>
+
         <div style="max-width:800px;margin:0 auto 2rem auto;text-align:center;">
             <p>Discover Kenya and beyond with ATICAS CAFE' Touring Services. We offer comfortable, safe, and memorable tours for groups, families, and organizations.</p>
         </div>
@@ -187,35 +331,123 @@
             </div>
             <p class="typewriter-on-scroll" style="max-width:600px;text-align:center;margin-bottom:2rem;">Strengthen bonds and build teamwork with our custom group retreats and team-building adventures.</p>
         </div>
-        <div style="text-align:center;">
-            <button id="bookTourBtn" class="menu-btn" style="margin-bottom:1rem;">Book Now</button>
-            <div style="margin-bottom:1rem;">or call us to make your bookings: 
-  <a href="tel:+254786181670" style="color:#27ae60;font-weight:600;text-decoration:none;">+254786181670</a> 
-  or 
-  <a href="tel:+254759995245" style="color:#27ae60;font-weight:600;text-decoration:none;">+254759995245</a>
-</div>
-            <form id="tourBookingForm" style="display:none;max-width:420px;margin:1.5rem auto 0 auto;background:#fff;padding:2rem 1.2rem 1.5rem 1.2rem;border-radius:14px;box-shadow:0 4px 24px rgba(39,174,96,0.10);">
-                <h2 style="color:#27ae60;font-family:'UnifrakturCook','Arial',cursive,sans-serif;text-align:center;margin-bottom:0.5rem;font-size:2rem;">ATICAS Tours</h2>
-                <h3 style="color:#222;text-align:center;font-size:1.2rem;margin-bottom:1.2rem;">Booking Form</h3>
+        <!-- Tour Vehicles & Posters Gallery -->
+        <section class="gallery-section" style="margin: 4rem 0; padding: 2rem;">
+            <h2 style="text-align: center; color: #27ae60; font-family: 'UnifrakturCook', cursive; margin-bottom: 2rem; font-size: 2.5rem;">Our Fleet & Tour Posters</h2>
+            <div style="max-width: 1200px; margin: 0 auto;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                    <div class="gallery-item" style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 8px 32px rgba(39,174,96,0.1);">
+                        <img src="images/tours.jpeg" alt="Tour Vehicle" style="width: 100%; height: 200px; object-fit: cover;">
+                        <div style="padding: 1rem;">
+                            <h4 style="color: #27ae60; margin: 0 0 0.5rem 0;">Tour Bus</h4>
+                            <p style="margin: 0; color: #666; font-size: 0.9rem;">Comfortable 45-seater bus with AC, entertainment system, and experienced drivers.</p>
+                        </div>
+                    </div>
+                    <div class="gallery-item" style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 8px 32px rgba(39,174,96,0.1);">
+                        <img src="images/adventure.jpeg" alt="Safari Vehicle" style="width: 100%; height: 200px; object-fit: cover;">
+                        <div style="padding: 1rem;">
+                            <h4 style="color: #27ae60; margin: 0 0 0.5rem 0;">Safari Jeep</h4>
+                            <p style="margin: 0; color: #666; font-size: 0.9rem;">4x4 Land Cruiser for game drives and off-road adventures.</p>
+                        </div>
+                    </div>
+                    <div class="gallery-item" style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 8px 32px rgba(39,174,96,0.1);">
+                        <img src="images/coast.jpeg" alt="Coastal Tour" style="width: 100%; height: 200px; object-fit: cover;">
+                        <div style="padding: 1rem;">
+                            <h4 style="color: #27ae60; margin: 0 0 0.5rem 0;">Coastal Van</h4>
+                            <p style="margin: 0; color: #666; font-size: 0.9rem;">Spacious minivan perfect for beach transfers and small group tours.</p>
+                        </div>
+                    </div>
+                    <div class="gallery-item" style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 8px 32px rgba(39,174,96,0.1);">
+                        <img src="images/hiking.jpeg" alt="Mountain Vehicle" style="width: 100%; height: 200px; object-fit: cover;">
+                        <div style="padding: 1rem;">
+                            <h4 style="color: #27ae60; margin: 0 0 0.5rem 0;">Mountain Truck</h4>
+                            <p style="margin: 0; color: #666; font-size: 0.9rem;">Rugged pickup truck for mountain expeditions and hiking support.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-                <!-- Payment Notice -->
-                <div style="background:#fff3cd;border:1px solid #ffeaa7;border-radius:8px;padding:1rem;margin-bottom:1.5rem;">
-                    <h4 style="color:#856404;margin:0 0 0.5rem 0;font-size:1rem;">💰 Payment Requirement</h4>
-                    <p style="color:#856404;margin:0;font-size:0.9rem;">A 70% deposit is required to confirm your tour booking. The remaining 30% will be due before departure. Pricing will be provided after initial consultation.</p>
+        <!-- Professional Booking Form Modal -->
+        <div id="bookingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; overflow-y: auto;">
+            <div style="max-width: 600px; margin: 2rem auto; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                <div style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); color: white; padding: 2rem; text-align: center;">
+                    <h2 style="font-family: 'UnifrakturCook', cursive; margin: 0; font-size: 2.5rem;">ATICAS Tours</h2>
+                    <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Your Gateway to Kenyan Adventures</p>
                 </div>
 
-                <div style="margin-bottom:1.1rem;"><input type="text" name="name" placeholder="Your Name" required class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;"></div>
-                <div style="margin-bottom:1.1rem;"><input type="tel" name="phone" placeholder="Phone Number" required class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;"></div>
-                <div style="margin-bottom:1.1rem;"><input type="email" name="email" placeholder="Email Address" required class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;"></div>
-                <div style="margin-bottom:1.1rem;"><input type="text" name="package" placeholder="Tour Package (e.g. Safari, City Tour)" required class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;"></div>
-                <div style="margin-bottom:1.1rem;"><input type="date" name="date" required class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;"></div>
-                <div style="margin-bottom:1.1rem;"><input type="number" name="people" placeholder="Number of People" required min="1" class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;"></div>
-                <div style="margin-bottom:1.1rem;"><input type="text" name="pickup" placeholder="Pickup Location" required class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;"></div>
-                <div style="margin-bottom:1.1rem;"><input type="number" name="estimatedCost" placeholder="Estimated Total Cost (Ksh)" min="0" step="100" class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;"></div>
-                <div style="margin-bottom:1.1rem;"><textarea name="notes" placeholder="Additional Notes" class="form-input" style="width:100%;padding:0.7rem 1rem;border:1px solid #ddd;border-radius:7px;font-size:1rem;min-height:60px;"></textarea></div>
-                <button type="submit" class="menu-btn" style="width:100%;margin-bottom:0.7rem;font-size:1.1rem;padding:0.7rem 0;">Submit Booking Request</button>
-                <button type="button" id="closeTourForm" style="width:100%;background:#eee;color:#333;border:none;padding:0.6rem 0;border-radius:5px;font-weight:600;font-size:1rem;">Close</button>
-            </form>
+                <form id="tourBookingForm" style="padding: 2rem;">
+                    <!-- Payment Notice -->
+                    <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+                        <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                            <i class="fas fa-info-circle" style="color: #856404; margin-right: 0.5rem;"></i>
+                            <h4 style="color: #856404; margin: 0; font-size: 1.1rem;">Payment Information</h4>
+                        </div>
+                        <p style="color: #856404; margin: 0; font-size: 0.95rem; line-height: 1.4;">A 70% deposit is required to confirm your booking. The remaining 30% is due before departure. Detailed pricing will be provided after consultation.</p>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Full Name *</label>
+                            <input type="text" name="name" required style="width: 100%; padding: 0.8rem; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;" onfocus="this.style.borderColor='#27ae60'" onblur="this.style.borderColor='#e1e5e9'">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Phone Number *</label>
+                            <input type="tel" name="phone" required style="width: 100%; padding: 0.8rem; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;" onfocus="this.style.borderColor='#27ae60'" onblur="this.style.borderColor='#e1e5e9'">
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Email Address *</label>
+                        <input type="email" name="email" required style="width: 100%; padding: 0.8rem; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;" onfocus="this.style.borderColor='#27ae60'" onblur="this.style.borderColor='#e1e5e9'">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Tour Package *</label>
+                            <select name="package" required style="width: 100%; padding: 0.8rem; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;" onfocus="this.style.borderColor='#27ae60'" onblur="this.style.borderColor='#e1e5e9'">
+                                <option value="">Select Package</option>
+                                <option value="Safari Adventure">Safari Adventure</option>
+                                <option value="City Tour">City Tour</option>
+                                <option value="Beach & Coastal">Beach & Coastal</option>
+                                <option value="Mountain Expedition">Mountain Expedition</option>
+                                <option value="Group Retreat">Group Retreat</option>
+                                <option value="Custom Tour">Custom Tour</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Preferred Date *</label>
+                            <input type="date" name="date" required style="width: 100%; padding: 0.8rem; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;" onfocus="this.style.borderColor='#27ae60'" onblur="this.style.borderColor='#e1e5e9'">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Number of People *</label>
+                            <input type="number" name="people" required min="1" style="width: 100%; padding: 0.8rem; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;" onfocus="this.style.borderColor='#27ae60'" onblur="this.style.borderColor='#e1e5e9'">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Pickup Location *</label>
+                            <input type="text" name="pickup" required style="width: 100%; padding: 0.8rem; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;" onfocus="this.style.borderColor='#27ae60'" onblur="this.style.borderColor='#e1e5e9'">
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Estimated Budget (Ksh)</label>
+                        <input type="number" name="estimatedCost" min="0" step="1000" placeholder="Optional - we'll provide detailed pricing" style="width: 100%; padding: 0.8rem; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;" onfocus="this.style.borderColor='#27ae60'" onblur="this.style.borderColor='#e1e5e9'">
+                    </div>
+
+                    <div style="margin-bottom: 2rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Special Requirements</label>
+                        <textarea name="notes" placeholder="Dietary restrictions, accessibility needs, special interests..." style="width: 100%; padding: 0.8rem; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1rem; min-height: 80px; transition: border-color 0.3s;" onfocus="this.style.borderColor='#27ae60'" onblur="this.style.borderColor='#e1e5e9'"></textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; justify-content: center;">
+                        <button type="submit" style="background: #27ae60; color: white; border: none; padding: 1rem 2rem; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: background 0.3s;" onmouseover="this.style.background='#219150'" onmouseout="this.style.background='#27ae60'">Submit Booking Request</button>
+                        <button type="button" id="closeTourForm" style="background: #6c757d; color: white; border: none; padding: 1rem 2rem; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: background 0.3s;" onmouseover="this.style.background='#5a6268'" onmouseout="this.style.background='#6c757d'">Cancel</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </section>
 
@@ -276,72 +508,98 @@
     })();
     </script>
     <script>
-        // Show/hide tour booking form
-        document.getElementById('bookTourBtn').onclick = function() {
-            document.getElementById('tourBookingForm').style.display = 'block';
-            window.scrollTo({top: document.getElementById('tourBookingForm').offsetTop - 80, behavior: 'smooth'});
+        // Modal functionality
+        const bookingModal = document.getElementById('bookingModal');
+        const bookTourBtn = document.getElementById('bookTourBtn');
+        const closeTourForm = document.getElementById('closeTourForm');
+
+        // Show modal
+        bookTourBtn.onclick = function() {
+            bookingModal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
         };
-        document.getElementById('closeTourForm').onclick = function() {
-            document.getElementById('tourBookingForm').style.display = 'none';
+
+        // Close modal
+        closeTourForm.onclick = function() {
+            bookingModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
         };
+
+        // Close modal when clicking outside
+        bookingModal.onclick = function(e) {
+            if (e.target === bookingModal) {
+                bookingModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        };
+
+        // Form submission
         document.getElementById('tourBookingForm').onsubmit = async function(e) {
-  e.preventDefault();
-  const form = e.target;
-  const estimatedCost = parseFloat(form.estimatedCost.value) || 0;
-  const depositRequired = Math.round(estimatedCost * 0.7);
+            e.preventDefault();
+            const form = e.target;
+            const estimatedCost = parseFloat(form.estimatedCost.value) || 0;
+            const depositRequired = Math.round(estimatedCost * 0.7);
 
-  const data = {
-    type: 'tour',
-    name: form.name.value,
-    phone: form.phone.value,
-    email: form.email.value,
-    package: form.package.value,
-    date: form.date.value,
-    people: form.people.value,
-    pickup: form.pickup.value,
-    notes: form.notes.value,
-    estimatedCost: estimatedCost,
-    depositRequired: depositRequired
-    // totalAmount will be set by admin later
-  };
+            const data = {
+                type: 'tour',
+                name: form.name.value,
+                phone: form.phone.value,
+                email: form.email.value,
+                package: form.package.value,
+                date: form.date.value,
+                people: form.people.value,
+                pickup: form.pickup.value,
+                notes: form.notes.value,
+                estimatedCost: estimatedCost,
+                depositRequired: depositRequired
+            };
 
-  // Confirm deposit payment
-  const confirmPayment = confirm(`Your estimated total cost is Ksh ${estimatedCost.toLocaleString()}. A 70% deposit of Ksh ${depositRequired.toLocaleString()} is required to confirm this booking. You will be redirected to make the payment. Continue?`);
+            // Show loading state
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Submitting...';
+            submitBtn.disabled = true;
 
-  if (!confirmPayment) return;
+            try {
+                const res = await fetch('https://aticas-backend.onrender.com/api/bookings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
 
-  try {
-    const res = await fetch('https://aticas-backend.onrender.com/api/bookings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    if (!res.ok) throw new Error('Failed to submit booking');
+                if (!res.ok) throw new Error('Failed to submit booking');
 
-    const result = await res.json();
-    alert('Booking request submitted! You will be contacted with payment instructions.');
+                const result = await res.json();
 
-    // Store booking for guest users
-    const token = localStorage.getItem('userToken');
-    if (!token) {
-      try {
-        const existing = JSON.parse(localStorage.getItem('guestBookings') || '[]');
-        existing.unshift(result.booking);
-        localStorage.setItem('guestBookings', JSON.stringify(existing.slice(0, 20)));
-      } catch (_) {
-        localStorage.setItem('guestBookings', JSON.stringify([result.booking]));
-      }
-    }
+                // Success message
+                alert('🎉 Booking request submitted successfully!\n\nYou will be contacted within 24 hours with detailed pricing and payment instructions.');
 
-    // Here we would typically redirect to M-Pesa payment
-    // window.location.href = `/payment?bookingId=${result.booking._id}&amount=${depositRequired}`;
+                // Store booking for guest users
+                const token = localStorage.getItem('userToken');
+                if (!token) {
+                    try {
+                        const existing = JSON.parse(localStorage.getItem('guestBookings') || '[]');
+                        existing.unshift(result.booking);
+                        localStorage.setItem('guestBookings', JSON.stringify(existing.slice(0, 20)));
+                    } catch (_) {
+                        localStorage.setItem('guestBookings', JSON.stringify([result.booking]));
+                    }
+                }
 
-  } catch (err) {
-    alert('Failed to submit booking. Please try again later.');
-  }
-  form.reset();
-  form.style.display = 'none';
-};
+                // Close modal and reset form
+                bookingModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                form.reset();
+
+            } catch (err) {
+                console.error('Booking submission error:', err);
+                alert('❌ Failed to submit booking. Please check your internet connection and try again.');
+            } finally {
+                // Reset button state
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        };
     </script>
 </body>
 </html> 
