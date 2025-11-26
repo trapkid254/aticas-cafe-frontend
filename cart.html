@@ -729,11 +729,11 @@
                     // Handle API and guest cart format
                     const menuItem = item.menuItem;
                     return {
-                        id: menuItem._id || menuItem.id,
-                        name: menuItem.name,
-                        price: item.selectedSize ? item.selectedSize.price : (menuItem.price || 0),
+                        id: menuItem._id || menuItem.id || menuItem,
+                        name: menuItem.name || item.name,
+                        price: item.selectedSize ? item.selectedSize.price : (menuItem.price || item.price || 0),
                         quantity: item.quantity,
-                        image: menuItem.image || 'images/default-food.jpg',
+                        image: menuItem.image || item.image || 'images/default-food.jpg',
                         itemType: item.itemType || 'Menu',
                         selectedSize: item.selectedSize
                     };
