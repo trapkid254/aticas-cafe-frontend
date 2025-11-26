@@ -247,7 +247,9 @@
         }
 
         function createOrderCard(order) {
-            const isButcheryOrder = order.items.some(item => item.itemType === 'Meat');
+            const isButcheryOrder = order.items && order.items.some(item =>
+                item.itemType === 'Meat' || item.itemType === 'meat' || item.itemType === 'butchery'
+            );
             const businessName = isButcheryOrder ? 'Aticas Butchery' : 'Aticas Cafe';
             return `
                 <div class="receipt" style="background:#fff;border-radius:14px;border:1.5px solid #e0e0e0;box-shadow:0 6px 24px rgba(39,174,96,0.08);padding:2.5rem 2rem 2rem 2rem;width:100%;max-width:540px;margin:2.5rem auto 0 auto;font-family:'Segoe UI',Arial,sans-serif;">

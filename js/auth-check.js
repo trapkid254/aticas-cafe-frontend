@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     // Only apply admin auth checks on admin-related routes
-    const isAdminSection = cleanPath.includes('/admin') || cleanPath.includes('butchery-admin') || cleanPath.includes('garage-carwash-admin');
+    const isAdminSection = cleanPath.includes('/admin') || cleanPath.includes('butchery-admin');
     if (!isAdminSection) {
         // Skip auth checks for public/customer-facing pages (e.g., cart, menu, home)
         console.log('Auth Check - Non-admin page, skipping auth enforcement');
@@ -69,11 +69,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Helper function to redirect to login (use explicit, existing routes)
     const redirectToLogin = () => {
         const isButcheryPath = cleanPath.includes('butchery-admin');
-        const isGarageCarwashPath = cleanPath.includes('garage-carwash-admin');
         let loginPath;
-        if (isGarageCarwashPath) {
-            loginPath = `${basePath}/shared-admin-login.html`; // shared login for garage-carwash
-        } else if (isButcheryPath) {
+        if (isButcheryPath) {
             loginPath = `${basePath}/butchery-admin/login`; // server has explicit route
         } else {
             loginPath = `${basePath}/admin/admin-login.html`; // static file for regular admin
@@ -113,8 +110,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Use base urls that the server actually serves
         if (adminType === 'butchery') {
             return `${basePath}/butchery-admin`;
-        } else if (adminType === 'garage-carwash') {
-            return `${basePath}/garage-carwash-admin`;
         } else {
             return `${basePath}/admin`;
         }
@@ -124,8 +119,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const getLoginPath = (adminType = 'cafeteria') => {
         if (adminType === 'butchery') {
             return `${basePath}/butchery-admin/butcheryadmin-login`;
-        } else if (adminType === 'garage-carwash') {
-            return `${basePath}/shared-admin-login.html`;
         } else {
             return `${basePath}/admin/admin-login.html`;
         }
@@ -180,8 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Check if user is on the correct admin page based on their type
     const isOnButchery = cleanPath.includes('butchery-admin');
-    const isOnGarageCarwash = cleanPath.includes('garage-carwash-admin');
-    const isOnRegularAdmin = cleanPath.includes('/admin') && !isOnButchery && !isOnGarageCarwash;
+    const isOnRegularAdmin = cleanPath.includes('/admin') && !isOnButchery;
 
     let shouldRedirect = false;
     let targetPath = '';
@@ -189,9 +181,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (adminType === 'butchery' && !isOnButchery) {
         shouldRedirect = true;
         targetPath = getDashboardPath('butchery');
-    } else if (adminType === 'garage-carwash' && !isOnGarageCarwash) {
-        shouldRedirect = true;
-        targetPath = getDashboardPath('garage-carwash');
     } else if (adminType === 'cafeteria' && !isOnRegularAdmin) {
         shouldRedirect = true;
         targetPath = getDashboardPath('cafeteria');

@@ -161,8 +161,6 @@
         <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
         <a href="menu.html"><i class="fas fa-utensils"></i> Menu</a>
         <a href="butchery.html"><i class="fas fa-double-knives"></i> Butchery</a>
-        <a href="garage.html"><i class="fas fa-car"></i> Garage</a>
-        <a href="carwash.html"><i class="fas fa-shower"></i> Car Wash</a>
         <a href="our-services.html"><i class="fas fa-concierge-bell"></i> Our Services</a>
         <a href="orders.html"><i class="fas fa-receipt"></i> My Orders</a>
         <a href="my-bookings.html"><i class="fas fa-calendar-check"></i> My Bookings</a>
@@ -189,9 +187,6 @@
                 </button>
                 <button class="booking-tab" data-category="tours" style="padding:1rem 2rem;border:none;background:transparent;border-radius:8px;font-weight:bold;cursor:pointer;transition:all 0.3s;margin:0 0.5rem;">
                     <i class="fas fa-hiking"></i> Tours
-                </button>
-                <button class="booking-tab" data-category="services" style="padding:1rem 2rem;border:none;background:transparent;border-radius:8px;font-weight:bold;cursor:pointer;transition:all 0.3s;margin:0 0.5rem;">
-                    <i class="fas fa-tools"></i> Services
                 </button>
             </div>
 
@@ -251,15 +246,6 @@
 
         function createBookingCard(booking) {
             const isEventBooking = booking.type === 'catering' || booking.type === 'tour';
-            const isServiceBooking = booking.serviceType === 'garage' || booking.serviceType === 'carwash';
-
-            // Determine branding based on service type
-            let brandName = 'Aticas Cafe';
-            if (booking.serviceType === 'garage') {
-                brandName = 'Aticas Garage';
-            } else if (booking.serviceType === 'carwash') {
-                brandName = 'Aticas Carwash';
-            }
 
             let bookingDetails = '';
             if (isEventBooking) {
@@ -276,12 +262,6 @@
                         <div><b>Pickup:</b> ${booking.pickup || 'N/A'}</div>
                     `;
                 }
-            } else if (isServiceBooking) {
-                bookingDetails = `
-                    <div><b>Service:</b> ${booking.serviceName || 'N/A'}</div>
-                    <div><b>Vehicle:</b> ${booking.vehicleType || 'N/A'} ${booking.vehicleModel || ''}</div>
-                    <div><b>Time:</b> ${booking.time || 'N/A'}</div>
-                `;
             }
 
             // Determine price display
@@ -332,8 +312,6 @@
                 filteredBookings = allBookings.filter(booking => booking.type === 'catering' || booking.type === 'tour');
             } else if (currentCategory === 'tours') {
                 filteredBookings = allBookings.filter(booking => booking.type === 'tour');
-            } else if (currentCategory === 'services') {
-                filteredBookings = allBookings.filter(booking => booking.serviceType === 'garage' || booking.serviceType === 'carwash');
             }
 
             if (filteredBookings.length === 0) {
@@ -410,17 +388,10 @@
             try {
                 if (token) {
                     // Logged-in user: fetch their bookings
-                    const bookingsPromises = [
-                        fetch('https://aticas-backend.onrender.com/api/bookings/user', {
-                            headers: { 'Authorization': `Bearer ${token}` }
-                        }).then(res => res.ok ? res.json() : []).catch(() => []),
-                        fetch('https://aticas-backend.onrender.com/api/service-bookings/user', {
-                            headers: { 'Authorization': `Bearer ${token}` }
-                        }).then(res => res.ok ? res.json() : []).catch(() => [])
-                    ];
-
-                    const [eventBookings, serviceBookings] = await Promise.all(bookingsPromises);
-                    allBookings = [...(eventBookings || []), ...(serviceBookings || [])];
+                    const response = await fetch('https://aticas-backend.onrender.com/api/bookings/user', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    allBookings = response.ok ? await response.json() : [];
                     displayBookings();
                 } else {
                     // Guest: show bookings from localStorage

@@ -161,7 +161,6 @@
                 <select id="adminType" name="adminType" class="select" required>
                     <option value="cafeteria">Cafeteria Admin</option>
                     <option value="butchery">Butchery Admin</option>
-                    <option value="garage-carwash">Garage & Car Wash Admin</option>
                 </select>
             </div>
             <div class="row">
@@ -183,22 +182,19 @@
     </div>
 
     <script>
-        // Preselect admin type based on URL query (?type=butchery|cafeteria|garage-carwash)
+        // Preselect admin type based on URL query (?type=butchery|cafeteria)
         (function() {
             try {
                 const params = new URLSearchParams(window.location.search);
                 const type = (params.get('type') || '').toLowerCase();
                 const adminTypeSelect = document.getElementById('adminType');
                 const empNumber = document.getElementById('employmentNumber');
-                if (type === 'butchery' || type === 'cafeteria' || type === 'garage-carwash') {
+                if (type === 'butchery' || type === 'cafeteria') {
                     adminTypeSelect.value = type;
                     // Sync placeholder and default value to reduce mistakes
                     if (type === 'butchery') {
                         empNumber.placeholder = 'e.g. AB001';
                         if (!empNumber.value || empNumber.value === 'AC001') empNumber.value = 'AB001';
-                    } else if (type === 'garage-carwash') {
-                        empNumber.placeholder = 'e.g. AG001';
-                        if (!empNumber.value || empNumber.value === 'AC001') empNumber.value = 'AG001';
                     } else {
                         empNumber.placeholder = 'e.g. AC001';
                         if (!empNumber.value || empNumber.value === 'AB001') empNumber.value = 'AC001';
@@ -210,13 +206,10 @@
             const empNumber = document.getElementById('employmentNumber');
             if (this.value === 'cafeteria') {
                 empNumber.placeholder = 'e.g. AC001';
-                if (empNumber.value === 'AB001' || empNumber.value === 'AG001') empNumber.value = 'AC001';
-            } else if (this.value === 'garage-carwash') {
-                empNumber.placeholder = 'e.g. AG001';
-                if (empNumber.value === 'AC001' || empNumber.value === 'AB001') empNumber.value = 'AG001';
+                if (empNumber.value === 'AB001') empNumber.value = 'AC001';
             } else {
                 empNumber.placeholder = 'e.g. AB001';
-                if (empNumber.value === 'AC001' || empNumber.value === 'AG001') empNumber.value = 'AB001';
+                if (empNumber.value === 'AC001') empNumber.value = 'AB001';
             }
         });
 
@@ -283,8 +276,6 @@
                                 redirectPath = `${basePath}/admin/index.html`;
                             } else if (adminData.adminType === 'butchery') {
                                 redirectPath = `${basePath}/butchery-admin/index.html`;
-                            } else if (adminData.adminType === 'garage-carwash') {
-                                redirectPath = `${basePath}/garage-carwash-admin/index.html`;
                             }
                                 
                             console.log('Login successful, redirecting to:', redirectPath);

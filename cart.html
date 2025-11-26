@@ -561,11 +561,18 @@
                     });
                     // Recalculate total (match per-item display fallback to menuItem.price)
                     const total = validItems.reduce((sum, item) => {
+                        const isButchery = item.itemType === 'Meat' || item.itemType === 'meat' || item.itemType === 'butchery';
                         const menuItem = item.menuItem || {};
                         const price = (item.selectedSize && typeof item.selectedSize.price === 'number')
                             ? item.selectedSize.price
                             : (typeof item.price === 'number' ? item.price : (typeof menuItem.price === 'number' ? menuItem.price : 0));
-                        return sum + (price * (item.quantity || 1));
+                        if (isButchery) {
+                            // For butchery items, price is already the total
+                            return sum + price;
+                        } else {
+                            // For cafeteria items, multiply by quantity
+                            return sum + (price * (item.quantity || 1));
+                        }
                     }, 0);
                     
                     return {
@@ -589,7 +596,7 @@
                 const v = String(t || '').toLowerCase();
                 if (v === 'meat' || v === 'butchery') return 'butchery';
                 if (v === 'mealofday' || v === 'mod' || v === 'meal of day' || v === 'mealofday') return 'mealofday';
-                if (v === 'menu') return 'menu';
+                if (v === 'menu' || v === 'food') return 'menu';
                 // default to menu
                 return 'menu';
             }
@@ -903,8 +910,15 @@
                 // Calculate totals
                 const calculateTotal = (items) => {
                     return items.reduce((total, item) => {
-                        const price = (item.selectedSize?.price ?? item.price ?? item.menuItem?.price ?? 0);
-                        return total + (price * (item.quantity || 1));
+                        const isButchery = item.itemType === 'Meat' || item.itemType === 'meat' || item.itemType === 'butchery';
+                        if (isButchery) {
+                            // For butchery items, selectedSize.price is already the total for the quantity
+                            return total + (item.selectedSize?.price ?? 0);
+                        } else {
+                            // For cafeteria items, multiply price by quantity
+                            const price = (item.selectedSize?.price ?? item.price ?? item.menuItem?.price ?? 0);
+                            return total + (price * (item.quantity || 1));
+                        }
                     }, 0);
                 };
 
@@ -1321,10 +1335,10 @@
                     const itemIndex = guestCart.items.findIndex(item => {
                         const id = item.menuItem?._id || item.menuItem?.id || item.menuItem;
                         const sameId = String(id) === String(menuItemId);
-                        const sameType = item.itemType === itemType;
-                        const sameSize = (!selectedSize && !item.selectedSize) || 
-                                       (selectedSize && item.selectedSize && 
-                                        item.selectedSize.size === selectedSize.size);
+                        const sameType = normalizeType(item.itemType) === normalizeType(itemType);
+                        const sameSize = (!selectedSize && !item.selectedSize) ||
+                                        (selectedSize && item.selectedSize &&
+                                         item.selectedSize.size === selectedSize.size);
                         return sameId && sameType && sameSize;
                     });
                     
@@ -1388,10 +1402,10 @@
                     guestCart.items = guestCart.items.filter(item => {
                         const id = item.menuItem?._id || item.menuItem?.id || item.menuItem;
                         const sameId = String(id) === String(menuItemId);
-                        const sameType = item.itemType === itemType;
-                        const sameSize = (!selectedSize && !item.selectedSize) || 
-                                       (selectedSize && item.selectedSize && 
-                                        item.selectedSize.size === selectedSize.size);
+                        const sameType = normalizeType(item.itemType) === normalizeType(itemType);
+                        const sameSize = (!selectedSize && !item.selectedSize) ||
+                                        (selectedSize && item.selectedSize &&
+                                         item.selectedSize.size === selectedSize.size);
                         return !(sameId && sameType && sameSize);
                     });
                     
