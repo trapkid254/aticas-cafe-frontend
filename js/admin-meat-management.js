@@ -144,11 +144,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // Reset form
         if (addMeatForm) {
             addMeatForm.reset();
-            addMeatForm.scrollTop = 0;
+            setTimeout(() => addMeatForm.scrollTop = 0, 0);
         }
         // Ensure the modal scrolls to the top to show all form details
-        const modalContent = document.querySelector('#addMeatModal .modal-content');
-        if (modalContent) modalContent.scrollTop = 0;
+        setTimeout(() => {
+            const modalContent = document.querySelector('#addMeatModal .modal-content');
+            if (modalContent) modalContent.scrollTop = 0;
+        }, 0);
     }
     
     function closeMeatModal() {
