@@ -113,23 +113,23 @@
             <form id="eventForm">
                 <div class="form-group">
                     <label for="eventTitle">Event Title *</label>
-                    <input type="text" id="eventTitle" required>
+                    <input type="text" id="eventTitle">
                 </div>
 
                 <div class="form-group">
                     <label for="eventDescription">Description *</label>
-                    <textarea id="eventDescription" rows="4" required></textarea>
+                    <textarea id="eventDescription" rows="4"></textarea>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                     <div class="form-group">
                         <label for="eventDate">Event Date *</label>
-                        <input type="datetime-local" id="eventDate" required>
+                        <input type="datetime-local" id="eventDate">
                     </div>
 
                     <div class="form-group">
                         <label for="eventType">Event Type *</label>
-                        <select id="eventType" required>
+                        <select id="eventType">
                             <option value="">Select Type</option>
                             <option value="catering">Catering</option>
                             <option value="tour">Tour</option>
@@ -160,7 +160,7 @@
 
                     <div class="form-group">
                         <label for="eventImage">Event Image *</label>
-                        <input type="file" id="eventImage" accept="image/*" required>
+                        <input type="file" id="eventImage" accept="image/*">
                         <small style="color: #666; font-size: 0.8rem;">Upload a high-quality image for the event</small>
                     </div>
                 </div>
@@ -360,7 +360,6 @@
 
                 // Clear file input and show current image info
                 imageInput.value = '';
-                imageInput.required = false; // Not required when editing
                 if (imageLabel) {
                     imageLabel.innerHTML = `Event Image <small style="color: #666; font-size: 0.8rem;"><br>Current: <a href="${event.image}" target="_blank">View Image</a> | Upload new image to replace</small>`;
                 }
@@ -369,7 +368,6 @@
             modalTitle.textContent = 'Add New Event';
             form.reset();
             document.getElementById('eventActive').checked = true;
-            imageInput.required = true; // Required for new events
             if (imageLabel) {
                 imageLabel.innerHTML = 'Event Image *';
             }
@@ -386,25 +384,58 @@
     async function handleEventSubmit(e) {
         e.preventDefault();
 
+        // Check required fields first
+        const title = document.getElementById('eventTitle').value.trim();
+        const description = document.getElementById('eventDescription').value.trim();
+        const date = document.getElementById('eventDate').value;
+        const type = document.getElementById('eventType').value;
+
+        if (!title) {
+            showNotification('Please enter an event title', 'error');
+            document.getElementById('eventTitle').focus();
+            return;
+        }
+
+        if (!description) {
+            showNotification('Please enter an event description', 'error');
+            document.getElementById('eventDescription').focus();
+            return;
+        }
+
+        if (!date) {
+            showNotification('Please select an event date', 'error');
+            document.getElementById('eventDate').focus();
+            return;
+        }
+
+        if (!type) {
+            showNotification('Please select an event type', 'error');
+            document.getElementById('eventType').focus();
+            return;
+        }
+
+        // Handle image upload
+        const imageFile = document.getElementById('eventImage').files[0];
+        if (!imageFile && !editingEventId) {
+            // Only require image for new events
+            showNotification('Please select an image for the event', 'error');
+            document.getElementById('eventImage').focus();
+            return;
+        }
+
         const formDataObj = new FormData();
-        formDataObj.append('title', document.getElementById('eventTitle').value);
-        formDataObj.append('description', document.getElementById('eventDescription').value);
-        formDataObj.append('date', document.getElementById('eventDate').value);
-        formDataObj.append('type', document.getElementById('eventType').value);
+        formDataObj.append('title', title);
+        formDataObj.append('description', description);
+        formDataObj.append('date', date);
+        formDataObj.append('type', type);
         formDataObj.append('location', document.getElementById('eventLocation').value || '');
         formDataObj.append('capacity', document.getElementById('eventCapacity').value || '');
         formDataObj.append('price', document.getElementById('eventPrice').value || '');
         formDataObj.append('featured', document.getElementById('eventFeatured').checked);
         formDataObj.append('active', document.getElementById('eventActive').checked);
 
-        // Handle image upload
-        const imageFile = document.getElementById('eventImage').files[0];
         if (imageFile) {
             formDataObj.append('image', imageFile);
-        } else if (!editingEventId) {
-            // Only require image for new events
-            showNotification('Please select an image for the event', 'error');
-            return;
         }
         // For editing, if no new image is selected, the existing image will be kept
 
