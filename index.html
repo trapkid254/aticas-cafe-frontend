@@ -1,302 +1,371 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>www.aticascafe.com</title>
-    <link rel="icon" type="image/jpg" href="images/1b.jpg">
-    <link rel="shortcut icon" href="images/1b.jpg" type="image/x-icon">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
-    <!-- Algerian font is not available on Google Fonts, so we use a similar decorative font as fallback -->
-    <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
-    <style>
-        /* Preloader Styles */
-        .preloader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.5s ease, visibility 0.5s ease;
-        }
-
-        .preloader.fade-out {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .preloader-logo {
-            width: 120px;
-            height: 120px;
-            object-fit: cover;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            margin-bottom: 2rem;
-            animation: pulse 2s infinite;
-        }
-
-        .preloader-text {
-            font-family: 'UnifrakturCook', cursive;
-            font-size: 1.8rem;
-            color: white;
-            text-align: center;
-            margin-bottom: 2rem;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            letter-spacing: 2px;
-        }
-
-        .loading-icons {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        .loading-icon {
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top: 3px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        .loading-icon:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .loading-icon:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
-                opacity: 1;
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>www.aticascafe.com</title>
+        <link rel="icon" type="image/jpg" href="images/1b.jpg" />
+        <link rel="shortcut icon" href="images/1b.jpg" type="image/x-icon" />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        />
+        <link rel="stylesheet" href="css/style.css" />
+        <!-- Algerian font is not available on Google Fonts, so we use a similar decorative font as fallback -->
+        <link
+            href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            /* Preloader Styles */
+            .preloader {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                z-index: 9999;
+                transition:
+                    opacity 0.5s ease,
+                    visibility 0.5s ease;
             }
-            50% {
-                transform: scale(1.05);
-                opacity: 0.8;
+
+            .preloader.fade-out {
+                opacity: 0;
+                visibility: hidden;
             }
-        }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+            .preloader-logo {
+                width: 120px;
+                height: 120px;
+                object-fit: cover;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                margin-bottom: 2rem;
+                animation: pulse 2s infinite;
+            }
 
-        /* Hide scrollbar during preloader */
-        body.preloader-active {
-            overflow: hidden;
-        }
-    </style>
-</head>
-<body>
-    <!-- Preloader -->
-    <div class="preloader" id="preloader">
-        <img src="images/1b.jpg" alt="Aticas Cafe Logo" class="preloader-logo">
-        <div class="preloader-text">Your Hospitality Partner</div>
-        <div class="loading-icons">
-            <div class="loading-icon"></div>
-            <div class="loading-icon"></div>
-            <div class="loading-icon"></div>
-        </div>
-    </div>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="navbar-left">
-            <img src="images/1b.jpg" alt="Cafeteria Logo" class="logo">
-            <span class="cafeteria-name">ATICAS CAFE'</span>
-        </div>
-        <div class="navbar-center">
-            <div class="moving-text">Welcome to <b>Aticas Cafe'</b>. Your Hospitality Partner - Enjoy our freshly prepared meals at affordable prices! Open from Mon - Sat @ 6:00am - 12:00am</div>
-        </div>
-        <div class="navbar-right">
-            <a href="cart.html" class="cart-icon"><i class="fas fa-shopping-cart"></i></a>
-            <!-- Cart indicators will be added here by update-cart-indicators.js -->
-            <button class="login-btn" id="loginBtn">Login</button>
-            <div class="hamburger-menu" id="hamburgerMenu">
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-            </div>
-        </div>
-    </nav>
+            .preloader-text {
+                font-family: "UnifrakturCook", cursive;
+                font-size: 1.8rem;
+                color: white;
+                text-align: center;
+                margin-bottom: 2rem;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+                letter-spacing: 2px;
+            }
 
-    <!-- Mobile Menu -->
-    <div class="mobile-menu" id="mobileMenu">
-        <a href="index.html"><i class="fas fa-home"></i> Home</a>
-        <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
-        <a href="menu.html"><i class="fas fa-utensils"></i> Menu</a>
-        <a href="butchery.html"><i class="fas fa-double-knives"></i> Butchery</a>
-        <a href="our-services.html"><i class="fas fa-concierge-bell"></i> Our Services</a>
-        <a href="orders.html"><i class="fas fa-receipt"></i> My Orders</a>
-        <a href="my-bookings.html"><i class="fas fa-calendar-check"></i> My Bookings</a>
-        <a href="contact.html"><i class="fas fa-envelope"></i> Contact</a>
-        <a href="gallery.html"><i class="fas fa-gallery"></i> Gallery</a>
-    </div>
+            .loading-icons {
+                display: flex;
+                gap: 1rem;
+                align-items: center;
+            }
 
-    <!-- Hero Section with Video -->
-    <section class="hero">
-        <div class="video-container hidden">
-            <iframe
-                width="100%"
-                height="100%"
-                src="https://www.youtube.com/embed/a4FN5T4Xx5U?autoplay=1&loop=1&playlist=a4FN5T4Xx5U&mute=1&controls=0&showinfo=0&modestbranding=1"
-                title="YouTube video player"
-                frameborder="0"
-                allow="autoplay; encrypted-media"
-                allowfullscreen
-                style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;"
-            ></iframe>
-            <div class="video-blocker"></div>
-            <div class="video-overlay">
-                <h1 class="typewriter-on-scroll">Welcome to Our Cafeteria</h1>
-                <a href="menu.html" class="menu-btn">View Our Menu</a>
-            </div>
-        </div>
-    </section>
+            .loading-icon {
+                width: 20px;
+                height: 20px;
+                border: 3px solid rgba(255, 255, 255, 0.3);
+                border-top: 3px solid white;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+            }
 
-    <!-- Upcoming Events -->
-    <section class="events-section">
-        <h2 class="typewriter-on-scroll">Upcoming Events</h2>
-        <div class="events-container" id="eventsContainer">
-            <!-- Events will be loaded here by JavaScript -->
-        </div>
-    </section>
+            .loading-icon:nth-child(2) {
+                animation-delay: 0.2s;
+            }
 
-    <!-- Meals of the Day -->
-    <section class="meals-section">
-        <h2 class="typewriter-on-scroll">Meals of the Day</h2>
-        <div class="meals-container" id="mealsOfDayContainer">
-            <!-- Meals of the Day will be loaded here by JS -->
-        </div>
-    </section>
+            .loading-icon:nth-child(3) {
+                animation-delay: 0.4s;
+            }
 
-    <!-- Why Dine With Us -->
-    <section class="why-us">
-        <h2 class="typewriter-on-scroll">Why Dine With Us</h2>
-        <div class="reasons-container">
-            <div class="reason">
-                <img src="images/varied menu.jpeg" alt="meals">
-                <h3 class="typewriter-on-scroll">Variable Menu</h3>
-                <p>We offer a diverse menu that changes daily to keep things exciting.</p>
-            </div>
-            <div class="reason">
-                <img src="images/piki.png">
-                <h3 class="typewriter-on-scroll">Quick Service</h3>
-                <p>Our efficient staff ensures you get your food quickly without compromising quality.</p>
-            </div>
-            <div class="reason">
-                <img src="images/pesa.jpeg">
-                <h3 class="typewriter-on-scroll">Affordable Meals</h3>
-                <p>High-quality food at prices that won't break your budget.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="social-icons">
-            <a href="#"><i class="fab fa-facebook"></i></a>
-            <a href="#"><i class="fab fa-twitter"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
-            <a href="#"><i class="fab fa-linkedin"></i></a>
-            <a href="#"><i class="fab fa-youtube"></i></a>
-        </div>
-        <p class="built-by">
-            Proudly built with <i class="fas fa-heart" style="color:red"></i>
-        </p>
-        <p class="copyright">
-            &copy; 2025 Aticas Cafe. All rights reserved.
-        </p>
-    </footer>
-
-    <div id="toast" class="toast"></div>
-
-    <!-- Preloader Script -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add preloader-active class to body
-            document.body.classList.add('preloader-active');
-
-            // Hide preloader after a short delay to ensure smooth transition
-            setTimeout(function() {
-                const preloader = document.getElementById('preloader');
-                if (preloader) {
-                    preloader.classList.add('fade-out');
-                    document.body.classList.remove('preloader-active');
-
-                    // Remove preloader from DOM after animation completes
-                    setTimeout(function() {
-                        preloader.remove();
-                    }, 500);
+            @keyframes pulse {
+                0%,
+                100% {
+                    transform: scale(1);
+                    opacity: 1;
                 }
-            }, 10000); // Show preloader for 10 seconds minimum
-        });
-
-        // Fallback: hide preloader on window load if DOMContentLoaded doesn't fire
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                const preloader = document.getElementById('preloader');
-                if (preloader && !preloader.classList.contains('fade-out')) {
-                    preloader.classList.add('fade-out');
-                    document.body.classList.remove('preloader-active');
-
-                    setTimeout(function() {
-                        preloader.remove();
-                    }, 500);
+                50% {
+                    transform: scale(1.05);
+                    opacity: 0.8;
                 }
-            }, 1000);
-        });
-    </script>
+            }
 
-    <script src="js/script.js"></script>
-    <script>
-    // Load upcoming events
-    async function loadUpcomingEvents() {
-        const container = document.getElementById('eventsContainer');
-        const videoContainer = document.querySelector('.video-container');
-        if (!container) return;
-
-        try {
-            const response = await fetch('https://aticas-backend.onrender.com/api/events');
-            const data = await response.json();
-
-            if (data.success && data.events.length > 0) {
-                // Hide video when there are upcoming events
-                if (videoContainer) {
-                    videoContainer.classList.add('hidden');
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
                 }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
 
-                container.innerHTML = data.events.map(event => {
-                    const eventDate = new Date(event.date).toLocaleDateString('en-US', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                    });
+            /* Hide scrollbar during preloader */
+            body.preloader-active {
+                overflow: hidden;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Preloader -->
+        <div class="preloader" id="preloader">
+            <img
+                src="images/1b.jpg"
+                alt="Aticas Cafe Logo"
+                class="preloader-logo"
+            />
+            <div class="preloader-text">Your Hospitality Partner</div>
+            <div class="loading-icons">
+                <div class="loading-icon"></div>
+                <div class="loading-icon"></div>
+                <div class="loading-icon"></div>
+            </div>
+        </div>
+        <!-- Navbar -->
+        <nav class="navbar">
+            <div class="navbar-left">
+                <img src="images/1b.jpg" alt="Cafeteria Logo" class="logo" />
+                <span class="cafeteria-name">ATICAS CAFE'</span>
+            </div>
+            <div class="navbar-center">
+                <div class="moving-text">
+                    Welcome to <b>Aticas Cafe'</b>. Your Hospitality Partner -
+                    Enjoy our freshly prepared meals at affordable prices! Open
+                    from Mon - Sat @ 6:00am - 12:00am
+                </div>
+            </div>
+            <div class="navbar-right">
+                <a href="cart.html" class="cart-icon"
+                    ><i class="fas fa-shopping-cart"></i
+                ></a>
+                <!-- Cart indicators will be added here by update-cart-indicators.js -->
+                <button class="login-btn" id="loginBtn">Login</button>
+                <div class="hamburger-menu" id="hamburgerMenu">
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                </div>
+            </div>
+        </nav>
 
-                    // Determine booking link based on event type
-                    let bookingLink = '#';
-                    if (event.type === 'catering' || event.type === 'wedding' || event.type === 'graduation') {
-                        bookingLink = 'outside-catering.html';
-                    } else if (event.type === 'tour') {
-                        bookingLink = 'touring.html';
-                    } else if (event.type === 'corporate') {
-                        bookingLink = 'our-services.html';
+        <!-- Mobile Menu -->
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="index.html"><i class="fas fa-home"></i> Home</a>
+            <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
+            <a href="menu.html"><i class="fas fa-utensils"></i> Menu</a>
+            <a href="butchery.html"
+                ><i class="fas fa-double-knives"></i> Butchery</a
+            >
+            <a href="our-services.html"
+                ><i class="fas fa-concierge-bell"></i> Our Services</a
+            >
+            <a href="orders.html"><i class="fas fa-receipt"></i> My Orders</a>
+            <a href="my-bookings.html"
+                ><i class="fas fa-calendar-check"></i> My Bookings</a
+            >
+            <a href="contact.html"><i class="fas fa-envelope"></i> Contact</a>
+            <a href="gallery.html"><i class="fas fa-gallery"></i> Gallery</a>
+        </div>
+
+        <!-- Hero Section with Video -->
+        <section class="hero">
+            <div class="video-container hidden">
+                <iframe
+                    width="100%"
+                    height="100%"
+                    src="https://www.youtube.com/embed/a4FN5T4Xx5U?autoplay=1&loop=1&playlist=a4FN5T4Xx5U&mute=1&controls=0&showinfo=0&modestbranding=1"
+                    title="YouTube video player"
+                    frameborder="0"
+                    allow="autoplay; encrypted-media"
+                    allowfullscreen
+                    style="
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                    "
+                ></iframe>
+                <div class="video-blocker"></div>
+                <div class="video-overlay">
+                    <h1 class="typewriter-on-scroll">
+                        Welcome to Our Cafeteria
+                    </h1>
+                    <a href="menu.html" class="menu-btn">View Our Menu</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Upcoming Events -->
+        <section class="events-section">
+            <h2 class="typewriter-on-scroll">Upcoming Events</h2>
+            <div class="events-container" id="eventsContainer">
+                <!-- Events will be loaded here by JavaScript -->
+            </div>
+        </section>
+
+        <!-- Meals of the Day -->
+        <section class="meals-section">
+            <h2 class="typewriter-on-scroll">Meals of the Day</h2>
+            <div class="meals-container" id="mealsOfDayContainer">
+                <!-- Meals of the Day will be loaded here by JS -->
+            </div>
+        </section>
+
+        <!-- Why Dine With Us -->
+        <section class="why-us">
+            <h2 class="typewriter-on-scroll">Why Dine With Us</h2>
+            <div class="reasons-container">
+                <div class="reason">
+                    <img src="images/varied menu.jpeg" alt="meals" />
+                    <h3 class="typewriter-on-scroll">Variable Menu</h3>
+                    <p>
+                        We offer a diverse menu that changes daily to keep
+                        things exciting.
+                    </p>
+                </div>
+                <div class="reason">
+                    <img src="images/piki.png" />
+                    <h3 class="typewriter-on-scroll">Quick Service</h3>
+                    <p>
+                        Our efficient staff ensures you get your food quickly
+                        without compromising quality.
+                    </p>
+                </div>
+                <div class="reason">
+                    <img src="images/pesa.jpeg" />
+                    <h3 class="typewriter-on-scroll">Affordable Meals</h3>
+                    <p>
+                        High-quality food at prices that won't break your
+                        budget.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="social-icons">
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+            <p class="built-by">
+                Proudly built with
+                <i class="fas fa-heart" style="color: red"></i>
+            </p>
+            <p class="copyright">
+                &copy; 2025 Aticas Cafe. All rights reserved.
+            </p>
+        </footer>
+
+        <div id="toast" class="toast"></div>
+
+        <!-- Preloader Script -->
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                // Add preloader-active class to body
+                document.body.classList.add("preloader-active");
+
+                // Hide preloader after a short delay to ensure smooth transition
+                setTimeout(function () {
+                    const preloader = document.getElementById("preloader");
+                    if (preloader) {
+                        preloader.classList.add("fade-out");
+                        document.body.classList.remove("preloader-active");
+
+                        // Remove preloader from DOM after animation completes
+                        setTimeout(function () {
+                            preloader.remove();
+                        }, 500);
                     }
+                }, 10000); // Show preloader for 10 seconds minimum
+            });
 
-                    const eventTypeLabel = event.type.charAt(0).toUpperCase() + event.type.slice(1);
+            // Fallback: hide preloader on window load if DOMContentLoaded doesn't fire
+            window.addEventListener("load", function () {
+                setTimeout(function () {
+                    const preloader = document.getElementById("preloader");
+                    if (
+                        preloader &&
+                        !preloader.classList.contains("fade-out")
+                    ) {
+                        preloader.classList.add("fade-out");
+                        document.body.classList.remove("preloader-active");
 
-                    return `
+                        setTimeout(function () {
+                            preloader.remove();
+                        }, 500);
+                    }
+                }, 1000);
+            });
+        </script>
+
+        <script src="js/script.js"></script>
+        <script>
+            // Load upcoming events
+            async function loadUpcomingEvents() {
+                const container = document.getElementById("eventsContainer");
+                const videoContainer =
+                    document.querySelector(".video-container");
+                if (!container) return;
+
+                try {
+                    const response = await fetch(
+                        "https://aticas-backend.onrender.com/api/events",
+                    );
+                    const data = await response.json();
+
+                    if (data.success && data.events.length > 0) {
+                        // Hide video when there are upcoming events
+                        if (videoContainer) {
+                            videoContainer.classList.add("hidden");
+                        }
+
+                        container.innerHTML = data.events
+                            .map((event) => {
+                                const eventDate = new Date(
+                                    event.date,
+                                ).toLocaleDateString("en-US", {
+                                    weekday: "long",
+                                    year: "numeric",
+                                    month: "long",
+                                    day: "numeric",
+                                });
+
+                                // Determine booking link based on event type
+                                let bookingLink = "#";
+                                if (
+                                    event.type === "catering" ||
+                                    event.type === "wedding" ||
+                                    event.type === "graduation"
+                                ) {
+                                    bookingLink = "outside-catering.html";
+                                } else if (event.type === "tour") {
+                                    bookingLink = "touring.html";
+                                } else if (event.type === "corporate") {
+                                    bookingLink = "our-services.html";
+                                }
+
+                                const eventTypeLabel =
+                                    event.type.charAt(0).toUpperCase() +
+                                    event.type.slice(1);
+
+                                const imageUrl =
+                                    event.image &&
+                                    event.image.startsWith("http")
+                                        ? event.image
+                                        : `https://aticas-backend.onrender.com${event.image}`;
+
+                                return `
                         <div class="event-card">
-                            <img src="${event.image}" alt="${event.title}" class="event-image">
+                            <img src="${imageUrl}" alt="${event.title}" class="event-image" onerror="this.src='https://via.placeholder.com/400x250?text=Image+Not+Found';">
                             <div class="event-content">
                                 <h3 class="event-title">${event.title}</h3>
                                 <div class="event-date">
@@ -306,7 +375,7 @@
                                 <p class="event-description">${event.description}</p>
                                 <div class="event-details">
                                     <span class="event-type">${eventTypeLabel}</span>
-                                    ${event.price ? `<span class="event-price">From Ksh ${event.price.toLocaleString()}</span>` : ''}
+                                    ${event.price ? `<span class="event-price">From Ksh ${event.price.toLocaleString()}</span>` : ""}
                                 </div>
                                 <button class="book-event-btn" onclick="window.location.href='${bookingLink}'">
                                     Book Now
@@ -314,41 +383,42 @@
                             </div>
                         </div>
                     `;
-                }).join('');
-            } else {
-                // Show video when there are no upcoming events
-                if (videoContainer) {
-                    videoContainer.classList.remove('hidden');
-                }
+                            })
+                            .join("");
+                    } else {
+                        // Show video when there are no upcoming events
+                        if (videoContainer) {
+                            videoContainer.classList.remove("hidden");
+                        }
 
-                container.innerHTML = `
+                        container.innerHTML = `
                     <div class="no-events">
                         <i class="fas fa-calendar-times"></i>
                         <h3>No Upcoming Events</h3>
                         <p>Check back soon for exciting events and special occasions!</p>
                     </div>
                 `;
-            }
-        } catch (error) {
-            console.error('Error loading events:', error);
-            // On error, show video as fallback
-            if (videoContainer) {
-                videoContainer.classList.remove('hidden');
-            }
-            container.innerHTML = `
+                    }
+                } catch (error) {
+                    console.error("Error loading events:", error);
+                    // On error, show video as fallback
+                    if (videoContainer) {
+                        videoContainer.classList.remove("hidden");
+                    }
+                    container.innerHTML = `
                 <div class="no-events">
                     <i class="fas fa-exclamation-triangle"></i>
                     <h3>Unable to Load Events</h3>
                     <p>Please try again later.</p>
                 </div>
             `;
-        }
-    }
+                }
+            }
 
-    // Load events when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-        loadUpcomingEvents();
-    });
-    </script>
-</body>
+            // Load events when page loads
+            document.addEventListener("DOMContentLoaded", function () {
+                loadUpcomingEvents();
+            });
+        </script>
+    </body>
 </html>
