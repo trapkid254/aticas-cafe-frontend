@@ -374,6 +374,9 @@
         }
 
         modal.style.display = 'block';
+        // Ensure the modal scrolls to the top to show all form details
+        const modalContent = document.querySelector('#eventModal .modal-content');
+        if (modalContent) modalContent.scrollTop = 0;
     }
 
     function closeEventModal() {
