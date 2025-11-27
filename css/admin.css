@@ -1,6 +1,6 @@
 /* Professional Admin Panel Theme */
 body {
-    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    font-family: "Segoe UI", "Roboto", Arial, sans-serif;
     background: #f4f6fa;
     color: #222;
     position: relative; /* for watermark stacking context */
@@ -8,10 +8,10 @@ body {
 
 /* Global watermark for admin pages */
 body::before {
-    content: '';
+    content: "";
     position: fixed;
     inset: 0;
-    background: url('../images/1b.jpg') center center no-repeat;
+    background: url("../images/1b.jpg") center center no-repeat;
     background-size: clamp(260px, 40vw, 520px);
     opacity: 0.06; /* subtle watermark */
     pointer-events: none;
@@ -30,7 +30,7 @@ body::before {
     width: 100%;
     top: 0;
     z-index: 1000;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     min-height: 60px;
 }
 .admin-navbar-left {
@@ -44,12 +44,12 @@ body::before {
     height: 44px;
     border-radius: 50%;
     object-fit: cover;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     background: #fff;
 }
 .admin-navbar-left .cafeteria-name {
     font-size: 1.3rem;
-    font-family: 'UnifrakturCook', 'Algerian', cursive, serif;
+    font-family: "UnifrakturCook", "Algerian", cursive, serif;
     color: #27ae60;
     letter-spacing: 1px;
 }
@@ -73,7 +73,7 @@ body::before {
     font-size: 1rem;
     cursor: pointer;
     transition: background 0.2s;
-    box-shadow: 0 1px 4px rgba(39,174,96,0.08);
+    box-shadow: 0 1px 4px rgba(39, 174, 96, 0.08);
 }
 .logout-btn:hover {
     background: linear-gradient(90deg, #2ecc71 60%, #27ae60 100%);
@@ -90,7 +90,7 @@ body::before {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    box-shadow: 2px 0 8px rgba(0,0,0,0.04);
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
     z-index: 999;
 }
 .admin-sidebar a {
@@ -102,11 +102,15 @@ body::before {
     text-decoration: none;
     font-size: 1.08rem;
     border-left: 4px solid transparent;
-    transition: background 0.2s, color 0.2s, border-color 0.2s;
+    transition:
+        background 0.2s,
+        color 0.2s,
+        border-color 0.2s;
     border-radius: 0 20px 20px 0;
     margin-right: 1rem;
 }
-.admin-sidebar a.active, .admin-sidebar a:hover {
+.admin-sidebar a.active,
+.admin-sidebar a:hover {
     background: #27313a;
     color: #27ae60;
     border-left: 4px solid #27ae60;
@@ -135,7 +139,7 @@ body::before {
 .dashboard-card {
     background: #fff;
     border-radius: 14px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     padding: 2rem 1.5rem;
     flex: 1 1 200px;
     min-width: 180px;
@@ -154,7 +158,7 @@ body::before {
     margin: 0;
 }
 .dashboard-card:hover {
-    box-shadow: 0 4px 24px rgba(39,174,96,0.10);
+    box-shadow: 0 4px 24px rgba(39, 174, 96, 0.1);
 }
 .quick-actions {
     margin-bottom: 2rem;
@@ -178,8 +182,10 @@ body::before {
     font-weight: bold;
     font-size: 1rem;
     cursor: pointer;
-    transition: background 0.2s, color 0.2s;
-    box-shadow: 0 1px 4px rgba(39,174,96,0.08);
+    transition:
+        background 0.2s,
+        color 0.2s;
+    box-shadow: 0 1px 4px rgba(39, 174, 96, 0.08);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -191,7 +197,7 @@ body::before {
 .recent-orders {
     background: #fff;
     border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     padding: 2rem 1.5rem;
     margin-top: 2rem;
 }
@@ -208,7 +214,8 @@ body::before {
     overflow: hidden;
     margin-top: 1rem;
 }
-.recent-orders th, .recent-orders td {
+.recent-orders th,
+.recent-orders td {
     padding: 0.9rem 0.7rem;
     text-align: left;
 }
@@ -238,61 +245,64 @@ body::before {
 }
 /* Professional, consistent filter and action buttons for admin orders page */
 .admin-orders-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.2rem;
-  margin-bottom: 2.2rem;
-  justify-content: flex-start;
-  padding: 1rem 0 0.5rem 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    margin-bottom: 2.2rem;
+    justify-content: flex-start;
+    padding: 1rem 0 0.5rem 0;
 }
 .admin-orders-filters .filter-btn {
-  background: #fff;
-  color: #27ae60;
-  border: 2px solid #27ae60;
-  border-radius: 8px;
-  padding: 0.7rem 1.7rem;
-  font-weight: 600;
-  font-size: 1.08rem;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 8px rgba(39,174,96,0.10);
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  margin-bottom: 0.5rem;
-  letter-spacing: 0.02em;
+    background: #fff;
+    color: #27ae60;
+    border: 2px solid #27ae60;
+    border-radius: 8px;
+    padding: 0.7rem 1.7rem;
+    font-weight: 600;
+    font-size: 1.08rem;
+    cursor: pointer;
+    transition:
+        background 0.2s,
+        color 0.2s,
+        box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(39, 174, 96, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.02em;
 }
 .admin-orders-filters .filter-btn.active,
 .admin-orders-filters .filter-btn:hover {
-  background: linear-gradient(90deg, #27ae60 60%, #2ecc71 100%);
-  color: #fff;
-  box-shadow: 0 4px 16px rgba(39,174,96,0.13);
+    background: linear-gradient(90deg, #27ae60 60%, #2ecc71 100%);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(39, 174, 96, 0.13);
 }
 
 .status-badge {
-  display: inline-block;
-  padding: 0.2em 0.7em;
-  border-radius: 12px;
-  font-size: 0.95em;
-  font-weight: bold;
-  background: #f4f6fa;
-  color: #222;
-  border: 1px solid #e0e0e0;
+    display: inline-block;
+    padding: 0.2em 0.7em;
+    border-radius: 12px;
+    font-size: 0.95em;
+    font-weight: bold;
+    background: #f4f6fa;
+    color: #222;
+    border: 1px solid #e0e0e0;
 }
 .status-badge.status-pending {
-  color: #e67e22;
-  border-color: #e67e22;
-  background: #fffbe7;
+    color: #e67e22;
+    border-color: #e67e22;
+    background: #fffbe7;
 }
 .status-badge.status-completed {
-  color: #27ae60;
-  border-color: #27ae60;
-  background: #eafaf1;
+    color: #27ae60;
+    border-color: #27ae60;
+    background: #eafaf1;
 }
 .status-badge.status-cancelled {
-  color: #e74c3c;
-  border-color: #e74c3c;
-  background: #fdeaea;
+    color: #e74c3c;
+    border-color: #e74c3c;
+    background: #fdeaea;
 }
 /* Modal and Menu Management styles are already included above */
 @media (max-width: 1100px) {
@@ -332,7 +342,8 @@ body::before {
         font-size: 1rem !important;
         margin-right: 0 !important;
     }
-    body, html {
+    body,
+    html {
         overflow-x: auto !important;
     }
 }
@@ -341,7 +352,8 @@ body::before {
         padding: 0.3rem 0.7rem;
         min-height: 44px;
     }
-    .admin-navbar-left, .admin-navbar-right {
+    .admin-navbar-left,
+    .admin-navbar-right {
         height: 44px;
     }
     .logout-btn {
@@ -376,181 +388,184 @@ body::before {
         margin-left: 0 !important;
         margin-top: 0 !important;
     }
-    body, html {
+    body,
+    html {
         overflow-x: auto !important;
     }
 }
 /* Add Employee Modal Form Styles */
 .add-employee-modal .modal-content {
-  max-width: 480px;
-  margin: 2rem auto;
-  padding: 2.5rem 2rem 2rem 2rem;
-  border-radius: 14px;
-  background: #fff;
-  box-shadow: 0 4px 24px rgba(39,174,96,0.10);
-  position: relative;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding-bottom: 2.5rem;
-  z-index: 2001;
+    max-width: 480px;
+    margin: 2rem auto;
+    padding: 2.5rem 2rem 2rem 2rem;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 4px 24px rgba(39, 174, 96, 0.1);
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding-bottom: 2.5rem;
+    z-index: 2001;
 }
 .add-employee-modal h3 {
-  color: #27ae60;
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
-  text-align: center;
+    color: #27ae60;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
 }
 #addEmployeeForm {
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
 }
 #addEmployeeForm .form-row {
-  display: flex;
-  flex-direction: row;
-  gap: 1rem;
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
 }
 #addEmployeeForm .form-group {
-  flex: 1 1 0;
-  min-width: 120px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+    flex: 1 1 0;
+    min-width: 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
 }
 #addEmployeeForm label {
-  font-weight: bold;
-  color: #222;
+    font-weight: bold;
+    color: #222;
 }
 #addEmployeeForm input,
 #addEmployeeForm select {
-  padding: 0.7rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 1rem;
-  background: #f9f9f9;
+    padding: 0.7rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+    background: #f9f9f9;
 }
 #addEmployeeForm .submit-btn {
-  margin-top: 1.2rem;
-  width: 100%;
-  background: linear-gradient(90deg, #27ae60 60%, #2ecc71 100%);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 0.9rem;
-  font-weight: bold;
-  font-size: 1.1rem;
-  cursor: pointer;
-  transition: background 0.3s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+    margin-top: 1.2rem;
+    width: 100%;
+    background: linear-gradient(90deg, #27ae60 60%, #2ecc71 100%);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0.9rem;
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 #addEmployeeForm .submit-btn:hover {
-  background: linear-gradient(90deg, #2ecc71 60%, #27ae60 100%);
+    background: linear-gradient(90deg, #2ecc71 60%, #27ae60 100%);
 }
 @media (max-width: 800px) {
-  #addEmployeeForm .form-row {
-    flex-direction: column;
-    gap: 0.7rem;
-  }
+    #addEmployeeForm .form-row {
+        flex-direction: column;
+        gap: 0.7rem;
+    }
 }
 /* Edit Employee Modal Form Styles */
 .edit-employee-modal {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .edit-employee-modal .modal-content {
-  max-width: 480px;
-  margin: 2rem auto;
-  padding: 2.5rem 2rem 3.5rem 2rem;
-  border-radius: 14px;
-  background: #fff;
-  box-shadow: 0 4px 24px rgba(39,174,96,0.10);
-  position: relative;
-  max-height: 90vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
+    max-width: 480px;
+    margin: 2rem auto;
+    padding: 2.5rem 2rem 3.5rem 2rem;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 4px 24px rgba(39, 174, 96, 0.1);
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
 .edit-employee-modal h3 {
-  color: #27ae60;
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
-  text-align: center;
+    color: #27ae60;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
 }
 #editEmployeeForm {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
 }
 #editEmployeeForm .form-row {
-  display: flex;
-  gap: 1rem;
+    display: flex;
+    gap: 1rem;
 }
 #editEmployeeForm .form-group {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
 }
 #editEmployeeForm label {
-  font-weight: bold;
-  color: #222;
+    font-weight: bold;
+    color: #222;
 }
 #editEmployeeForm input,
 #editEmployeeForm select {
-  padding: 0.7rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 1rem;
-  background: #f9f9f9;
+    padding: 0.7rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+    background: #f9f9f9;
 }
 #editEmployeeForm .submit-btn {
-  margin-top: auto;
-  width: 100%;
-  background: linear-gradient(90deg, #27ae60 60%, #2ecc71 100%);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 0.9rem;
-  font-weight: bold;
-  font-size: 1.1rem;
-  cursor: pointer;
-  transition: background 0.3s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+    margin-top: auto;
+    width: 100%;
+    background: linear-gradient(90deg, #27ae60 60%, #2ecc71 100%);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0.9rem;
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 #editEmployeeForm .submit-btn:hover {
-  background: linear-gradient(90deg, #2ecc71 60%, #27ae60 100%);
+    background: linear-gradient(90deg, #2ecc71 60%, #27ae60 100%);
 }
 @media (max-width: 600px) {
-  .edit-employee-modal .modal-content {
-    padding: 1.2rem 0.5rem 1.5rem 0.5rem;
-  }
-  #editEmployeeForm .form-row {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
+    .edit-employee-modal .modal-content {
+        padding: 1.2rem 0.5rem 1.5rem 0.5rem;
+    }
+    #editEmployeeForm .form-row {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
 }
-.modal, .order-details-modal {
+.modal,
+.order-details-modal {
     display: none;
     position: fixed !important;
     left: 0;
     top: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0, 0, 0, 0.5);
     z-index: 9999 !important;
     justify-content: center;
     align-items: center;
     opacity: 1 !important;
 }
-.modal[style*="display: flex"], .order-details-modal[style*="display: flex"] {
+.modal[style*="display: flex"],
+.order-details-modal[style*="display: flex"] {
     display: flex !important;
 }
 
@@ -584,11 +599,14 @@ body::before {
         border-radius: 6px;
         font-weight: 500;
         font-size: 1rem;
-        transition: background 0.2s, color 0.2s;
+        transition:
+            background 0.2s,
+            color 0.2s;
         display: inline-block;
         white-space: nowrap;
     }
-    .admin-navbar .admin-navbar-tabs a.active, .admin-navbar .admin-navbar-tabs a:hover {
+    .admin-navbar .admin-navbar-tabs a.active,
+    .admin-navbar .admin-navbar-tabs a:hover {
         background: #27313a;
         color: #27ae60;
     }
@@ -623,19 +641,22 @@ body::before {
 }
 
 /* --- Professional Modal and Form Styles for Admin Dashboard --- */
-.modal, .modal-content {
+.modal {
     background: rgba(34, 45, 50, 0.08);
     display: flex;
     align-items: center;
     justify-content: center;
     position: fixed;
-    top: 0; left: 0; width: 100vw; height: 100vh;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
     z-index: 2000;
 }
 .modal-content {
     background: #fff;
     border-radius: 14px;
-    box-shadow: 0 4px 24px rgba(39,174,96,0.10);
+    box-shadow: 0 4px 24px rgba(39, 174, 96, 0.1);
     padding: 3.5rem 2rem 2rem 2rem;
     min-width: 340px;
     max-width: 480px;
@@ -663,8 +684,10 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 8px rgba(39,174,96,0.08);
-    transition: background 0.2s, color 0.2s;
+    box-shadow: 0 2px 8px rgba(39, 174, 96, 0.08);
+    transition:
+        background 0.2s,
+        color 0.2s;
 }
 .close-modal:hover {
     background: #fdeaea;
@@ -712,7 +735,8 @@ body::before {
 .submit-btn:hover {
     background: linear-gradient(90deg, #2ecc71 60%, #27ae60 100%);
 }
-.remove-btn, .action-btn.remove {
+.remove-btn,
+.action-btn.remove {
     background: #e74c3c;
     color: #fff;
     border: none;
@@ -725,7 +749,8 @@ body::before {
     transition: background 0.2s;
     display: inline-block;
 }
-.remove-btn:hover, .action-btn.remove:hover {
+.remove-btn:hover,
+.action-btn.remove:hover {
     background: #c0392b;
 }
 /* Hide all modals by default */
@@ -735,79 +760,84 @@ body::before {
 
 /* --- Enhanced Professional Spacing and Appearance for Admin Orders Page --- */
 .admin-orders-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.2rem;
-  margin-bottom: 2.2rem;
-  justify-content: flex-start;
-  padding: 1rem 0 0.5rem 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    margin-bottom: 2.2rem;
+    justify-content: flex-start;
+    padding: 1rem 0 0.5rem 0;
 }
 .admin-orders-filters .filter-btn {
-  background: #fff;
-  color: #27ae60;
-  border: 2px solid #27ae60;
-  border-radius: 8px;
-  padding: 0.7rem 1.7rem;
-  font-weight: 600;
-  font-size: 1.08rem;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 8px rgba(39,174,96,0.10);
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  margin-bottom: 0.5rem;
-  letter-spacing: 0.02em;
+    background: #fff;
+    color: #27ae60;
+    border: 2px solid #27ae60;
+    border-radius: 8px;
+    padding: 0.7rem 1.7rem;
+    font-weight: 600;
+    font-size: 1.08rem;
+    cursor: pointer;
+    transition:
+        background 0.2s,
+        color 0.2s,
+        box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(39, 174, 96, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.02em;
 }
 .admin-orders-filters .filter-btn.active,
 .admin-orders-filters .filter-btn:hover {
-  background: linear-gradient(90deg, #27ae60 60%, #2ecc71 100%);
-  color: #fff;
-  box-shadow: 0 4px 16px rgba(39,174,96,0.13);
+    background: linear-gradient(90deg, #27ae60 60%, #2ecc71 100%);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(39, 174, 96, 0.13);
 }
 .dashboard-card {
-  margin-bottom: 2.5rem;
-  padding: 2.5rem 2.2rem;
-  box-shadow: 0 4px 24px rgba(39,174,96,0.10);
+    margin-bottom: 2.5rem;
+    padding: 2.5rem 2.2rem;
+    box-shadow: 0 4px 24px rgba(39, 174, 96, 0.1);
 }
 .recent-orders {
-  padding: 2.5rem 2rem;
-  margin-top: 2.5rem;
-  box-shadow: 0 4px 24px rgba(39,174,96,0.10);
+    padding: 2.5rem 2rem;
+    margin-top: 2.5rem;
+    box-shadow: 0 4px 24px rgba(39, 174, 96, 0.1);
 }
 .recent-orders table {
-  margin-top: 1.5rem;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 2px 12px rgba(39,174,96,0.07);
+    margin-top: 1.5rem;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(39, 174, 96, 0.07);
 }
-.recent-orders th, .recent-orders td {
-  padding: 1.1rem 1rem;
+.recent-orders th,
+.recent-orders td {
+    padding: 1.1rem 1rem;
 }
 .recent-orders th {
-  font-size: 1.08rem;
-  letter-spacing: 0.01em;
+    font-size: 1.08rem;
+    letter-spacing: 0.01em;
 }
 .recent-orders tr {
-  transition: background 0.18s;
+    transition: background 0.18s;
 }
 .recent-orders tr:hover {
-  background: #eafaf1;
+    background: #eafaf1;
 }
 @media (max-width: 900px) {
-  .admin-orders-filters {
-    gap: 0.7rem;
-    padding: 0.7rem 0 0.3rem 0;
-  }
-  .dashboard-card {
-    padding: 1.2rem 0.7rem;
-  }
-  .recent-orders {
-    padding: 1.2rem 0.7rem;
-  }
-  .recent-orders th, .recent-orders td {
-    padding: 0.7rem 0.5rem;
-  }
+    .admin-orders-filters {
+        gap: 0.7rem;
+        padding: 0.7rem 0 0.3rem 0;
+    }
+    .dashboard-card {
+        padding: 1.2rem 0.7rem;
+    }
+    .recent-orders {
+        padding: 1.2rem 0.7rem;
+    }
+    .recent-orders th,
+    .recent-orders td {
+        padding: 0.7rem 0.5rem;
+    }
 }
 @media (max-width: 600px) {
     .modal-content {
@@ -858,16 +888,20 @@ body::before {
     font-size: 1.08rem;
     padding: 0.7rem 1.5rem;
     border-radius: 6px;
-    transition: background 0.2s, color 0.2s;
+    transition:
+        background 0.2s,
+        color 0.2s;
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
-.admin-navbar-tabs a.active, .admin-navbar-tabs a:hover {
+.admin-navbar-tabs a.active,
+.admin-navbar-tabs a:hover {
     background: #27313a;
     color: #27ae60;
 }
-body, html {
+body,
+html {
     overflow-x: auto !important;
     height: auto !important;
 }
@@ -879,7 +913,9 @@ body, html {
     font-size: 1.1rem;
     border-radius: 6px;
     cursor: pointer;
-    transition: background 0.2s, color 0.2s;
+    transition:
+        background 0.2s,
+        color 0.2s;
     margin: 0 2px;
 }
 .qty-btn:hover {
@@ -906,12 +942,12 @@ body, html {
         padding: 1.1rem 0.5rem !important;
         margin-bottom: 1.2rem !important;
         border-radius: 10px !important;
-        box-shadow: 0 2px 8px rgba(39,174,96,0.08) !important;
+        box-shadow: 0 2px 8px rgba(39, 174, 96, 0.08) !important;
     }
     .recent-orders {
         padding: 0.7rem 0.2rem !important;
         margin-top: 1.2rem !important;
-        box-shadow: 0 1px 4px rgba(39,174,96,0.07) !important;
+        box-shadow: 0 1px 4px rgba(39, 174, 96, 0.07) !important;
         border-radius: 8px !important;
         overflow-x: auto !important;
     }
@@ -922,7 +958,8 @@ body, html {
         overflow-x: auto !important;
         display: block !important;
     }
-    .recent-orders th, .recent-orders td {
+    .recent-orders th,
+    .recent-orders td {
         padding: 0.55rem 0.4rem !important;
         font-size: 0.93rem !important;
     }
@@ -931,7 +968,8 @@ body, html {
         gap: 0.7rem !important;
         align-items: stretch !important;
     }
-    #addAdminForm input, #addAdminForm button {
+    #addAdminForm input,
+    #addAdminForm button {
         width: 100% !important;
         min-width: 0 !important;
         font-size: 0.98rem !important;
@@ -982,7 +1020,7 @@ body, html {
     padding: 0.8rem 0.8rem 0.5rem 0.8rem !important;
     margin-bottom: 1.1rem !important;
     border-radius: 8px;
-    box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
     background: #fff;
     min-height: unset !important;
 }
@@ -993,7 +1031,8 @@ body, html {
 .chart-type-select {
     margin-bottom: 0.3rem !important;
 }
-#salesChart, #popularItemsChart {
+#salesChart,
+#popularItemsChart {
     width: 100% !important;
     height: 260px !important;
     max-height: 260px !important;
@@ -1004,7 +1043,8 @@ body, html {
         padding: 0.5rem 0.2rem 0.3rem 0.2rem !important;
         margin-bottom: 0.7rem !important;
     }
-    #salesChart, #popularItemsChart {
+    #salesChart,
+    #popularItemsChart {
         height: 170px !important;
         max-height: 170px !important;
         min-height: 120px !important;
