@@ -143,7 +143,7 @@
 
     <!-- Hero Section with Video -->
     <section class="hero">
-        <div class="video-container">
+        <div class="video-container hidden">
             <iframe
                 width="100%"
                 height="100%"
@@ -159,6 +159,14 @@
                 <h1 class="typewriter-on-scroll">Welcome to Our Cafeteria</h1>
                 <a href="menu.html" class="menu-btn">View Our Menu</a>
             </div>
+        </div>
+    </section>
+
+    <!-- Upcoming Events -->
+    <section class="events-section">
+        <h2 class="typewriter-on-scroll">Upcoming Events</h2>
+        <div class="events-container" id="eventsContainer">
+            <!-- Events will be loaded here by JavaScript -->
         </div>
     </section>
 
@@ -249,5 +257,98 @@
     </script>
 
     <script src="js/script.js"></script>
+    <script>
+    // Load upcoming events
+    async function loadUpcomingEvents() {
+        const container = document.getElementById('eventsContainer');
+        const videoContainer = document.querySelector('.video-container');
+        if (!container) return;
+
+        try {
+            const response = await fetch('https://aticas-backend.onrender.com/api/events');
+            const data = await response.json();
+
+            if (data.success && data.events.length > 0) {
+                // Hide video when there are upcoming events
+                if (videoContainer) {
+                    videoContainer.classList.add('hidden');
+                }
+
+                container.innerHTML = data.events.map(event => {
+                    const eventDate = new Date(event.date).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+
+                    // Determine booking link based on event type
+                    let bookingLink = '#';
+                    if (event.type === 'catering' || event.type === 'wedding' || event.type === 'graduation') {
+                        bookingLink = 'outside-catering.html';
+                    } else if (event.type === 'tour') {
+                        bookingLink = 'touring.html';
+                    } else if (event.type === 'corporate') {
+                        bookingLink = 'our-services.html';
+                    }
+
+                    const eventTypeLabel = event.type.charAt(0).toUpperCase() + event.type.slice(1);
+
+                    return `
+                        <div class="event-card">
+                            <img src="${event.image}" alt="${event.title}" class="event-image">
+                            <div class="event-content">
+                                <h3 class="event-title">${event.title}</h3>
+                                <div class="event-date">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    ${eventDate}
+                                </div>
+                                <p class="event-description">${event.description}</p>
+                                <div class="event-details">
+                                    <span class="event-type">${eventTypeLabel}</span>
+                                    ${event.price ? `<span class="event-price">From Ksh ${event.price.toLocaleString()}</span>` : ''}
+                                </div>
+                                <button class="book-event-btn" onclick="window.location.href='${bookingLink}'">
+                                    Book Now
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                // Show video when there are no upcoming events
+                if (videoContainer) {
+                    videoContainer.classList.remove('hidden');
+                }
+
+                container.innerHTML = `
+                    <div class="no-events">
+                        <i class="fas fa-calendar-times"></i>
+                        <h3>No Upcoming Events</h3>
+                        <p>Check back soon for exciting events and special occasions!</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading events:', error);
+            // On error, show video as fallback
+            if (videoContainer) {
+                videoContainer.classList.remove('hidden');
+            }
+            container.innerHTML = `
+                <div class="no-events">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Unable to Load Events</h3>
+                    <p>Please try again later.</p>
+                </div>
+            `;
+        }
+    }
+
+    // Load events when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        loadUpcomingEvents();
+    });
+    </script>
 </body>
 </html>

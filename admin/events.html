@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events - ATICAS CAFE' Admin</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/admin-professional.css">
+    <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Admin Navbar -->
+    <nav class="admin-navbar">
+        <div class="admin-navbar-left">
+            <img src="../images/aticas.png" alt="Cafeteria Logo" class="logo">
+            <span class="cafeteria-name">ATICAS CAFE' - Admin</span>
+        </div>
+        <div class="admin-navbar-right">
+            <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+        <div class="admin-navbar-tabs">
+            <a href="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
+            <a href="bookings.html"><i class="fas fa-calendar-check"></i> Bookings</a>
+            <a href="events.html" class="active"><i class="fas fa-calendar-alt"></i> Events</a>
+            <a href="menu-management.html"><i class="fas fa-utensils"></i> Menu Management</a>
+            <a href="employees.html"><i class="fas fa-users-cog"></i> Employees</a>
+            <a href="admins.html"><i class="fas fa-user-shield"></i> Admins</a>
+            <a href="reports.html"><i class="fas fa-chart-line"></i> Reports</a>
+            <a href="payments.html"><i class="fas fa-credit-card"></i> Payments</a>
+            <a href="place-order.html"><i class="fas fa-phone"></i> Place Order for Customer</a>
+        </div>
+    </nav>
+
+    <!-- Admin Sidebar -->
+    <div class="admin-sidebar">
+        <a href="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
+        <a href="bookings.html"><i class="fas fa-calendar-check"></i> Bookings</a>
+        <a href="events.html" class="active"><i class="fas fa-calendar-alt"></i> Events</a>
+        <a href="menu-management.html"><i class="fas fa-utensils"></i> Menu Management</a>
+        <a href="employees.html"><i class="fas fa-users"></i> Employees</a>
+        <a href="reports.html"><i class="fas fa-chart-bar"></i> Reports</a>
+        <a href="admins.html"><i class="fas fa-user-shield"></i> Admins</a>
+        <a href="payments.html"><i class="fas fa-money-bill-wave"></i> Payments</a>
+        <a href="place-order.html"><i class="fas fa-phone"></i> Place Order for Customer</a>
+    </div>
+
+    <!-- Admin Content -->
+    <div class="admin-content">
+        <div class="page-header">
+            <h2><i class="fas fa-calendar-alt"></i> Event Management</h2>
+            <p class="page-subtitle">Create and manage upcoming events advertised on the homepage</p>
+        </div>
+
+        <!-- Add Event Button -->
+        <div style="margin-bottom: 2rem;">
+            <button id="addEventBtn" class="action-btn">
+                <i class="fas fa-plus"></i> Add New Event
+            </button>
+        </div>
+
+        <!-- Filters and Search -->
+        <div class="filters-section">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search events by title or description...">
+            </div>
+            <div class="filter-controls">
+                <select id="typeFilter" class="filter-select">
+                    <option value="">All Types</option>
+                    <option value="catering">Catering</option>
+                    <option value="tour">Tour</option>
+                    <option value="graduation">Graduation</option>
+                    <option value="wedding">Wedding</option>
+                    <option value="corporate">Corporate</option>
+                </select>
+                <select id="statusFilter" class="filter-select">
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Loading and Error Messages -->
+        <div id="loading" class="loading" style="display: none;">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading events...</p>
+        </div>
+        <div id="errorMsg" class="notification error" style="display: none; position: static; margin-bottom: 1rem;"></div>
+
+        <!-- Events Grid -->
+        <div id="eventsGrid" class="events-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+            <!-- Events will be loaded via JavaScript -->
+        </div>
+
+        <!-- No Results Message -->
+        <div id="noResults" class="no-results" style="display: none;">
+            <i class="fas fa-calendar-times"></i>
+            <h3>No events found</h3>
+            <p>Try adjusting your search or filter criteria</p>
+        </div>
+    </div>
+
+    <!-- Add/Edit Event Modal -->
+    <div id="eventModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close-modal" id="closeEventModal">&times;</span>
+            <h3 id="modalTitle">Add New Event</h3>
+
+            <form id="eventForm">
+                <div class="form-group">
+                    <label for="eventTitle">Event Title *</label>
+                    <input type="text" id="eventTitle" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="eventDescription">Description *</label>
+                    <textarea id="eventDescription" rows="4" required></textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="eventDate">Event Date *</label>
+                        <input type="datetime-local" id="eventDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="eventType">Event Type *</label>
+                        <select id="eventType" required>
+                            <option value="">Select Type</option>
+                            <option value="catering">Catering</option>
+                            <option value="tour">Tour</option>
+                            <option value="graduation">Graduation</option>
+                            <option value="wedding">Wedding</option>
+                            <option value="corporate">Corporate</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="eventLocation">Location</label>
+                        <input type="text" id="eventLocation" placeholder="Optional">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="eventCapacity">Capacity</label>
+                        <input type="number" id="eventCapacity" min="1" placeholder="Optional">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="eventPrice">Starting Price (Ksh)</label>
+                        <input type="number" id="eventPrice" min="0" placeholder="Optional">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="eventImage">Image URL *</label>
+                        <input type="url" id="eventImage" required placeholder="https://...">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox" id="eventFeatured">
+                        Featured Event
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox" id="eventActive" checked>
+                        Active (visible on homepage)
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" id="cancelEventBtn" class="submit-btn" style="background: #6c757d;">Cancel</button>
+                    <button type="submit" class="submit-btn">Save Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    let allEvents = [];
+    let editingEventId = null;
+
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            const adminToken = localStorage.getItem('adminToken');
+            if (!adminToken) {
+                window.location.href = 'admin-login.html';
+                return;
+            }
+
+            await loadEvents();
+
+            // Add event listeners
+            document.getElementById('addEventBtn').addEventListener('click', () => openEventModal());
+            document.getElementById('closeEventModal').addEventListener('click', () => closeEventModal());
+            document.getElementById('cancelEventBtn').addEventListener('click', () => closeEventModal());
+            document.getElementById('eventModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('eventModal')) closeEventModal();
+            });
+            document.getElementById('eventForm').addEventListener('submit', handleEventSubmit);
+            document.getElementById('typeFilter').addEventListener('change', applyFilters);
+            document.getElementById('statusFilter').addEventListener('change', applyFilters);
+            document.getElementById('searchInput').addEventListener('input', applyFilters);
+        } catch (error) {
+            console.error('Failed to initialize events page:', error);
+        }
+    });
+
+    async function loadEvents() {
+        const loading = document.getElementById('loading');
+        const errorMsg = document.getElementById('errorMsg');
+        const adminToken = localStorage.getItem('adminToken');
+
+        loading.style.display = 'block';
+        errorMsg.style.display = 'none';
+
+        try {
+            const res = await fetch('https://aticas-backend.onrender.com/api/admin/events', {
+                headers: { 'Authorization': adminToken || '' }
+            });
+            const data = await res.json();
+
+            loading.style.display = 'none';
+
+            if (!data.success) {
+                errorMsg.textContent = data.error || 'Failed to fetch events.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            allEvents = data.events || [];
+            displayEvents(allEvents);
+        } catch (err) {
+            loading.style.display = 'none';
+            errorMsg.textContent = 'Failed to load events.';
+            errorMsg.style.display = 'block';
+        }
+    }
+
+    function displayEvents(events) {
+        const grid = document.getElementById('eventsGrid');
+        const noResults = document.getElementById('noResults');
+
+        grid.innerHTML = '';
+
+        if (events.length === 0) {
+            noResults.style.display = 'block';
+            return;
+        }
+
+        noResults.style.display = 'none';
+
+        events.forEach(event => {
+            const eventDate = new Date(event.date).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            const eventCard = document.createElement('div');
+            eventCard.className = 'event-card-admin';
+            eventCard.style.cssText = `
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                overflow: hidden;
+                border: 2px solid ${event.active ? '#27ae60' : '#ddd'};
+            `;
+
+            eventCard.innerHTML = `
+                <img src="${event.image}" alt="${event.title}" style="width: 100%; height: 180px; object-fit: cover;">
+                <div style="padding: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                        <h3 style="margin: 0; color: #27ae60; font-size: 1.3rem;">${event.title}</h3>
+                        <div style="display: flex; gap: 0.5rem;">
+                            ${event.featured ? '<span style="background: #ffd700; color: #333; padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.8rem; font-weight: 600;">FEATURED</span>' : ''}
+                            <span style="background: ${event.active ? '#d4edda' : '#f8d7da'}; color: ${event.active ? '#155724' : '#721c24'}; padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.8rem; font-weight: 600;">
+                                ${event.active ? 'ACTIVE' : 'INACTIVE'}
+                            </span>
+                        </div>
+                    </div>
+
+                    <p style="color: #666; margin-bottom: 1rem; line-height: 1.5;">${event.description}</p>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                        <div>
+                            <i class="fas fa-calendar" style="color: #27ae60; margin-right: 0.5rem;"></i>
+                            <strong>Date:</strong><br>
+                            <span style="font-size: 0.9rem; color: #555;">${eventDate}</span>
+                        </div>
+                        <div>
+                            <i class="fas fa-tag" style="color: #27ae60; margin-right: 0.5rem;"></i>
+                            <strong>Type:</strong><br>
+                            <span style="font-size: 0.9rem; color: #555; text-transform: capitalize;">${event.type}</span>
+                        </div>
+                    </div>
+
+                    ${event.location ? `
+                        <div style="margin-bottom: 1rem;">
+                            <i class="fas fa-map-marker-alt" style="color: #27ae60; margin-right: 0.5rem;"></i>
+                            <strong>Location:</strong> ${event.location}
+                        </div>
+                    ` : ''}
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        ${event.capacity ? `<span><i class="fas fa-users" style="color: #27ae60; margin-right: 0.5rem;"></i>Capacity: ${event.capacity}</span>` : '<span></span>'}
+                        ${event.price ? `<span style="color: #e67e22; font-weight: 600;">From Ksh ${event.price.toLocaleString()}</span>` : '<span></span>'}
+                    </div>
+
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button onclick="editEvent('${event._id}')" class="action-btn" style="flex: 1; padding: 0.5rem; font-size: 0.9rem;">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button onclick="deleteEvent('${event._id}')" class="action-btn" style="flex: 1; padding: 0.5rem; font-size: 0.9rem; background: #e74c3c;">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            grid.appendChild(eventCard);
+        });
+    }
+
+    function openEventModal(eventId = null) {
+        editingEventId = eventId;
+        const modal = document.getElementById('eventModal');
+        const form = document.getElementById('eventForm');
+        const modalTitle = document.getElementById('modalTitle');
+
+        if (eventId) {
+            modalTitle.textContent = 'Edit Event';
+            const event = allEvents.find(e => e._id === eventId);
+            if (event) {
+                document.getElementById('eventTitle').value = event.title;
+                document.getElementById('eventDescription').value = event.description;
+                document.getElementById('eventDate').value = new Date(event.date).toISOString().slice(0, 16);
+                document.getElementById('eventType').value = event.type;
+                document.getElementById('eventLocation').value = event.location || '';
+                document.getElementById('eventCapacity').value = event.capacity || '';
+                document.getElementById('eventPrice').value = event.price || '';
+                document.getElementById('eventImage').value = event.image;
+                document.getElementById('eventFeatured').checked = event.featured || false;
+                document.getElementById('eventActive').checked = event.active !== false;
+            }
+        } else {
+            modalTitle.textContent = 'Add New Event';
+            form.reset();
+            document.getElementById('eventActive').checked = true;
+        }
+
+        modal.style.display = 'block';
+    }
+
+    function closeEventModal() {
+        document.getElementById('eventModal').style.display = 'none';
+        editingEventId = null;
+    }
+
+    async function handleEventSubmit(e) {
+        e.preventDefault();
+
+        const formData = {
+            title: document.getElementById('eventTitle').value,
+            description: document.getElementById('eventDescription').value,
+            date: document.getElementById('eventDate').value,
+            type: document.getElementById('eventType').value,
+            location: document.getElementById('eventLocation').value || undefined,
+            capacity: document.getElementById('eventCapacity').value ? parseInt(document.getElementById('eventCapacity').value) : undefined,
+            price: document.getElementById('eventPrice').value ? parseFloat(document.getElementById('eventPrice').value) : undefined,
+            image: document.getElementById('eventImage').value,
+            featured: document.getElementById('eventFeatured').checked,
+            active: document.getElementById('eventActive').checked
+        };
+
+        const adminToken = localStorage.getItem('adminToken');
+        const url = editingEventId
+            ? `https://aticas-backend.onrender.com/api/admin/events/${editingEventId}`
+            : 'https://aticas-backend.onrender.com/api/admin/events';
+        const method = editingEventId ? 'PUT' : 'POST';
+
+        try {
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': adminToken || ''
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                closeEventModal();
+                await loadEvents();
+                showNotification(editingEventId ? 'Event updated successfully' : 'Event created successfully', 'success');
+            } else {
+                const error = await response.json();
+                showNotification(error.error || 'Failed to save event', 'error');
+            }
+        } catch (error) {
+            console.error('Save error:', error);
+            showNotification('Failed to save event', 'error');
+        }
+    }
+
+    async function editEvent(eventId) {
+        openEventModal(eventId);
+    }
+
+    async function deleteEvent(eventId) {
+        if (!confirm('Are you sure you want to delete this event?')) return;
+
+        const adminToken = localStorage.getItem('adminToken');
+
+        try {
+            const response = await fetch(`https://aticas-backend.onrender.com/api/admin/events/${eventId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': adminToken || '' }
+            });
+
+            if (response.ok) {
+                await loadEvents();
+                showNotification('Event deleted successfully', 'success');
+            } else {
+                showNotification('Failed to delete event', 'error');
+            }
+        } catch (error) {
+            console.error('Delete error:', error);
+            showNotification('Failed to delete event', 'error');
+        }
+    }
+
+    function applyFilters() {
+        const typeFilter = document.getElementById('typeFilter').value;
+        const statusFilter = document.getElementById('statusFilter').value;
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+        let filtered = allEvents;
+
+        if (typeFilter) {
+            filtered = filtered.filter(e => e.type === typeFilter);
+        }
+
+        if (statusFilter) {
+            const isActive = statusFilter === 'active';
+            filtered = filtered.filter(e => e.active === isActive);
+        }
+
+        if (searchTerm) {
+            filtered = filtered.filter(e =>
+                e.title.toLowerCase().includes(searchTerm) ||
+                e.description.toLowerCase().includes(searchTerm)
+            );
+        }
+
+        displayEvents(filtered);
+    }
+
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            ${message}
+        `;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 3000);
+    }
+    </script>
+    <script src="../js/admin.js"></script>
+    <script src="../js/script.js"></script>
+</body>
+</html>
