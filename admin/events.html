@@ -707,6 +707,12 @@
                         },
                     );
 
+                    // Construct proper image URL
+                    const imageUrl =
+                        event.image && event.image.startsWith("http")
+                            ? event.image
+                            : `https://aticas-backend.onrender.com${event.image}`;
+
                     const eventCard = document.createElement("div");
                     eventCard.className = "event-card-admin";
                     eventCard.style.cssText = `
@@ -718,7 +724,7 @@
             `;
 
                     eventCard.innerHTML = `
-                <img src="${event.image}" alt="${event.title}" style="width: 100%; height: 180px; object-fit: cover;">
+                <img src="${imageUrl}" alt="${event.title}" style="width: 100%; height: 180px; object-fit: cover;" onerror="this.src='https://via.placeholder.com/350x180?text=Image+Not+Found';">
                 <div style="padding: 1.5rem;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
                         <h3 style="margin: 0; color: #27ae60; font-size: 1.3rem;">${event.title}</h3>
@@ -813,7 +819,11 @@
                         // Clear file input and show current image info
                         imageInput.value = "";
                         if (imageLabel) {
-                            imageLabel.innerHTML = `Event Image <small style="color: #666; font-size: 0.8rem;"><br>Current: <a href="${event.image}" target="_blank">View Image</a> | Upload new image to replace</small>`;
+                            const currentImageUrl =
+                                event.image && event.image.startsWith("http")
+                                    ? event.image
+                                    : `https://aticas-backend.onrender.com${event.image}`;
+                            imageLabel.innerHTML = `Event Image <small style="color: #666; font-size: 0.8rem;"><br>Current: <a href="${currentImageUrl}" target="_blank">View Image</a> | Upload new image to replace</small>`;
                         }
                     }
                 } else {
@@ -842,6 +852,19 @@
 
             async function handleEventSubmit(e) {
                 e.preventDefault();
+
+                // Check admin authentication first
+                const adminToken = localStorage.getItem("adminToken");
+                const adminType = localStorage.getItem("adminType");
+
+                if (!adminToken) {
+                    showNotification(
+                        "Authentication required. Please log in again.",
+                        "error",
+                    );
+                    window.location.href = "admin-login.html";
+                    return;
+                }
 
                 // Check required fields first
                 const title = document
@@ -898,18 +921,27 @@
                 formDataObj.append("description", description);
                 formDataObj.append("date", date);
                 formDataObj.append("type", type);
-                formDataObj.append(
-                    "location",
-                    document.getElementById("eventLocation").value || "",
-                );
-                formDataObj.append(
-                    "capacity",
-                    document.getElementById("eventCapacity").value || "",
-                );
-                formDataObj.append(
-                    "price",
-                    document.getElementById("eventPrice").value || "",
-                );
+
+                const location = document
+                    .getElementById("eventLocation")
+                    .value.trim();
+                const capacity = document
+                    .getElementById("eventCapacity")
+                    .value.trim();
+                const price = document
+                    .getElementById("eventPrice")
+                    .value.trim();
+
+                if (location) {
+                    formDataObj.append("location", location);
+                }
+                if (capacity) {
+                    formDataObj.append("capacity", capacity);
+                }
+                if (price) {
+                    formDataObj.append("price", price);
+                }
+
                 formDataObj.append(
                     "featured",
                     document.getElementById("eventFeatured").checked,
@@ -920,11 +952,15 @@
                 );
 
                 if (imageFile) {
+                    console.log("Image file details:", {
+                        name: imageFile.name,
+                        size: imageFile.size,
+                        type: imageFile.type,
+                    });
                     formDataObj.append("image", imageFile);
                 }
                 // For editing, if no new image is selected, the existing image will be kept
 
-                const adminToken = localStorage.getItem("adminToken");
                 const url = editingEventId
                     ? `https://aticas-backend.onrender.com/api/admin/events/${editingEventId}`
                     : "https://aticas-backend.onrender.com/api/admin/events";
@@ -944,17 +980,31 @@
                     formDataObj.append("price", parseFloat(priceValue));
                 }
 
+                // Add debugging logs
+                console.log("Event submission data:");
+                console.log("Method:", method);
+                console.log("URL:", url);
+                console.log("Admin token exists:", !!adminToken);
+                console.log("Admin type:", adminType);
+                console.log("FormData contents:");
+                for (let [key, value] of formDataObj.entries()) {
+                    console.log(`${key}:`, value);
+                }
+
                 try {
                     const response = await fetch(url, {
                         method,
                         headers: {
                             Authorization: `Bearer ${adminToken}`,
-                            "X-Admin-Type":
-                                localStorage.getItem("adminType") ||
-                                "cafeteria",
+                            "X-Admin-Type": adminType || "cafeteria",
                         },
                         body: formDataObj,
                     });
+
+                    console.log("Response status:", response.status);
+                    console.log("Response headers:", [
+                        ...response.headers.entries(),
+                    ]);
 
                     if (response.ok) {
                         closeEventModal();
@@ -967,6 +1017,9 @@
                         );
                     } else {
                         const errorData = await response.text();
+                        console.error("Server error response:", errorData);
+                        console.error("Response status:", response.status);
+
                         let errorMessage = "Failed to save event";
                         try {
                             const errorJson = JSON.parse(errorData);
@@ -974,8 +1027,12 @@
                                 errorJson.error ||
                                 errorJson.message ||
                                 errorMessage;
+                            console.error("Parsed error:", errorJson);
                         } catch (e) {
-                            console.error("Server error response:", errorData);
+                            console.error(
+                                "Could not parse error response as JSON",
+                            );
+                            errorMessage = `Server error: ${response.status} - ${errorData}`;
                         }
                         showNotification(errorMessage, "error");
                     }
