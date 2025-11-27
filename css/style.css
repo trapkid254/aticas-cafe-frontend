@@ -7,9 +7,10 @@
 }
 
 body {
+    font-size: 16px;
     background-color: yellow;
     color: #333;
-    line-height: 1.7;
+    line-height: 1.6;
 }
 
 p {
@@ -211,7 +212,7 @@ img, video, iframe {
     pointer-events: auto;
 }
 .video-overlay h1 {
-    font-size: clamp(1.25rem, 4vw + 0.5rem, 3rem);
+    font-size: clamp(1.5rem, 4vw + 0.5rem, 2.5rem);
     margin-bottom: 1.2rem;
     text-align: center;
 }
@@ -226,7 +227,7 @@ img, video, iframe {
 }
 
 .meals-section h2 {
-    font-size: 2.7rem;
+    font-size: 2rem;
     margin-bottom: 3rem;
     color: green;
     letter-spacing: 0.5px;
@@ -379,7 +380,7 @@ img, video, iframe {
 
 .price {
     display: block;
-    font-size: 1.3rem;
+    font-size: 1.25rem;
     font-weight: bold;
     color: #ff6b6b;
     margin-bottom: 1rem;
@@ -409,7 +410,7 @@ img, video, iframe {
 }
 
 .why-us h2 {
-    font-size: 2.7rem;
+    font-size: 2rem;
     margin-bottom: 3rem;
     color: #333;
     letter-spacing: 0.5px;
@@ -463,7 +464,7 @@ img, video, iframe {
 }
 
 .events-section h2 {
-    font-size: 2.7rem;
+    font-size: 2rem;
     margin-bottom: 3rem;
     color: green;
     letter-spacing: 0.5px;
@@ -760,16 +761,16 @@ img, video, iframe {
         border-radius: 5px;
     }
     h1 {
-        font-size: 1.25rem;
+        font-size: 1.5rem;
     }
     h2 {
-        font-size: 1.1rem;
+        font-size: 1.25rem;
     }
     h3 {
-        font-size: 1rem;
+        font-size: 1.125rem;
     }
     p, li, label, span {
-        font-size: 0.95rem;
+        font-size: 1rem;
     }
     .reason {
         max-width: 100%;
@@ -820,16 +821,16 @@ img, video, iframe {
 
 @media (max-width: 576px) {
     h1 {
-        font-size: 1.1rem !important;
+        font-size: 1.25rem !important;
     }
     h2 {
-        font-size: 1rem !important;
+        font-size: 1.125rem !important;
     }
     h3 {
-        font-size: 0.95rem !important;
+        font-size: 1rem !important;
     }
     p, li, label, span {
-        font-size: 0.9rem !important;
+        font-size: 0.95rem !important;
     }
     .reason {
         max-width: 100% !important;
@@ -891,7 +892,7 @@ img, video, iframe {
 }
 
 .about-heading {
-    font-size: 2.7rem;
+    font-size: 2rem;
     margin-bottom: 3rem;
     color: #333;
     letter-spacing: 0.5px;
@@ -924,7 +925,7 @@ img, video, iframe {
 }
 
 .about-content h2 {
-    font-size: 2.5rem;
+    font-size: 2rem;
     margin-bottom: 1.5rem;
     color: #333;
 }
@@ -942,7 +943,7 @@ img, video, iframe {
 }
 
 .team-section h2 {
-    font-size: 2.7rem;
+    font-size: 2rem;
     margin-bottom: 3rem;
     color: #333;
     letter-spacing: 0.5px;
@@ -989,7 +990,7 @@ img, video, iframe {
 }
 
 .menu-section h2 {
-    font-size: 2.7rem;
+    font-size: 2rem;
     margin-bottom: 3rem;
     color: #333;
     letter-spacing: 0.5px;
@@ -1090,7 +1091,7 @@ img, video, iframe {
 }
 
 .menu-item-details .price {
-    font-size: 1.1rem;
+    font-size: 1.25rem;
     color: #e67e22;
     font-weight: bold;
     margin-bottom: 0.8rem;
