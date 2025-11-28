@@ -1,597 +1,1548 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Outside Catering - ATICAS CAFE'</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
-    <style>
-        html, body, h1, h2, h3, h4, h5, h6, p, label, input, textarea, button, .services-list, .service-container, .catering-intro-on-bg {
-            font-family: 'Segoe UI', Arial, sans-serif !important;
-            font-weight: 400;
-        }
-        .catering-hero-bg-wrapper {
-            position: relative;
-            width: 100%;
-            max-width: 1000px;
-            margin: 0 auto 2.5rem auto;
-            height: 600px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .catering-slider-bg {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            border-radius: 18px;
-            box-shadow: 0 2px 16px rgba(0,0,0,0.10);
-        }
-        .catering-slider-bg img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 18px;
-            position: absolute;
-            left: 0; top: 0;
-            transition: opacity 0.6s cubic-bezier(0.4,0.2,0.2,1);
-            z-index: 1;
-            background: #fff;
-            opacity: 0;
-        }
-        .catering-slider-bg img.active {
-            opacity: 1;
-        }
-        .catering-slider-overlay {
-            position: absolute;
-            left: 0; top: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.35);
-            border-radius: 18px;
-            z-index: 2;
-        }
-        .catering-intro-on-bg {
-            position: absolute;
-            z-index: 3;
-            color: #fff;
-            font-size: 1.1rem;
-            text-align: center;
-            max-width: 40%;
-            left: 50%;
-            bottom: 1.2rem;
-            top: unset;
-            transform: translateX(-50%);
-            margin: 0;
-            padding: 0.5rem 1.2rem 0.5rem 1.2rem;
-            font-weight: 400;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.32);
-            background: transparent;
-            border-radius: 10px;
-            box-shadow: none;
-            letter-spacing: 0.01em;
-            line-height: 1.3;
-        }
-        .slider-arrow {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: #27ae60cc;
-            color: #fff;
-            border: none;
-            border-radius: 50%;
-            width: 44px;
-            height: 44px;
-            font-size: 2rem;
-            cursor: pointer;
-            z-index: 4;
-            transition: background 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .slider-arrow-left { left: 18px; }
-        .slider-arrow-right { right: 18px; }
-        .slider-arrow:hover { background: #219150cc; }
-        @media (max-width: 900px) {
-            .catering-hero-bg-wrapper { max-width: 98vw; height: 320px; }
-            .catering-intro-on-bg { font-size: 0.95rem; padding: 0.3rem 0.5rem; left: 50%; bottom: 0.5rem; max-width: 80%; transform: translateX(-50%); }
-            .slider-arrow { width: 36px; height: 36px; font-size: 1.3rem; }
-        }
-
-        /* Catering Packages Responsive */
-        @media (max-width: 768px) {
-            .catering-packages-section {
-                margin: 2rem 0;
-                padding: 1rem;
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Outside Catering - ATICAS CAFE'</title>
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        />
+        <link rel="stylesheet" href="css/style.css" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            html,
+            body,
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6,
+            p,
+            label,
+            input,
+            textarea,
+            button,
+            .services-list,
+            .service-container,
+            .catering-intro-on-bg {
+                font-family: "Segoe UI", Arial, sans-serif !important;
+                font-weight: 400;
             }
-            .catering-packages-section h2 {
+            .catering-hero-bg-wrapper {
+                position: relative;
+                width: 100%;
+                max-width: 1000px;
+                margin: 0 auto 2.5rem auto;
+                height: 600px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .catering-slider-bg {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+                border-radius: 18px;
+                box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
+            }
+            .catering-slider-bg img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: 18px;
+                position: absolute;
+                left: 0;
+                top: 0;
+                transition: opacity 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+                z-index: 1;
+                background: #fff;
+                opacity: 0;
+            }
+            .catering-slider-bg img.active {
+                opacity: 1;
+            }
+            .catering-slider-overlay {
+                position: absolute;
+                left: 0;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.35);
+                border-radius: 18px;
+                z-index: 2;
+            }
+            .catering-intro-on-bg {
+                position: absolute;
+                z-index: 3;
+                color: #fff;
+                font-size: 1.1rem;
+                text-align: center;
+                max-width: 40%;
+                left: 50%;
+                bottom: 1.2rem;
+                top: unset;
+                transform: translateX(-50%);
+                margin: 0;
+                padding: 0.5rem 1.2rem 0.5rem 1.2rem;
+                font-weight: 400;
+                text-shadow: 0 2px 8px rgba(0, 0, 0, 0.32);
+                background: transparent;
+                border-radius: 10px;
+                box-shadow: none;
+                letter-spacing: 0.01em;
+                line-height: 1.3;
+            }
+            .slider-arrow {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                background: #27ae60cc;
+                color: #fff;
+                border: none;
+                border-radius: 50%;
+                width: 44px;
+                height: 44px;
                 font-size: 2rem;
+                cursor: pointer;
+                z-index: 4;
+                transition: background 0.2s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
-            .package-card {
-                padding: 1rem;
+            .slider-arrow-left {
+                left: 18px;
             }
-        }
-
-        /* Gallery Responsive */
-        @media (max-width: 768px) {
-            .gallery-section {
-                margin: 2rem 0;
-                padding: 1rem;
+            .slider-arrow-right {
+                right: 18px;
             }
-            .gallery-section h2 {
-                font-size: 2rem;
+            .slider-arrow:hover {
+                background: #219150cc;
             }
-            .gallery-item {
-                margin-bottom: 1rem;
-            }
-        }
-
-        /* Booking Section Responsive */
-        @media (max-width: 768px) {
-            .booking-section {
-                margin: 2rem 0;
-                padding: 2rem 1rem;
-            }
-            .booking-section h2 {
-                font-size: 2rem;
-            }
-            .booking-section .menu-btn {
-                padding: 0.8rem 1.5rem;
-                font-size: 1rem;
-            }
-        }
-
-        /* Modal Responsive */
-        @media (max-width: 768px) {
-            #bookingModal {
-                padding: 1rem;
-            }
-            #bookingModal > div {
-                margin: 1rem auto;
-                max-width: 95vw;
-            }
-            #cateringBookingForm {
-                padding: 1rem;
-            }
-            #cateringBookingForm .grid-cols-2 {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="navbar-left">
-            <img src="images/1b.jpg" alt="Cafeteria Logo" class="logo">
-            <span class="cafeteria-name">ATICAS CAFE'</span>
-        </div>
-        <div class="navbar-center">
-            <div class="moving-text">Welcome to <b>Aticas Cafe'</b>. Your Hospitality Partner - Enjoy our freshly prepared meals at affordable prices! Open from Mon - Sat @ 6:00am - 12:00am</div>
-        </div>
-        <div class="navbar-right">
-            <a href="cart.html" class="cart-icon"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cartCount">0</span></a>
-            <button class="login-btn" id="loginBtn">Login</button>
-            <div class="hamburger-menu" id="hamburgerMenu">
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Mobile Menu -->
-    <div class="mobile-menu" id="mobileMenu">
-        <a href="index.html"><i class="fas fa-home"></i> Home</a>
-        <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
-        <a href="menu.html"><i class="fas fa-utensils"></i> Menu</a>
-        <a href="butchery.html"><i class="fas fa-double-knives"></i> Butchery</a>
-        <a href="our-services.html"><i class="fas fa-concierge-bell"></i> Our Services</a>
-        <a href="orders.html"><i class="fas fa-receipt"></i> My Orders</a>
-        <a href="contact.html"><i class="fas fa-envelope"></i> Contact</a>
-        <a href="gallery.html"><i class="fas fa-gallery"></i> Gallery</a>
-    </div>
-
-    <!-- Outside Catering Content -->
-    <section class="about-section">
-        <h2 class="about-heading typewriter-on-scroll">Outside Catering Services</h2>
-        <div class="catering-hero-bg-wrapper">
-            <div class="catering-slider-bg">
-                <img class="catering-slider-img active" src="images/ruracio.png" alt="Catering Slide" />
-                <img class="catering-slider-img" src="images/out.jpeg" alt="Catering Slide" />
-                <img class="catering-slider-img" src="images/outside.jpeg" alt="Catering Slide" />
-                <img class="catering-slider-img" src="images/wed.jpeg" alt="Catering Slide" />
-                <img class="catering-slider-img" src="images/grad.jpeg" alt="Catering Slide" />
-                <div class="catering-slider-overlay"></div>
-                <button class="slider-arrow slider-arrow-left" aria-label="Previous image">&#8592;</button>
-                <button class="slider-arrow slider-arrow-right" aria-label="Next image">&#8594;</button>
-            </div>
-            <div class="catering-intro-on-bg typewriter-on-scroll">
-                ATICAS CAFE' offers professional outside catering for all your events. We bring our delicious meals and exceptional service to your location, ensuring your guests enjoy a memorable experience.
-            </div>
-        </div>
-        <!-- Catering Packages Section -->
-        <section class="catering-packages-section" style="margin: 4rem 0; padding: 2rem; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 20px;">
-            <h2 style="text-align: center; color: #27ae60; font-family: 'UnifrakturCook', cursive; margin-bottom: 2rem; font-size: 2.5rem;">Catering Packages & Services</h2>
-            <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
-                <div class="package-card" style="background: white; border-radius: 15px; padding: 1.5rem; box-shadow: 0 8px 32px rgba(39,174,96,0.1); border: 2px solid #27ae60;">
-                    <h3 style="color: #27ae60; margin-bottom: 1rem; font-size: 1.4rem;">Wedding Catering</h3>
-                    <div style="margin-bottom: 1rem;">
-                        <i class="fas fa-utensils" style="color: #27ae60; margin-right: 0.5rem;"></i>
-                        <strong>Services:</strong> Full course meals, cake service, beverage packages
-                    </div>
-                    <div style="margin-bottom: 1rem;">
-                        <i class="fas fa-users" style="color: #27ae60; margin-right: 0.5rem;"></i>
-                        <strong>Capacity:</strong> 50-500 guests
-                    </div>
-                    <div style="margin-bottom: 1rem;">
-                        <i class="fas fa-star" style="color: #27ae60; margin-right: 0.5rem;"></i>
-                        <strong>Features:</strong> Custom menus, professional staff, setup/cleanup
-                    </div>
-                </div>
-                <div class="package-card" style="background: white; border-radius: 15px; padding: 1.5rem; box-shadow: 0 8px 32px rgba(39,174,96,0.1); border: 2px solid #27ae60;">
-                    <h3 style="color: #27ae60; margin-bottom: 1rem; font-size: 1.4rem;">Corporate Events</h3>
-                    <div style="margin-bottom: 1rem;">
-                        <i class="fas fa-briefcase" style="color: #27ae60; margin-right: 0.5rem;"></i>
-                        <strong>Services:</strong> Buffet style, coffee breaks, themed catering
-                    </div>
-                    <div style="margin-bottom: 1rem;">
-                        <i class="fas fa-users" style="color: #27ae60; margin-right: 0.5rem;"></i>
-                        <strong>Capacity:</strong> 20-200 guests
-                    </div>
-                    <div style="margin-bottom: 1rem;">
-                        <i class="fas fa-star" style="color: #27ae60; margin-right: 0.5rem;"></i>
-                        <strong>Features:</strong> Business-appropriate menus, quick service, dietary accommodations
-                    </div>
-                </div>
-                <div class="package-card" style="background: white; border-radius: 15px; padding: 1.5rem; box-shadow: 0 8px 32px rgba(39,174,96,0.1); border: 2px solid #27ae60;">
-                    <h3 style="color: #27ae60; margin-bottom: 1rem; font-size: 1.4rem;">Private Parties</h3>
-                    <div style="margin-bottom: 1rem;">
-                        <i class="fas fa-glass-cheers" style="color: #27ae60; margin-right: 0.5rem;"></i>
-                        <strong>Services:</strong> Casual dining, themed parties, family gatherings
-                    </div>
-                    <div style="margin-bottom: 1rem;">
-                        <i class="fas fa-users" style="color: #27ae60; margin-right: 0.5rem;"></i>
-                        <strong>Capacity:</strong> 10-100 guests
-                    </div>
-                    <div style="margin-bottom: 1rem;">
-                        <i class="fas fa-star" style="color: #27ae60; margin-right: 0.5rem;"></i>
-                        <strong>Features:</strong> Flexible menus, fun presentations, personalized service
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Professional Booking Section -->
-        <section class="booking-section" style="margin: 4rem 0; padding: 3rem; background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); border-radius: 20px; color: white;">
-            <div style="max-width: 800px; margin: 0 auto; text-align: center;">
-                <h2 style="font-family: 'UnifrakturCook', cursive; margin-bottom: 1rem; font-size: 2.5rem;">Book Your Event Catering</h2>
-                <p style="font-size: 1.2rem; margin-bottom: 2rem; opacity: 0.9;">Ready to make your event unforgettable? Contact us for personalized catering packages and exceptional service.</p>
-
-                <div style="display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap;">
-                    <div style="text-align: center;">
-                        <i class="fas fa-phone" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
-                        <div style="font-weight: 600;">Call Us</div>
-                        <a href="tel:+254786181670" style="color: white; text-decoration: none; display: block;">+254 786 181 670</a>
-                        <a href="tel:+254759995245" style="color: white; text-decoration: none; display: block;">+254 759 995 245</a>
-                    </div>
-                    <div style="text-align: center;">
-                        <i class="fas fa-envelope" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
-                        <div style="font-weight: 600;">Email Us</div>
-                        <div>info@aticascafe.com</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <i class="fas fa-clock" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
-                        <div style="font-weight: 600;">Business Hours</div>
-                        <div>Mon-Sat: 6AM-12AM</div>
-                    </div>
-                </div>
-
-                <button id="bookCateringBtn" class="menu-btn" style="background: white; color: #27ae60; border: none; padding: 1rem 2rem; font-size: 1.2rem; font-weight: 600; border-radius: 10px; cursor: pointer; transition: all 0.3s;">Book Your Catering Now</button>
-            </div>
-        </section>
-
-        <div style="max-width:800px;margin:0 auto 2rem auto;text-align:center;">
-            <p>Experience exceptional catering services with ATICAS CAFE'. We specialize in creating memorable dining experiences for all types of events.</p>
-        </div>
-        <div class="services-list" style="display:flex;flex-direction:column;gap:2.5rem;align-items:center;">
-            <!-- Wedding Ceremony -->
-            <h3 class="typewriter-on-scroll" style="color:#27ae60;">Wedding Ceremony</h3>
-            <div style="display:flex;justify-content:center;margin-bottom:1rem;">
-                <img src="images/wed.jpeg" alt="Wedding Catering" style="width:300px;height:200px;object-fit:cover;border-radius:10px;box-shadow:0 2px 8px rgba(39,174,96,0.08);">
-            </div>
-            <p class="typewriter-on-scroll" style="max-width:600px;text-align:center;margin-bottom:2rem;">Elegant catering and service for your special wedding day, tailored to your unique celebration.</p>
-            <!-- Family Meeting -->
-            <h3 class="typewriter-on-scroll" style="color:#27ae60;">Family Meeting</h3>
-            <div style="display:flex;justify-content:center;margin-bottom:1rem;">
-                <img src="images/family.jpeg" alt="Family Catering" style="width:300px;height:200px;object-fit:cover;border-radius:10px;box-shadow:0 2px 8px rgba(39,174,96,0.08);">
-            </div>
-            <p class="typewriter-on-scroll" style="max-width:600px;text-align:center;margin-bottom:2rem;">Delicious meals and a warm atmosphere for family gatherings, reunions, and special moments together.</p>
-            <!-- Graduation Ceremony -->
-            <h3 class="typewriter-on-scroll" style="color:#27ae60;">Graduation Ceremony</h3>
-            <div style="display:flex;justify-content:center;margin-bottom:1rem;">
-                <img src="images/grad.jpeg" alt="Graduation Catering" style="width:300px;height:200px;object-fit:cover;border-radius:10px;box-shadow:0 2px 8px rgba(39,174,96,0.08);">
-            </div>
-            <p class="typewriter-on-scroll" style="max-width:600px;text-align:center;margin-bottom:2rem;">Celebrate academic achievements with professional catering for graduates, families, and friends.</p>
-            <!-- Ruracio -->
-            <h3 class="typewriter-on-scroll" style="color:#27ae60;">Ruracio</h3>
-            <div style="display:flex;justify-content:center;margin-bottom:1rem;">
-                <img src="images/ruracio.png" alt="Ruracio Catering" style="width:300px;height:200px;object-fit:cover;border-radius:10px;box-shadow:0 2px 8px rgba(39,174,96,0.08);">
-            </div>
-            <p class="typewriter-on-scroll" style="max-width:600px;text-align:center;margin-bottom:2rem;">Authentic and memorable catering for traditional Ruracio ceremonies and cultural celebrations.</p>
-        </div>
-
-        <!-- Catering Gallery Section -->
-        <section class="gallery-section" style="margin: 4rem 0; padding: 2rem;">
-            <h2 style="text-align: center; color: #27ae60; font-family: 'UnifrakturCook', cursive; margin-bottom: 2rem; font-size: 2.5rem;">Our Catering Equipment & Past Events</h2>
-            <div style="max-width: 1200px; margin: 0 auto;">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
-                    <div class="gallery-item" style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 8px 32px rgba(39,174,96,0.1);">
-                        <img src="images/outside.jpeg" alt="Catering Equipment" style="width: 100%; height: 200px; object-fit: cover;">
-                        <div style="padding: 1rem;">
-                            <h4 style="color: #27ae60; margin: 0 0 0.5rem 0;">Outdoor Setup</h4>
-                            <p style="margin: 0; color: #666; font-size: 0.9rem;">Professional outdoor catering equipment for garden parties and beach events.</p>
-                        </div>
-                    </div>
-                    <div class="gallery-item" style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 8px 32px rgba(39,174,96,0.1);">
-                        <img src="images/out.jpeg" alt="Event Catering" style="width: 100%; height: 200px; object-fit: cover;">
-                        <div style="padding: 1rem;">
-                            <h4 style="color: #27ae60; margin: 0 0 0.5rem 0;">Corporate Event</h4>
-                            <p style="margin: 0; color: #666; font-size: 0.9rem;">Elegant buffet setup for corporate meetings and conferences.</p>
-                        </div>
-                    </div>
-                    <div class="gallery-item" style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 8px 32px rgba(39,174,96,0.1);">
-                        <img src="images/comm.jpeg" alt="Community Event" style="width: 100%; height: 200px; object-fit: cover;">
-                        <div style="padding: 1rem;">
-                            <h4 style="color: #27ae60; margin: 0 0 0.5rem 0;">Community Gathering</h4>
-                            <p style="margin: 0; color: #666; font-size: 0.9rem;">Large-scale catering for community events and celebrations.</p>
-                        </div>
-                    </div>
-                    <div class="gallery-item" style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 8px 32px rgba(39,174,96,0.1);">
-                        <img src="images/birth.jpeg" alt="Birthday Party" style="width: 100%; height: 200px; object-fit: cover;">
-                        <div style="padding: 1rem;">
-                            <h4 style="color: #27ae60; margin: 0 0 0.5rem 0;">Birthday Celebration</h4>
-                            <p style="margin: 0; color: #666; font-size: 0.9rem;">Fun and festive catering for birthday parties and special occasions.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Professional Booking Form Modal -->
-        <div id="bookingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; overflow-y: auto;">
-            <div style="max-width: 600px; margin: 2rem auto; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
-                <div style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); color: white; padding: 2rem; text-align: center;">
-                    <img src="images/1b.jpg" alt="Aticas Cafe Logo" style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 1rem; border: 3px solid rgba(255,255,255,0.3);">
-                    <h2 style="font-family: 'UnifrakturCook', cursive; margin: 0; font-size: 2.5rem;">ATICAS Catering</h2>
-                    <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Your Event Catering Specialists</p>
-                </div>
-
-                <form id="cateringBookingForm" style="padding: 2rem;">
-                    <!-- Payment Notice -->
-                    <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
-                        <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
-                            <i class="fas fa-info-circle" style="color: #856404; margin-right: 0.5rem;"></i>
-                            <h4 style="color: #856404; margin: 0; font-size: 1.1rem;">Payment Information</h4>
-                        </div>
-                        <p style="color: #856404; margin: 0; font-size: 0.95rem; line-height: 1.4;">A 70% deposit is required to confirm your booking. The remaining 30% is due before the event. Detailed pricing will be provided after consultation.</p>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-                        <div>
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Full Name *</label>
-                            <input type="text" name="name" required style="width: 100%; padding: 0.8rem; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;" onfocus="this.style.borderColor='#27ae60'" onblur="this.style.borderColor='#e1e5e9'">
-                        </div>
-                        <div>
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Phone Number *</label>
-                            <input type="tel" name="phone" required style="width: 100%; padding: 0.8rem; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;" onfocus="this.style.borderColor='#27ae60'" onblur="this.style.borderColor='#e1e5e9'">
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom: 1.5rem;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Email Address *</label>
-                        <input type="email" name="email" required style="width: 100%; padding: 0.8rem; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;" onfocus="this.style.borderColor='#27ae60'" onblur="this.style.borderColor='#e1e5e9'">
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-                        <div>
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Event Type *</label>
-                            <select name="eventType" required style="width: 100%; padding: 0.8rem; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;" onfocus="this.style.borderColor='#27ae60'" onblur="this.style.borderColor='#e1e5e9'">
-                                <option value="">Select Event Type</option>
-                                <option value="Wedding">Wedding</option>
-                                <option value="Corporate Event">Corporate Event</option>
-                                <option value="Private Party">Private Party</option>
-                                <option value="Graduation">Graduation</option>
-                                <option value="Ruracio">Ruracio</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Event Date *</label>
-                            <input type="date" name="date" required style="width: 100%; padding: 0.8rem; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;" onfocus="this.style.borderColor='#27ae60'" onblur="this.style.borderColor='#e1e5e9'">
-                        </div>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-                        <div>
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Number of Guests *</label>
-                            <input type="number" name="guests" required min="1" style="width: 100%; padding: 0.8rem; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;" onfocus="this.style.borderColor='#27ae60'" onblur="this.style.borderColor='#e1e5e9'">
-                        </div>
-                        <div>
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Event Location *</label>
-                            <input type="text" name="location" required style="width: 100%; padding: 0.8rem; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;" onfocus="this.style.borderColor='#27ae60'" onblur="this.style.borderColor='#e1e5e9'">
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom: 1.5rem;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Estimated Budget (Ksh)</label>
-                        <input type="number" name="estimatedCost" min="0" step="1000" placeholder="Optional - we'll provide detailed pricing" style="width: 100%; padding: 0.8rem; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;" onfocus="this.style.borderColor='#27ae60'" onblur="this.style.borderColor='#e1e5e9'">
-                    </div>
-
-                    <div style="margin-bottom: 2rem;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Special Requirements</label>
-                        <textarea name="notes" placeholder="Dietary restrictions, setup preferences, special requests..." style="width: 100%; padding: 0.8rem; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1rem; min-height: 80px; transition: border-color 0.3s;" onfocus="this.style.borderColor='#27ae60'" onblur="this.style.borderColor='#e1e5e9'"></textarea>
-                    </div>
-
-                    <div style="display: flex; gap: 1rem; justify-content: center;">
-                        <button type="submit" style="background: #27ae60; color: white; border: none; padding: 1rem 2rem; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: background 0.3s;" onmouseover="this.style.background='#219150'" onmouseout="this.style.background='#27ae60'">Submit Booking Request</button>
-                        <button type="button" id="closeCateringForm" style="background: #6c757d; color: white; border: none; padding: 1rem 2rem; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: background 0.3s;" onmouseover="this.style.background='#5a6268'" onmouseout="this.style.background='#6c757d'">Cancel</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="social-icons">
-            <a href="#"><i class="fab fa-facebook"></i></a>
-            <a href="#"><i class="fab fa-twitter"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
-            <a href="#"><i class="fab fa-linkedin"></i></a>
-            <a href="#"><i class="fab fa-youtube"></i></a>
-        </div>
-        <p class="built-by">
-            Proudly built with <i class="fas fa-heart" style="color:red"></i>
-        </p>
-        <p class="copyright">
-            &copy; 2025 Aticas Cafe. All rights reserved.
-        </p>
-    </footer>
-
-    <script src="js/script.js"></script>
-    <script>
-    // Modal functionality
-    const bookingModal = document.getElementById('bookingModal');
-    const bookCateringBtn = document.getElementById('bookCateringBtn');
-    const closeCateringForm = document.getElementById('closeCateringForm');
-
-    // Show modal
-    bookCateringBtn.onclick = function() {
-        bookingModal.style.display = 'block';
-        document.body.style.overflow = 'hidden'; // Prevent background scrolling
-    };
-
-    // Close modal
-    closeCateringForm.onclick = function() {
-        bookingModal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-    };
-
-    // Close modal when clicking outside
-    bookingModal.onclick = function(e) {
-        if (e.target === bookingModal) {
-            bookingModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
-    };
-
-    // Form submission
-    document.getElementById('cateringBookingForm').onsubmit = async function(e) {
-        e.preventDefault();
-        const form = e.target;
-        const estimatedCost = parseFloat(form.estimatedCost.value) || 0;
-        const depositRequired = Math.round(estimatedCost * 0.7);
-
-        const data = {
-            type: 'catering',
-            name: form.name.value,
-            phone: form.phone.value,
-            email: form.email.value,
-            eventType: form.eventType.value,
-            date: form.date.value,
-            guests: form.guests.value,
-            location: form.location.value,
-            notes: form.notes.value,
-            estimatedCost: estimatedCost,
-            depositRequired: depositRequired
-        };
-
-        // Show loading state
-        const submitBtn = form.querySelector('button[type="submit"]');
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = 'Submitting...';
-        submitBtn.disabled = true;
-
-        try {
-            const res = await fetch('https://aticas-backend.onrender.com/api/bookings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-
-            if (!res.ok) throw new Error('Failed to submit booking');
-
-            const result = await res.json();
-
-            // Success message
-            alert('🎉 Booking request submitted successfully!\n\nYou will be contacted within 24 hours with detailed pricing and payment instructions.');
-
-            // Store booking for guest users
-            const token = localStorage.getItem('userToken');
-            if (!token) {
-                try {
-                    const existing = JSON.parse(localStorage.getItem('guestBookings') || '[]');
-                    existing.unshift(result.booking);
-                    localStorage.setItem('guestBookings', JSON.stringify(existing.slice(0, 20)));
-                } catch (_) {
-                    localStorage.setItem('guestBookings', JSON.stringify([result.booking]));
+            @media (max-width: 900px) {
+                .catering-hero-bg-wrapper {
+                    max-width: 98vw;
+                    height: 320px;
+                }
+                .catering-intro-on-bg {
+                    font-size: 0.95rem;
+                    padding: 0.3rem 0.5rem;
+                    left: 50%;
+                    bottom: 0.5rem;
+                    max-width: 80%;
+                    transform: translateX(-50%);
+                }
+                .slider-arrow {
+                    width: 36px;
+                    height: 36px;
+                    font-size: 1.3rem;
                 }
             }
 
-            // Close modal and reset form
-            bookingModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            form.reset();
+            /* Catering Packages Responsive */
+            @media (max-width: 768px) {
+                .catering-packages-section {
+                    margin: 2rem 0;
+                    padding: 1rem;
+                }
+                .catering-packages-section h2 {
+                    font-size: 2rem;
+                }
+                .package-card {
+                    padding: 1rem;
+                }
+            }
 
-        } catch (err) {
-            console.error('Booking submission error:', err);
-            alert('❌ Failed to submit booking. Please check your internet connection and try again.');
-        } finally {
-            // Reset button state
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-        }
-    };
-    </script>
-<script>
-(function() {
-    const images = document.querySelectorAll('.catering-slider-img');
-    let current = 0;
-    let autoSlideInterval;
-    const leftArrow = document.querySelector('.slider-arrow-left');
-    const rightArrow = document.querySelector('.slider-arrow-right');
-    function showImage(idx) {
-        images.forEach((img, i) => {
-            img.classList.toggle('active', i === idx);
-        });
-    }
-    function nextImage() {
-        current = (current + 1) % images.length;
-        showImage(current);
-    }
-    function prevImage() {
-        current = (current - 1 + images.length) % images.length;
-        showImage(current);
-    }
-    rightArrow.onclick = () => {
-        nextImage();
-        resetInterval();
-    };
-    leftArrow.onclick = () => {
-        prevImage();
-        resetInterval();
-    };
-    function resetInterval() {
-        clearInterval(autoSlideInterval);
-        autoSlideInterval = setInterval(nextImage, 4000);
-    }
-    autoSlideInterval = setInterval(nextImage, 4000);
-})();
-</script>
-</body>
-</html> 
+            /* Gallery Responsive */
+            @media (max-width: 768px) {
+                .gallery-section {
+                    margin: 2rem 0;
+                    padding: 1rem;
+                }
+                .gallery-section h2 {
+                    font-size: 2rem;
+                }
+                .gallery-item {
+                    margin-bottom: 1rem;
+                }
+            }
+
+            /* Booking Section Responsive */
+            @media (max-width: 768px) {
+                .booking-section {
+                    margin: 2rem 0;
+                    padding: 2rem 1rem;
+                }
+                .booking-section h2 {
+                    font-size: 2rem;
+                }
+                .booking-section .menu-btn {
+                    padding: 0.8rem 1.5rem;
+                    font-size: 1rem;
+                }
+            }
+
+            /* Modal Responsive */
+            @media (max-width: 768px) {
+                #bookingModal {
+                    padding: 1rem;
+                }
+                #bookingModal > div {
+                    margin: 1rem auto;
+                    max-width: 95vw;
+                }
+                #cateringBookingForm {
+                    padding: 1rem;
+                }
+                #cateringBookingForm .grid-cols-2 {
+                    grid-template-columns: 1fr;
+                    gap: 1rem;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Navbar -->
+        <nav class="navbar">
+            <div class="navbar-left">
+                <img src="images/1b.jpg" alt="Cafeteria Logo" class="logo" />
+                <span class="cafeteria-name">ATICAS CAFE'</span>
+            </div>
+            <div class="navbar-center">
+                <div class="moving-text">
+                    Welcome to <b>Aticas Cafe'</b>. Your Hospitality Partner -
+                    Enjoy our freshly prepared meals at affordable prices! Open
+                    from Mon - Sat @ 6:00am - 12:00am
+                </div>
+            </div>
+            <div class="navbar-right">
+                <a href="cart.html" class="cart-icon"
+                    ><i class="fas fa-shopping-cart"></i
+                    ><span class="cart-count" id="cartCount">0</span></a
+                >
+                <button class="login-btn" id="loginBtn">Login</button>
+                <div class="hamburger-menu" id="hamburgerMenu">
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Mobile Menu -->
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="index.html"><i class="fas fa-home"></i> Home</a>
+            <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
+            <a href="menu.html"><i class="fas fa-utensils"></i> Menu</a>
+            <a href="butchery.html"
+                ><i class="fas fa-double-knives"></i> Butchery</a
+            >
+            <a href="our-services.html"
+                ><i class="fas fa-concierge-bell"></i> Our Services</a
+            >
+            <a href="orders.html"><i class="fas fa-receipt"></i> My Orders</a>
+            <a href="contact.html"><i class="fas fa-envelope"></i> Contact</a>
+            <a href="gallery.html"><i class="fas fa-gallery"></i> Gallery</a>
+        </div>
+
+        <!-- Outside Catering Content -->
+        <section class="about-section">
+            <h2 class="about-heading typewriter-on-scroll">
+                Outside Catering Services
+            </h2>
+            <div class="catering-hero-bg-wrapper">
+                <div class="catering-slider-bg">
+                    <img
+                        class="catering-slider-img active"
+                        src="images/ruracio.png"
+                        alt="Catering Slide"
+                    />
+                    <img
+                        class="catering-slider-img"
+                        src="images/out.jpeg"
+                        alt="Catering Slide"
+                    />
+                    <img
+                        class="catering-slider-img"
+                        src="images/outside.jpeg"
+                        alt="Catering Slide"
+                    />
+                    <img
+                        class="catering-slider-img"
+                        src="images/wed.jpeg"
+                        alt="Catering Slide"
+                    />
+                    <img
+                        class="catering-slider-img"
+                        src="images/grad.jpeg"
+                        alt="Catering Slide"
+                    />
+                    <div class="catering-slider-overlay"></div>
+                    <button
+                        class="slider-arrow slider-arrow-left"
+                        aria-label="Previous image"
+                    >
+                        &#8592;
+                    </button>
+                    <button
+                        class="slider-arrow slider-arrow-right"
+                        aria-label="Next image"
+                    >
+                        &#8594;
+                    </button>
+                </div>
+                <div class="catering-intro-on-bg typewriter-on-scroll">
+                    ATICAS CAFE' offers professional outside catering for all
+                    your events. We bring our delicious meals and exceptional
+                    service to your location, ensuring your guests enjoy a
+                    memorable experience.
+                </div>
+            </div>
+            <!-- Catering Packages Section -->
+            <section
+                class="catering-packages-section"
+                style="
+                    margin: 4rem 0;
+                    padding: 2rem;
+                    background: linear-gradient(
+                        135deg,
+                        #f8f9fa 0%,
+                        #e9ecef 100%
+                    );
+                    border-radius: 20px;
+                "
+            >
+                <h2
+                    style="
+                        text-align: center;
+                        color: #27ae60;
+                        font-family: &quot;UnifrakturCook&quot;, cursive;
+                        margin-bottom: 2rem;
+                        font-size: 2.5rem;
+                    "
+                >
+                    Catering Packages & Services
+                </h2>
+                <div
+                    style="
+                        max-width: 1200px;
+                        margin: 0 auto;
+                        display: grid;
+                        grid-template-columns: repeat(
+                            auto-fit,
+                            minmax(300px, 1fr)
+                        );
+                        gap: 2rem;
+                    "
+                >
+                    <div
+                        class="package-card"
+                        style="
+                            background: white;
+                            border-radius: 15px;
+                            padding: 1.5rem;
+                            box-shadow: 0 8px 32px rgba(39, 174, 96, 0.1);
+                            border: 2px solid #27ae60;
+                        "
+                    >
+                        <h3
+                            style="
+                                color: #27ae60;
+                                margin-bottom: 1rem;
+                                font-size: 1.4rem;
+                            "
+                        >
+                            Wedding Catering
+                        </h3>
+                        <div style="margin-bottom: 1rem">
+                            <i
+                                class="fas fa-utensils"
+                                style="color: #27ae60; margin-right: 0.5rem"
+                            ></i>
+                            <strong>Services:</strong> Full course meals, cake
+                            service, beverage packages
+                        </div>
+                        <div style="margin-bottom: 1rem">
+                            <i
+                                class="fas fa-users"
+                                style="color: #27ae60; margin-right: 0.5rem"
+                            ></i>
+                            <strong>Capacity:</strong> 50-500 guests
+                        </div>
+                        <div style="margin-bottom: 1rem">
+                            <i
+                                class="fas fa-star"
+                                style="color: #27ae60; margin-right: 0.5rem"
+                            ></i>
+                            <strong>Features:</strong> Custom menus,
+                            professional staff, setup/cleanup
+                        </div>
+                    </div>
+                    <div
+                        class="package-card"
+                        style="
+                            background: white;
+                            border-radius: 15px;
+                            padding: 1.5rem;
+                            box-shadow: 0 8px 32px rgba(39, 174, 96, 0.1);
+                            border: 2px solid #27ae60;
+                        "
+                    >
+                        <h3
+                            style="
+                                color: #27ae60;
+                                margin-bottom: 1rem;
+                                font-size: 1.4rem;
+                            "
+                        >
+                            Corporate Events
+                        </h3>
+                        <div style="margin-bottom: 1rem">
+                            <i
+                                class="fas fa-briefcase"
+                                style="color: #27ae60; margin-right: 0.5rem"
+                            ></i>
+                            <strong>Services:</strong> Buffet style, coffee
+                            breaks, themed catering
+                        </div>
+                        <div style="margin-bottom: 1rem">
+                            <i
+                                class="fas fa-users"
+                                style="color: #27ae60; margin-right: 0.5rem"
+                            ></i>
+                            <strong>Capacity:</strong> 20-200 guests
+                        </div>
+                        <div style="margin-bottom: 1rem">
+                            <i
+                                class="fas fa-star"
+                                style="color: #27ae60; margin-right: 0.5rem"
+                            ></i>
+                            <strong>Features:</strong> Business-appropriate
+                            menus, quick service, dietary accommodations
+                        </div>
+                    </div>
+                    <div
+                        class="package-card"
+                        style="
+                            background: white;
+                            border-radius: 15px;
+                            padding: 1.5rem;
+                            box-shadow: 0 8px 32px rgba(39, 174, 96, 0.1);
+                            border: 2px solid #27ae60;
+                        "
+                    >
+                        <h3
+                            style="
+                                color: #27ae60;
+                                margin-bottom: 1rem;
+                                font-size: 1.4rem;
+                            "
+                        >
+                            Private Parties
+                        </h3>
+                        <div style="margin-bottom: 1rem">
+                            <i
+                                class="fas fa-glass-cheers"
+                                style="color: #27ae60; margin-right: 0.5rem"
+                            ></i>
+                            <strong>Services:</strong> Casual dining, themed
+                            parties, family gatherings
+                        </div>
+                        <div style="margin-bottom: 1rem">
+                            <i
+                                class="fas fa-users"
+                                style="color: #27ae60; margin-right: 0.5rem"
+                            ></i>
+                            <strong>Capacity:</strong> 10-100 guests
+                        </div>
+                        <div style="margin-bottom: 1rem">
+                            <i
+                                class="fas fa-star"
+                                style="color: #27ae60; margin-right: 0.5rem"
+                            ></i>
+                            <strong>Features:</strong> Flexible menus, fun
+                            presentations, personalized service
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Professional Booking Section -->
+            <section
+                class="booking-section"
+                style="
+                    margin: 4rem 0;
+                    padding: 3rem;
+                    background: linear-gradient(
+                        135deg,
+                        #27ae60 0%,
+                        #2ecc71 100%
+                    );
+                    border-radius: 20px;
+                    color: white;
+                "
+            >
+                <div
+                    style="max-width: 800px; margin: 0 auto; text-align: center"
+                >
+                    <h2
+                        style="
+                            font-family: &quot;UnifrakturCook&quot;, cursive;
+                            margin-bottom: 1rem;
+                            font-size: 2.5rem;
+                        "
+                    >
+                        Book Your Event Catering
+                    </h2>
+                    <p
+                        style="
+                            font-size: 1.2rem;
+                            margin-bottom: 2rem;
+                            opacity: 0.9;
+                        "
+                    >
+                        Ready to make your event unforgettable? Contact us for
+                        personalized catering packages and exceptional service.
+                    </p>
+
+                    <div
+                        style="
+                            display: flex;
+                            justify-content: center;
+                            gap: 2rem;
+                            margin-bottom: 2rem;
+                            flex-wrap: wrap;
+                        "
+                    >
+                        <div style="text-align: center">
+                            <i
+                                class="fas fa-phone"
+                                style="font-size: 2rem; margin-bottom: 0.5rem"
+                            ></i>
+                            <div style="font-weight: 600">Call Us</div>
+                            <a
+                                href="tel:+254786181670"
+                                style="
+                                    color: white;
+                                    text-decoration: none;
+                                    display: block;
+                                "
+                                >+254 786 181 670</a
+                            >
+                            <a
+                                href="tel:+254759995245"
+                                style="
+                                    color: white;
+                                    text-decoration: none;
+                                    display: block;
+                                "
+                                >+254 759 995 245</a
+                            >
+                        </div>
+                        <div style="text-align: center">
+                            <i
+                                class="fas fa-envelope"
+                                style="font-size: 2rem; margin-bottom: 0.5rem"
+                            ></i>
+                            <div style="font-weight: 600">Email Us</div>
+                            <div>info@aticascafe.com</div>
+                        </div>
+                        <div style="text-align: center">
+                            <i
+                                class="fas fa-clock"
+                                style="font-size: 2rem; margin-bottom: 0.5rem"
+                            ></i>
+                            <div style="font-weight: 600">Business Hours</div>
+                            <div>Mon-Sat: 6AM-12AM</div>
+                        </div>
+                    </div>
+
+                    <button
+                        id="bookCateringBtn"
+                        class="menu-btn"
+                        style="
+                            background: white;
+                            color: #27ae60;
+                            border: none;
+                            padding: 1rem 2rem;
+                            font-size: 1.2rem;
+                            font-weight: 600;
+                            border-radius: 10px;
+                            cursor: pointer;
+                            transition: all 0.3s;
+                        "
+                    >
+                        Book Your Catering Now
+                    </button>
+                </div>
+            </section>
+
+            <div
+                style="
+                    max-width: 800px;
+                    margin: 0 auto 2rem auto;
+                    text-align: center;
+                "
+            >
+                <p>
+                    Experience exceptional catering services with ATICAS CAFE'.
+                    We specialize in creating memorable dining experiences for
+                    all types of events.
+                </p>
+            </div>
+            <div
+                class="services-list"
+                style="
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2.5rem;
+                    align-items: center;
+                "
+            >
+                <!-- Wedding Ceremony -->
+                <h3 class="typewriter-on-scroll" style="color: #27ae60">
+                    Wedding Ceremony
+                </h3>
+                <div
+                    style="
+                        display: flex;
+                        justify-content: center;
+                        margin-bottom: 1rem;
+                    "
+                >
+                    <img
+                        src="images/wed.jpeg"
+                        alt="Wedding Catering"
+                        style="
+                            width: 300px;
+                            height: 200px;
+                            object-fit: cover;
+                            border-radius: 10px;
+                            box-shadow: 0 2px 8px rgba(39, 174, 96, 0.08);
+                        "
+                    />
+                </div>
+                <p
+                    class="typewriter-on-scroll"
+                    style="
+                        max-width: 600px;
+                        text-align: center;
+                        margin-bottom: 2rem;
+                    "
+                >
+                    Elegant catering and service for your special wedding day,
+                    tailored to your unique celebration.
+                </p>
+                <!-- Family Meeting -->
+                <h3 class="typewriter-on-scroll" style="color: #27ae60">
+                    Family Meeting
+                </h3>
+                <div
+                    style="
+                        display: flex;
+                        justify-content: center;
+                        margin-bottom: 1rem;
+                    "
+                >
+                    <img
+                        src="images/family.jpeg"
+                        alt="Family Catering"
+                        style="
+                            width: 300px;
+                            height: 200px;
+                            object-fit: cover;
+                            border-radius: 10px;
+                            box-shadow: 0 2px 8px rgba(39, 174, 96, 0.08);
+                        "
+                    />
+                </div>
+                <p
+                    class="typewriter-on-scroll"
+                    style="
+                        max-width: 600px;
+                        text-align: center;
+                        margin-bottom: 2rem;
+                    "
+                >
+                    Delicious meals and a warm atmosphere for family gatherings,
+                    reunions, and special moments together.
+                </p>
+                <!-- Graduation Ceremony -->
+                <h3 class="typewriter-on-scroll" style="color: #27ae60">
+                    Graduation Ceremony
+                </h3>
+                <div
+                    style="
+                        display: flex;
+                        justify-content: center;
+                        margin-bottom: 1rem;
+                    "
+                >
+                    <img
+                        src="images/grad.jpeg"
+                        alt="Graduation Catering"
+                        style="
+                            width: 300px;
+                            height: 200px;
+                            object-fit: cover;
+                            border-radius: 10px;
+                            box-shadow: 0 2px 8px rgba(39, 174, 96, 0.08);
+                        "
+                    />
+                </div>
+                <p
+                    class="typewriter-on-scroll"
+                    style="
+                        max-width: 600px;
+                        text-align: center;
+                        margin-bottom: 2rem;
+                    "
+                >
+                    Celebrate academic achievements with professional catering
+                    for graduates, families, and friends.
+                </p>
+                <!-- Ruracio -->
+                <h3 class="typewriter-on-scroll" style="color: #27ae60">
+                    Ruracio
+                </h3>
+                <div
+                    style="
+                        display: flex;
+                        justify-content: center;
+                        margin-bottom: 1rem;
+                    "
+                >
+                    <img
+                        src="images/ruracio.png"
+                        alt="Ruracio Catering"
+                        style="
+                            width: 300px;
+                            height: 200px;
+                            object-fit: cover;
+                            border-radius: 10px;
+                            box-shadow: 0 2px 8px rgba(39, 174, 96, 0.08);
+                        "
+                    />
+                </div>
+                <p
+                    class="typewriter-on-scroll"
+                    style="
+                        max-width: 600px;
+                        text-align: center;
+                        margin-bottom: 2rem;
+                    "
+                >
+                    Authentic and memorable catering for traditional Ruracio
+                    ceremonies and cultural celebrations.
+                </p>
+            </div>
+
+            <!-- Catering Gallery Section -->
+            <section
+                class="gallery-section"
+                style="margin: 4rem 0; padding: 2rem"
+            >
+                <h2
+                    style="
+                        text-align: center;
+                        color: #27ae60;
+                        font-family: &quot;UnifrakturCook&quot;, cursive;
+                        margin-bottom: 2rem;
+                        font-size: 2.5rem;
+                    "
+                >
+                    Our Catering Equipment & Past Events
+                </h2>
+                <div style="max-width: 1200px; margin: 0 auto">
+                    <div
+                        style="
+                            display: grid;
+                            grid-template-columns: repeat(
+                                auto-fit,
+                                minmax(250px, 1fr)
+                            );
+                            gap: 1.5rem;
+                            margin-bottom: 2rem;
+                        "
+                    >
+                        <div
+                            class="gallery-item"
+                            style="
+                                background: white;
+                                border-radius: 15px;
+                                overflow: hidden;
+                                box-shadow: 0 8px 32px rgba(39, 174, 96, 0.1);
+                            "
+                        >
+                            <img
+                                src="images/outside.jpeg"
+                                alt="Catering Equipment"
+                                style="
+                                    width: 100%;
+                                    height: 200px;
+                                    object-fit: cover;
+                                "
+                            />
+                            <div style="padding: 1rem">
+                                <h4
+                                    style="color: #27ae60; margin: 0 0 0.5rem 0"
+                                >
+                                    Outdoor Setup
+                                </h4>
+                                <p
+                                    style="
+                                        margin: 0;
+                                        color: #666;
+                                        font-size: 0.9rem;
+                                    "
+                                >
+                                    Professional outdoor catering equipment for
+                                    garden parties and beach events.
+                                </p>
+                            </div>
+                        </div>
+                        <div
+                            class="gallery-item"
+                            style="
+                                background: white;
+                                border-radius: 15px;
+                                overflow: hidden;
+                                box-shadow: 0 8px 32px rgba(39, 174, 96, 0.1);
+                            "
+                        >
+                            <img
+                                src="images/out.jpeg"
+                                alt="Event Catering"
+                                style="
+                                    width: 100%;
+                                    height: 200px;
+                                    object-fit: cover;
+                                "
+                            />
+                            <div style="padding: 1rem">
+                                <h4
+                                    style="color: #27ae60; margin: 0 0 0.5rem 0"
+                                >
+                                    Corporate Event
+                                </h4>
+                                <p
+                                    style="
+                                        margin: 0;
+                                        color: #666;
+                                        font-size: 0.9rem;
+                                    "
+                                >
+                                    Elegant buffet setup for corporate meetings
+                                    and conferences.
+                                </p>
+                            </div>
+                        </div>
+                        <div
+                            class="gallery-item"
+                            style="
+                                background: white;
+                                border-radius: 15px;
+                                overflow: hidden;
+                                box-shadow: 0 8px 32px rgba(39, 174, 96, 0.1);
+                            "
+                        >
+                            <img
+                                src="images/comm.jpeg"
+                                alt="Community Event"
+                                style="
+                                    width: 100%;
+                                    height: 200px;
+                                    object-fit: cover;
+                                "
+                            />
+                            <div style="padding: 1rem">
+                                <h4
+                                    style="color: #27ae60; margin: 0 0 0.5rem 0"
+                                >
+                                    Community Gathering
+                                </h4>
+                                <p
+                                    style="
+                                        margin: 0;
+                                        color: #666;
+                                        font-size: 0.9rem;
+                                    "
+                                >
+                                    Large-scale catering for community events
+                                    and celebrations.
+                                </p>
+                            </div>
+                        </div>
+                        <div
+                            class="gallery-item"
+                            style="
+                                background: white;
+                                border-radius: 15px;
+                                overflow: hidden;
+                                box-shadow: 0 8px 32px rgba(39, 174, 96, 0.1);
+                            "
+                        >
+                            <img
+                                src="images/birth.jpeg"
+                                alt="Birthday Party"
+                                style="
+                                    width: 100%;
+                                    height: 200px;
+                                    object-fit: cover;
+                                "
+                            />
+                            <div style="padding: 1rem">
+                                <h4
+                                    style="color: #27ae60; margin: 0 0 0.5rem 0"
+                                >
+                                    Birthday Celebration
+                                </h4>
+                                <p
+                                    style="
+                                        margin: 0;
+                                        color: #666;
+                                        font-size: 0.9rem;
+                                    "
+                                >
+                                    Fun and festive catering for birthday
+                                    parties and special occasions.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Professional Booking Form Modal -->
+            <div
+                id="bookingModal"
+                style="
+                    display: none;
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    z-index: 1000;
+                    overflow-y: auto;
+                "
+            >
+                <div
+                    style="
+                        max-width: 600px;
+                        margin: 2rem auto;
+                        background: white;
+                        border-radius: 20px;
+                        overflow: hidden;
+                        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                    "
+                >
+                    <div
+                        style="
+                            background: linear-gradient(
+                                135deg,
+                                #27ae60 0%,
+                                #2ecc71 100%
+                            );
+                            color: white;
+                            padding: 2rem;
+                            text-align: center;
+                        "
+                    >
+                        <img
+                            src="images/1b.jpg"
+                            alt="Aticas Cafe Logo"
+                            style="
+                                width: 80px;
+                                height: 80px;
+                                border-radius: 50%;
+                                margin-bottom: 1rem;
+                                border: 3px solid rgba(255, 255, 255, 0.3);
+                            "
+                        />
+                        <h2
+                            style="
+                                font-family:
+                                    &quot;UnifrakturCook&quot;, cursive;
+                                margin: 0;
+                                font-size: 2.5rem;
+                            "
+                        >
+                            ATICAS Catering
+                        </h2>
+                        <p style="margin: 0.5rem 0 0 0; opacity: 0.9">
+                            Your Event Catering Specialists
+                        </p>
+                    </div>
+
+                    <form id="cateringBookingForm" style="padding: 2rem">
+                        <!-- Payment Notice -->
+                        <div
+                            style="
+                                background: #fff3cd;
+                                border: 1px solid #ffeaa7;
+                                border-radius: 12px;
+                                padding: 1.5rem;
+                                margin-bottom: 2rem;
+                            "
+                        >
+                            <div
+                                style="
+                                    display: flex;
+                                    align-items: center;
+                                    margin-bottom: 0.5rem;
+                                "
+                            >
+                                <i
+                                    class="fas fa-info-circle"
+                                    style="color: #856404; margin-right: 0.5rem"
+                                ></i>
+                                <h4
+                                    style="
+                                        color: #856404;
+                                        margin: 0;
+                                        font-size: 1.1rem;
+                                    "
+                                >
+                                    Payment Information
+                                </h4>
+                            </div>
+                            <p
+                                style="
+                                    color: #856404;
+                                    margin: 0;
+                                    font-size: 0.95rem;
+                                    line-height: 1.4;
+                                "
+                            >
+                                A 70% deposit is required to confirm your
+                                booking. The remaining 30% is due before the
+                                event. Detailed pricing will be provided after
+                                consultation.
+                            </p>
+                        </div>
+
+                        <div
+                            style="
+                                display: grid;
+                                grid-template-columns: 1fr 1fr;
+                                gap: 1rem;
+                                margin-bottom: 1.5rem;
+                            "
+                        >
+                            <div>
+                                <label
+                                    style="
+                                        display: block;
+                                        margin-bottom: 0.5rem;
+                                        font-weight: 600;
+                                        color: #333;
+                                    "
+                                    >Full Name *</label
+                                >
+                                <input
+                                    type="text"
+                                    name="name"
+                                    required
+                                    style="
+                                        width: 100%;
+                                        padding: 0.8rem;
+                                        border: 2px solid #e1e5e9;
+                                        border-radius: 8px;
+                                        font-size: 1rem;
+                                        transition: border-color 0.3s;
+                                    "
+                                    onfocus="this.style.borderColor = '#27ae60'"
+                                    onblur="this.style.borderColor = '#e1e5e9'"
+                                />
+                            </div>
+                            <div>
+                                <label
+                                    style="
+                                        display: block;
+                                        margin-bottom: 0.5rem;
+                                        font-weight: 600;
+                                        color: #333;
+                                    "
+                                    >Phone Number *</label
+                                >
+                                <input
+                                    type="tel"
+                                    name="phone"
+                                    required
+                                    style="
+                                        width: 100%;
+                                        padding: 0.8rem;
+                                        border: 2px solid #e1e5e9;
+                                        border-radius: 8px;
+                                        font-size: 1rem;
+                                        transition: border-color 0.3s;
+                                    "
+                                    onfocus="this.style.borderColor = '#27ae60'"
+                                    onblur="this.style.borderColor = '#e1e5e9'"
+                                />
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 1.5rem">
+                            <label
+                                style="
+                                    display: block;
+                                    margin-bottom: 0.5rem;
+                                    font-weight: 600;
+                                    color: #333;
+                                "
+                                >Email Address *</label
+                            >
+                            <input
+                                type="email"
+                                name="email"
+                                required
+                                style="
+                                    width: 100%;
+                                    padding: 0.8rem;
+                                    border: 2px solid #e1e5e9;
+                                    border-radius: 8px;
+                                    font-size: 1rem;
+                                    transition: border-color 0.3s;
+                                "
+                                onfocus="this.style.borderColor = '#27ae60'"
+                                onblur="this.style.borderColor = '#e1e5e9'"
+                            />
+                        </div>
+
+                        <div
+                            style="
+                                display: grid;
+                                grid-template-columns: 1fr 1fr;
+                                gap: 1rem;
+                                margin-bottom: 1.5rem;
+                            "
+                        >
+                            <div>
+                                <label
+                                    style="
+                                        display: block;
+                                        margin-bottom: 0.5rem;
+                                        font-weight: 600;
+                                        color: #333;
+                                    "
+                                    >Event Type *</label
+                                >
+                                <select
+                                    name="eventType"
+                                    required
+                                    style="
+                                        width: 100%;
+                                        padding: 0.8rem;
+                                        border: 2px solid #e1e5e9;
+                                        border-radius: 8px;
+                                        font-size: 1rem;
+                                        transition: border-color 0.3s;
+                                    "
+                                    onfocus="this.style.borderColor = '#27ae60'"
+                                    onblur="this.style.borderColor = '#e1e5e9'"
+                                >
+                                    <option value="">Select Event Type</option>
+                                    <option value="Wedding">Wedding</option>
+                                    <option value="Corporate Event">
+                                        Corporate Event
+                                    </option>
+                                    <option value="Private Party">
+                                        Private Party
+                                    </option>
+                                    <option value="Graduation">
+                                        Graduation
+                                    </option>
+                                    <option value="Ruracio">Ruracio</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label
+                                    style="
+                                        display: block;
+                                        margin-bottom: 0.5rem;
+                                        font-weight: 600;
+                                        color: #333;
+                                    "
+                                    >Event Date *</label
+                                >
+                                <input
+                                    type="date"
+                                    name="date"
+                                    required
+                                    style="
+                                        width: 100%;
+                                        padding: 0.8rem;
+                                        border: 2px solid #e1e5e9;
+                                        border-radius: 8px;
+                                        font-size: 1rem;
+                                        transition: border-color 0.3s;
+                                    "
+                                    onfocus="this.style.borderColor = '#27ae60'"
+                                    onblur="this.style.borderColor = '#e1e5e9'"
+                                />
+                            </div>
+                        </div>
+
+                        <div
+                            style="
+                                display: grid;
+                                grid-template-columns: 1fr 1fr;
+                                gap: 1rem;
+                                margin-bottom: 1.5rem;
+                            "
+                        >
+                            <div>
+                                <label
+                                    style="
+                                        display: block;
+                                        margin-bottom: 0.5rem;
+                                        font-weight: 600;
+                                        color: #333;
+                                    "
+                                    >Number of Guests *</label
+                                >
+                                <input
+                                    type="number"
+                                    name="guests"
+                                    required
+                                    min="1"
+                                    style="
+                                        width: 100%;
+                                        padding: 0.8rem;
+                                        border: 2px solid #e1e5e9;
+                                        border-radius: 8px;
+                                        font-size: 1rem;
+                                        transition: border-color 0.3s;
+                                    "
+                                    onfocus="this.style.borderColor = '#27ae60'"
+                                    onblur="this.style.borderColor = '#e1e5e9'"
+                                />
+                            </div>
+                            <div>
+                                <label
+                                    style="
+                                        display: block;
+                                        margin-bottom: 0.5rem;
+                                        font-weight: 600;
+                                        color: #333;
+                                    "
+                                    >Event Location *</label
+                                >
+                                <input
+                                    type="text"
+                                    name="location"
+                                    required
+                                    style="
+                                        width: 100%;
+                                        padding: 0.8rem;
+                                        border: 2px solid #e1e5e9;
+                                        border-radius: 8px;
+                                        font-size: 1rem;
+                                        transition: border-color 0.3s;
+                                    "
+                                    onfocus="this.style.borderColor = '#27ae60'"
+                                    onblur="this.style.borderColor = '#e1e5e9'"
+                                />
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 1.5rem">
+                            <label
+                                style="
+                                    display: block;
+                                    margin-bottom: 0.5rem;
+                                    font-weight: 600;
+                                    color: #333;
+                                "
+                                >Estimated Budget (Ksh)</label
+                            >
+                            <input
+                                type="number"
+                                name="estimatedCost"
+                                min="0"
+                                step="1000"
+                                placeholder="Optional - we'll provide detailed pricing"
+                                style="
+                                    width: 100%;
+                                    padding: 0.8rem;
+                                    border: 2px solid #e1e5e9;
+                                    border-radius: 8px;
+                                    font-size: 1rem;
+                                    transition: border-color 0.3s;
+                                "
+                                onfocus="this.style.borderColor = '#27ae60'"
+                                onblur="this.style.borderColor = '#e1e5e9'"
+                            />
+                        </div>
+
+                        <div style="margin-bottom: 2rem">
+                            <label
+                                style="
+                                    display: block;
+                                    margin-bottom: 0.5rem;
+                                    font-weight: 600;
+                                    color: #333;
+                                "
+                                >Special Requirements</label
+                            >
+                            <textarea
+                                name="notes"
+                                placeholder="Dietary restrictions, setup preferences, special requests..."
+                                style="
+                                    width: 100%;
+                                    padding: 0.8rem;
+                                    border: 2px solid #e1e5e9;
+                                    border-radius: 8px;
+                                    font-size: 1rem;
+                                    min-height: 80px;
+                                    transition: border-color 0.3s;
+                                "
+                                onfocus="this.style.borderColor = '#27ae60'"
+                                onblur="this.style.borderColor = '#e1e5e9'"
+                            ></textarea>
+                        </div>
+
+                        <div
+                            style="
+                                display: flex;
+                                gap: 1rem;
+                                justify-content: center;
+                            "
+                        >
+                            <button
+                                type="submit"
+                                style="
+                                    background: #27ae60;
+                                    color: white;
+                                    border: none;
+                                    padding: 1rem 2rem;
+                                    border-radius: 10px;
+                                    font-size: 1.1rem;
+                                    font-weight: 600;
+                                    cursor: pointer;
+                                    transition: background 0.3s;
+                                "
+                                onmouseover="this.style.background = '#219150'"
+                                onmouseout="this.style.background = '#27ae60'"
+                            >
+                                Submit Booking Request
+                            </button>
+                            <button
+                                type="button"
+                                id="closeCateringForm"
+                                style="
+                                    background: #6c757d;
+                                    color: white;
+                                    border: none;
+                                    padding: 1rem 2rem;
+                                    border-radius: 10px;
+                                    font-size: 1.1rem;
+                                    font-weight: 600;
+                                    cursor: pointer;
+                                    transition: background 0.3s;
+                                "
+                                onmouseover="this.style.background = '#5a6268'"
+                                onmouseout="this.style.background = '#6c757d'"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="social-icons">
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+            <p class="built-by">
+                Proudly built with
+                <i class="fas fa-heart" style="color: red"></i>
+            </p>
+            <p class="copyright">
+                &copy; 2025 Aticas Cafe. All rights reserved.
+            </p>
+        </footer>
+
+        <script src="js/script.js"></script>
+        <script>
+            // Modal functionality
+            const bookingModal = document.getElementById("bookingModal");
+            const bookCateringBtn = document.getElementById("bookCateringBtn");
+            const closeCateringForm =
+                document.getElementById("closeCateringForm");
+
+            // Show modal
+            bookCateringBtn.onclick = function () {
+                bookingModal.style.display = "block";
+                document.body.style.overflow = "hidden"; // Prevent background scrolling
+            };
+
+            // Close modal
+            closeCateringForm.onclick = function () {
+                bookingModal.style.display = "none";
+                document.body.style.overflow = "auto";
+            };
+
+            // Close modal when clicking outside
+            bookingModal.onclick = function (e) {
+                if (e.target === bookingModal) {
+                    bookingModal.style.display = "none";
+                    document.body.style.overflow = "auto";
+                }
+            };
+
+            // Form submission
+            document.getElementById("cateringBookingForm").onsubmit =
+                async function (e) {
+                    e.preventDefault();
+                    const form = e.target;
+                    const estimatedCost =
+                        parseFloat(form.estimatedCost.value) || 0;
+                    const depositRequired = Math.round(estimatedCost * 0.7);
+
+                    const data = {
+                        type: "catering",
+                        name: form.name.value,
+                        phone: form.phone.value,
+                        email: form.email.value,
+                        eventType: form.eventType.value,
+                        date: new Date(form.date.value),
+                        guests: parseInt(form.guests.value) || 0,
+                        location: form.location.value,
+                        notes: form.notes.value || "",
+                        totalAmount: estimatedCost || 0,
+                        depositRequired: depositRequired,
+                    };
+
+                    // Show loading state
+                    const submitBtn = form.querySelector(
+                        'button[type="submit"]',
+                    );
+                    const originalText = submitBtn.textContent;
+                    submitBtn.textContent = "Submitting...";
+                    submitBtn.disabled = true;
+
+                    try {
+                        const res = await fetch(
+                            "https://aticas-backend.onrender.com/api/bookings",
+                            {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify(data),
+                            },
+                        );
+
+                        if (!res.ok) {
+                            const errorData = await res.text();
+                            console.error("Backend error response:", errorData);
+                            throw new Error(
+                                `Failed to submit booking: ${res.status}`,
+                            );
+                        }
+
+                        const result = await res.json();
+
+                        // Success message
+                        alert(
+                            "🎉 Booking request submitted successfully!\n\nYou will be contacted within 24 hours with detailed pricing and payment instructions.",
+                        );
+
+                        // Store booking for guest users
+                        const token = localStorage.getItem("userToken");
+                        if (!token) {
+                            try {
+                                const existing = JSON.parse(
+                                    localStorage.getItem("guestBookings") ||
+                                        "[]",
+                                );
+                                existing.unshift(result.booking);
+                                localStorage.setItem(
+                                    "guestBookings",
+                                    JSON.stringify(existing.slice(0, 20)),
+                                );
+                            } catch (_) {
+                                localStorage.setItem(
+                                    "guestBookings",
+                                    JSON.stringify([result.booking]),
+                                );
+                            }
+                        }
+
+                        // Close modal and reset form
+                        bookingModal.style.display = "none";
+                        document.body.style.overflow = "auto";
+                        form.reset();
+                    } catch (err) {
+                        console.error("Booking submission error:", err);
+                        alert(
+                            `❌ Failed to submit booking: ${err.message}. Please check your details and try again.`,
+                        );
+                    } finally {
+                        // Reset button state
+                        submitBtn.textContent = originalText;
+                        submitBtn.disabled = false;
+                    }
+                };
+        </script>
+        <script>
+            (function () {
+                const images = document.querySelectorAll(
+                    ".catering-slider-img",
+                );
+                let current = 0;
+                let autoSlideInterval;
+                const leftArrow = document.querySelector(".slider-arrow-left");
+                const rightArrow = document.querySelector(
+                    ".slider-arrow-right",
+                );
+                function showImage(idx) {
+                    images.forEach((img, i) => {
+                        img.classList.toggle("active", i === idx);
+                    });
+                }
+                function nextImage() {
+                    current = (current + 1) % images.length;
+                    showImage(current);
+                }
+                function prevImage() {
+                    current = (current - 1 + images.length) % images.length;
+                    showImage(current);
+                }
+                rightArrow.onclick = () => {
+                    nextImage();
+                    resetInterval();
+                };
+                leftArrow.onclick = () => {
+                    prevImage();
+                    resetInterval();
+                };
+                function resetInterval() {
+                    clearInterval(autoSlideInterval);
+                    autoSlideInterval = setInterval(nextImage, 4000);
+                }
+                autoSlideInterval = setInterval(nextImage, 4000);
+            })();
+        </script>
+    </body>
+</html>

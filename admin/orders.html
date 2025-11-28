@@ -15,6 +15,154 @@
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         />
+        <style>
+            /* Notification System Styles */
+            .notification-container {
+                position: relative;
+                margin-right: 1rem;
+            }
+            .notification-bell {
+                background: none;
+                border: none;
+                color: #fff;
+                font-size: 1.2rem;
+                cursor: pointer;
+                position: relative;
+                padding: 0.5rem;
+                border-radius: 50%;
+                transition: background 0.2s;
+            }
+            .notification-bell:hover {
+                background: rgba(255, 255, 255, 0.1);
+            }
+            .notification-count {
+                position: absolute;
+                top: 0;
+                right: 0;
+                background: #e74c3c;
+                color: white;
+                border-radius: 50%;
+                width: 18px;
+                height: 18px;
+                font-size: 0.7rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+            }
+            .notification-dropdown {
+                position: absolute;
+                top: 100%;
+                right: 0;
+                width: 320px;
+                background: white;
+                border-radius: 8px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+                border: 1px solid #e0e0e0;
+                max-height: 400px;
+                overflow-y: auto;
+                z-index: 10000;
+                display: none;
+            }
+            .notification-dropdown.show {
+                display: block;
+                animation: notificationSlideIn 0.3s ease-out;
+            }
+            @keyframes notificationSlideIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            .notification-header {
+                padding: 1rem;
+                border-bottom: 1px solid #f0f0f0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: #f8f9fa;
+                border-radius: 8px 8px 0 0;
+            }
+            .notification-header h4 {
+                margin: 0;
+                color: #27ae60;
+                font-size: 1.1rem;
+                font-weight: 600;
+            }
+            .mark-all-read {
+                background: none;
+                border: none;
+                color: #27ae60;
+                font-size: 0.8rem;
+                cursor: pointer;
+                text-decoration: underline;
+                font-weight: 500;
+            }
+            .notification-list {
+                max-height: 300px;
+                overflow-y: auto;
+            }
+            .notification-item {
+                padding: 0.8rem 1rem;
+                border-bottom: 1px solid #f0f0f0;
+                cursor: pointer;
+                transition: background 0.2s;
+                position: relative;
+            }
+            .notification-item:hover {
+                background: #f8f9fa;
+            }
+            .notification-item.unread {
+                background: #e8f5e8;
+                border-left: 4px solid #27ae60;
+            }
+            .notification-title {
+                font-weight: 600;
+                color: #2c3e50;
+                margin-bottom: 0.3rem;
+                font-size: 0.9rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            .notification-message {
+                color: #666;
+                font-size: 0.8rem;
+                margin-bottom: 0.3rem;
+                line-height: 1.4;
+            }
+            .notification-time {
+                color: #999;
+                font-size: 0.7rem;
+                font-style: italic;
+            }
+            .no-notifications {
+                padding: 2rem 1rem;
+                text-align: center;
+                color: #999;
+                font-style: italic;
+                font-size: 0.9rem;
+            }
+            .notification-bell.has-new {
+                animation: bellShake 0.5s ease-in-out;
+            }
+            @keyframes bellShake {
+                0%,
+                100% {
+                    transform: rotate(0deg);
+                }
+                25% {
+                    transform: rotate(-10deg);
+                }
+                75% {
+                    transform: rotate(10deg);
+                }
+            }
+        </style>
     </head>
     <body>
         <!-- Admin Navbar -->
@@ -28,6 +176,39 @@
                 <span class="cafeteria-name">ATICAS CAFE' - Admin</span>
             </div>
             <div class="admin-navbar-right">
+                <!-- Notification Bell -->
+                <div class="notification-container">
+                    <button
+                        class="notification-bell"
+                        id="notificationBell"
+                        title="Notifications"
+                    >
+                        <i class="fas fa-bell"></i>
+                        <span
+                            class="notification-count"
+                            id="notificationCount"
+                            style="display: none"
+                            >0</span
+                        >
+                    </button>
+                    <div
+                        class="notification-dropdown"
+                        id="notificationDropdown"
+                    >
+                        <div class="notification-header">
+                            <h4><i class="fas fa-bell"></i> Notifications</h4>
+                            <button class="mark-all-read" id="markAllRead">
+                                Mark All Read
+                            </button>
+                        </div>
+                        <div class="notification-list" id="notificationList">
+                            <div class="no-notifications">
+                                <i class="fas fa-bell-slash"></i>
+                                No new notifications
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <button class="logout-btn" id="logoutBtn">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
@@ -306,6 +487,7 @@
             </div>
         </div>
 
+        <script src="../js/admin-notifications.js"></script>
         <script src="../js/admin-orders.js"></script>
         <script src="../js/admin.js"></script>
     </body>

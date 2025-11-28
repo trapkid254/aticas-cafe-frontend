@@ -1,243 +1,361 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bookings - ATICAS CAFE' Admin</title>
-    <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/admin.css">
-    <link rel="stylesheet" href="../css/admin-professional.css">
-    <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
-</head>
-<body>
-    <!-- Admin Navbar -->
-    <nav class="admin-navbar">
-        <div class="admin-navbar-left">
-            <img src="../images/aticas.png" alt="Cafeteria Logo" class="logo">
-            <span class="cafeteria-name">ATICAS CAFE' - Admin</span>
-        </div>
-        <div class="admin-navbar-right">
-            <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
-        </div>
-        <div class="admin-navbar-tabs">
-            <a href="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-            <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
-            <a href="bookings.html" class="active"><i class="fas fa-calendar-check"></i> Bookings</a>
-            <a href="menu-management.html"><i class="fas fa-utensils"></i> Menu Management</a>
-            <a href="employees.html"><i class="fas fa-users-cog"></i> Employees</a>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Bookings - ATICAS CAFE' Admin</title>
+        <link rel="stylesheet" href="../css/style.css" />
+        <link rel="stylesheet" href="../css/admin.css" />
+        <link rel="stylesheet" href="../css/admin-professional.css" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap"
+            rel="stylesheet"
+        />
+    </head>
+    <body>
+        <!-- Admin Navbar -->
+        <nav class="admin-navbar">
+            <div class="admin-navbar-left">
+                <img
+                    src="../images/aticas.png"
+                    alt="Cafeteria Logo"
+                    class="logo"
+                />
+                <span class="cafeteria-name">ATICAS CAFE' - Admin</span>
+            </div>
+            <div class="admin-navbar-right">
+                <!-- Notification Bell -->
+                <div class="notification-container">
+                    <button
+                        class="notification-bell"
+                        id="notificationBell"
+                        title="Notifications"
+                    >
+                        <i class="fas fa-bell"></i>
+                        <span
+                            class="notification-count"
+                            id="notificationCount"
+                            style="display: none"
+                            >0</span
+                        >
+                    </button>
+                    <div
+                        class="notification-dropdown"
+                        id="notificationDropdown"
+                    >
+                        <div class="notification-header">
+                            <h4><i class="fas fa-bell"></i> Notifications</h4>
+                            <button class="mark-all-read" id="markAllRead">
+                                Mark All Read
+                            </button>
+                        </div>
+                        <div class="notification-list" id="notificationList">
+                            <div class="no-notifications">
+                                <i class="fas fa-bell-slash"></i>
+                                No new notifications
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+            <div class="admin-navbar-tabs">
+                <a href="index.html"
+                    ><i class="fas fa-tachometer-alt"></i> Dashboard</a
+                >
+                <a href="orders.html"
+                    ><i class="fas fa-clipboard-list"></i> Orders</a
+                >
+                <a href="bookings.html" class="active"
+                    ><i class="fas fa-calendar-check"></i> Bookings</a
+                >
+                <a href="menu-management.html"
+                    ><i class="fas fa-utensils"></i> Menu Management</a
+                >
+                <a href="employees.html"
+                    ><i class="fas fa-users-cog"></i> Employees</a
+                >
+                <a href="admins.html"
+                    ><i class="fas fa-user-shield"></i> Admins</a
+                >
+                <a href="reports.html"
+                    ><i class="fas fa-chart-line"></i> Reports</a
+                >
+                <a href="payments.html"
+                    ><i class="fas fa-credit-card"></i> Payments</a
+                >
+                <a href="place-order.html"
+                    ><i class="fas fa-phone"></i> Place Order for Customer</a
+                >
+            </div>
+        </nav>
+        <!-- Admin Sidebar -->
+        <div class="admin-sidebar">
+            <a href="index.html"
+                ><i class="fas fa-tachometer-alt"></i> Dashboard</a
+            >
+            <a href="orders.html"
+                ><i class="fas fa-clipboard-list"></i> Orders</a
+            >
+            <a href="bookings.html" class="active"
+                ><i class="fas fa-calendar-check"></i> Bookings</a
+            >
+            <a href="menu-management.html"
+                ><i class="fas fa-utensils"></i> Menu Management</a
+            >
+            <a href="employees.html"><i class="fas fa-users"></i> Employees</a>
+            <a href="reports.html"><i class="fas fa-chart-bar"></i> Reports</a>
             <a href="admins.html"><i class="fas fa-user-shield"></i> Admins</a>
-            <a href="reports.html"><i class="fas fa-chart-line"></i> Reports</a>
-            <a href="payments.html"><i class="fas fa-credit-card"></i> Payments</a>
-            <a href="place-order.html"><i class="fas fa-phone"></i> Place Order for Customer</a>
+            <a href="payments.html"
+                ><i class="fas fa-money-bill-wave"></i> Payments</a
+            >
+            <a href="place-order.html"
+                ><i class="fas fa-phone"></i> Place Order for Customer</a
+            >
         </div>
-    </nav>
-    <!-- Admin Sidebar -->
-    <div class="admin-sidebar">
-        <a href="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-        <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
-        <a href="bookings.html" class="active"><i class="fas fa-calendar-check"></i> Bookings</a>
-        <a href="menu-management.html"><i class="fas fa-utensils"></i> Menu Management</a>
-        <a href="employees.html"><i class="fas fa-users"></i> Employees</a>
-        <a href="reports.html"><i class="fas fa-chart-bar"></i> Reports</a>
-        <a href="admins.html"><i class="fas fa-user-shield"></i> Admins</a>
-        <a href="payments.html"><i class="fas fa-money-bill-wave"></i> Payments</a>
-        <a href="place-order.html"><i class="fas fa-phone"></i> Place Order for Customer</a>
-    </div>
-    <!-- Admin Content -->
-    <div class="admin-content">
-        <div class="page-header">
-            <h2><i class="fas fa-calendar-check"></i> Event & Tour Bookings</h2>
-            <p class="page-subtitle">Manage catering and touring service bookings</p>
-        </div>
+        <!-- Admin Content -->
+        <div class="admin-content">
+            <div class="page-header">
+                <h2>
+                    <i class="fas fa-calendar-check"></i> Event & Tour Bookings
+                </h2>
+                <p class="page-subtitle">
+                    Manage catering and touring service bookings
+                </p>
+            </div>
 
-        <!-- Statistics Cards -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-utensils"></i>
+            <!-- Statistics Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="cateringCount">0</h3>
+                        <p>Catering Bookings</p>
+                    </div>
                 </div>
-                <div class="stat-content">
-                    <h3 id="cateringCount">0</h3>
-                    <p>Catering Bookings</p>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-route"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="tourCount">0</h3>
+                        <p>Tour Bookings</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="pendingPayments">0</h3>
+                        <p>Pending Payments</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="confirmedBookings">0</h3>
+                        <p>Confirmed Bookings</p>
+                    </div>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-route"></i>
-                </div>
-                <div class="stat-content">
-                    <h3 id="tourCount">0</h3>
-                    <p>Tour Bookings</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="stat-content">
-                    <h3 id="pendingPayments">0</h3>
-                    <p>Pending Payments</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="stat-content">
-                    <h3 id="confirmedBookings">0</h3>
-                    <p>Confirmed Bookings</p>
-                </div>
-            </div>
-        </div>
 
-        <!-- Filters and Search -->
-        <div class="filters-section">
-            <div class="search-box">
+            <!-- Filters and Search -->
+            <div class="filters-section">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Search bookings by customer name or email..."
+                    />
+                </div>
+                <div class="filter-controls">
+                    <select id="typeFilter" class="filter-select">
+                        <option value="">All Types</option>
+                        <option value="catering">Catering</option>
+                        <option value="tour">Tour</option>
+                    </select>
+                    <select id="statusFilter" class="filter-select">
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="deposit_paid">Deposit Paid</option>
+                        <option value="fully_paid">Fully Paid</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Loading and Error Messages -->
+            <div id="loading" class="loading" style="display: none">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading bookings...</p>
+            </div>
+            <div
+                id="errorMsg"
+                class="notification error"
+                style="display: none; position: static; margin-bottom: 1rem"
+            ></div>
+
+            <!-- Bookings Table -->
+            <div class="table-container">
+                <table id="bookingsTable" class="modern-table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-cogs"></i> Type</th>
+                            <th><i class="fas fa-user"></i> Customer</th>
+                            <th>
+                                <i class="fas fa-calendar"></i> Event/Package
+                            </th>
+                            <th><i class="fas fa-users"></i> Guests/People</th>
+                            <th>
+                                <i class="fas fa-money-bill-wave"></i> Payment
+                            </th>
+                            <th><i class="fas fa-tasks"></i> Status</th>
+                            <th><i class="fas fa-cog"></i> Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Bookings will be loaded via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- No Results Message -->
+            <div id="noResults" class="no-results" style="display: none">
                 <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="Search bookings by customer name or email...">
-            </div>
-            <div class="filter-controls">
-                <select id="typeFilter" class="filter-select">
-                    <option value="">All Types</option>
-                    <option value="catering">Catering</option>
-                    <option value="tour">Tour</option>
-                </select>
-                <select id="statusFilter" class="filter-select">
-                    <option value="">All Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="deposit_paid">Deposit Paid</option>
-                    <option value="fully_paid">Fully Paid</option>
-                    <option value="cancelled">Cancelled</option>
-                </select>
+                <h3>No bookings found</h3>
+                <p>Try adjusting your search or filter criteria</p>
             </div>
         </div>
+        <script>
+            let allBookings = [];
 
-        <!-- Loading and Error Messages -->
-        <div id="loading" class="loading" style="display: none;">
-            <i class="fas fa-spinner fa-spin"></i>
-            <p>Loading bookings...</p>
-        </div>
-        <div id="errorMsg" class="notification error" style="display: none; position: static; margin-bottom: 1rem;"></div>
+            document.addEventListener("DOMContentLoaded", async function () {
+                try {
+                    const adminToken = localStorage.getItem("adminToken");
+                    if (!adminToken) {
+                        window.location.href = "admin-login.html";
+                        return;
+                    }
 
-        <!-- Bookings Table -->
-        <div class="table-container">
-            <table id="bookingsTable" class="modern-table">
-                <thead>
-                    <tr>
-                        <th><i class="fas fa-cogs"></i> Type</th>
-                        <th><i class="fas fa-user"></i> Customer</th>
-                        <th><i class="fas fa-calendar"></i> Event/Package</th>
-                        <th><i class="fas fa-users"></i> Guests/People</th>
-                        <th><i class="fas fa-money-bill-wave"></i> Payment</th>
-                        <th><i class="fas fa-tasks"></i> Status</th>
-                        <th><i class="fas fa-cog"></i> Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Bookings will be loaded via JavaScript -->
-                </tbody>
-            </table>
-        </div>
+                    await loadBookings();
 
-        <!-- No Results Message -->
-        <div id="noResults" class="no-results" style="display: none;">
-            <i class="fas fa-search"></i>
-            <h3>No bookings found</h3>
-            <p>Try adjusting your search or filter criteria</p>
-        </div>
-    </div>
-    <script>
-    let allBookings = [];
-
-    document.addEventListener('DOMContentLoaded', async function() {
-        try {
-            const adminToken = localStorage.getItem('adminToken');
-            if (!adminToken) {
-                window.location.href = 'admin-login.html';
-                return;
-            }
-
-            await loadBookings();
-
-            // Add event listeners
-            document.getElementById('typeFilter').addEventListener('change', applyFilters);
-            document.getElementById('statusFilter').addEventListener('change', applyFilters);
-            document.getElementById('searchInput').addEventListener('input', applyFilters);
-        } catch (error) {
-            console.error('Failed to load bookings:', error);
-        }
-    });
-
-    async function loadBookings() {
-        const loading = document.getElementById('loading');
-        const errorMsg = document.getElementById('errorMsg');
-        const adminToken = localStorage.getItem('adminToken');
-
-        loading.style.display = 'block';
-        errorMsg.style.display = 'none';
-
-        try {
-            const res = await fetch('https://aticas-backend.onrender.com/api/bookings', {
-                headers: { 'Authorization': adminToken || '' }
+                    // Add event listeners
+                    document
+                        .getElementById("typeFilter")
+                        .addEventListener("change", applyFilters);
+                    document
+                        .getElementById("statusFilter")
+                        .addEventListener("change", applyFilters);
+                    document
+                        .getElementById("searchInput")
+                        .addEventListener("input", applyFilters);
+                } catch (error) {
+                    console.error("Failed to load bookings:", error);
+                }
             });
-            const data = await res.json();
 
-            loading.style.display = 'none';
+            async function loadBookings() {
+                const loading = document.getElementById("loading");
+                const errorMsg = document.getElementById("errorMsg");
+                const adminToken = localStorage.getItem("adminToken");
 
-            if (!data.success) {
-                errorMsg.textContent = data.error || 'Failed to fetch bookings.';
-                errorMsg.style.display = 'block';
-                return;
+                loading.style.display = "block";
+                errorMsg.style.display = "none";
+
+                try {
+                    const res = await fetch(
+                        "https://aticas-backend.onrender.com/api/bookings",
+                        {
+                            headers: { Authorization: adminToken || "" },
+                        },
+                    );
+                    const data = await res.json();
+
+                    loading.style.display = "none";
+
+                    if (!data.success) {
+                        errorMsg.textContent =
+                            data.error || "Failed to fetch bookings.";
+                        errorMsg.style.display = "block";
+                        return;
+                    }
+
+                    allBookings = data.bookings || [];
+                    updateStatistics(allBookings);
+                    displayBookings(allBookings);
+                } catch (err) {
+                    loading.style.display = "none";
+                    errorMsg.textContent = "Failed to load bookings.";
+                    errorMsg.style.display = "block";
+                }
             }
 
-            allBookings = data.bookings || [];
-            updateStatistics(allBookings);
-            displayBookings(allBookings);
-        } catch (err) {
-            loading.style.display = 'none';
-            errorMsg.textContent = 'Failed to load bookings.';
-            errorMsg.style.display = 'block';
-        }
-    }
+            function updateStatistics(bookings) {
+                const cateringCount = bookings.filter(
+                    (b) => b.type === "catering",
+                ).length;
+                const tourCount = bookings.filter(
+                    (b) => b.type === "tour",
+                ).length;
+                const pendingPayments = bookings.filter(
+                    (b) => b.paymentStatus === "pending",
+                ).length;
+                const confirmedBookings = bookings.filter(
+                    (b) =>
+                        b.paymentStatus === "deposit_paid" ||
+                        b.paymentStatus === "fully_paid",
+                ).length;
 
-    function updateStatistics(bookings) {
-        const cateringCount = bookings.filter(b => b.type === 'catering').length;
-        const tourCount = bookings.filter(b => b.type === 'tour').length;
-        const pendingPayments = bookings.filter(b => b.paymentStatus === 'pending').length;
-        const confirmedBookings = bookings.filter(b => b.paymentStatus === 'deposit_paid' || b.paymentStatus === 'fully_paid').length;
+                document.getElementById("cateringCount").textContent =
+                    cateringCount;
+                document.getElementById("tourCount").textContent = tourCount;
+                document.getElementById("pendingPayments").textContent =
+                    pendingPayments;
+                document.getElementById("confirmedBookings").textContent =
+                    confirmedBookings;
+            }
 
-        document.getElementById('cateringCount').textContent = cateringCount;
-        document.getElementById('tourCount').textContent = tourCount;
-        document.getElementById('pendingPayments').textContent = pendingPayments;
-        document.getElementById('confirmedBookings').textContent = confirmedBookings;
-    }
+            function displayBookings(bookings) {
+                const tbody = document
+                    .getElementById("bookingsTable")
+                    .querySelector("tbody");
+                const noResults = document.getElementById("noResults");
 
-    function displayBookings(bookings) {
-        const tbody = document.getElementById('bookingsTable').querySelector('tbody');
-        const noResults = document.getElementById('noResults');
+                tbody.innerHTML = "";
 
-        tbody.innerHTML = '';
+                if (bookings.length === 0) {
+                    noResults.style.display = "block";
+                    return;
+                }
 
-        if (bookings.length === 0) {
-            noResults.style.display = 'block';
-            return;
-        }
+                noResults.style.display = "none";
 
-        noResults.style.display = 'none';
+                bookings.forEach((booking) => {
+                    const row = document.createElement("tr");
+                    const typeIcon =
+                        booking.type === "catering"
+                            ? "fas fa-utensils"
+                            : "fas fa-route";
+                    const statusClass = `status-${booking.paymentStatus || "pending"}`;
+                    const statusText = formatStatus(
+                        booking.paymentStatus || "pending",
+                    );
 
-        bookings.forEach(booking => {
-            const row = document.createElement('tr');
-            const typeIcon = booking.type === 'catering' ? 'fas fa-utensils' : 'fas fa-route';
-            const statusClass = `status-${booking.paymentStatus || 'pending'}`;
-            const statusText = formatStatus(booking.paymentStatus || 'pending');
-
-            row.innerHTML = `
+                    row.innerHTML = `
                 <td>
                     <div class="service-info">
                         <i class="${typeIcon}"></i>
                         <div>
                             <div class="service-type">${booking.type.charAt(0).toUpperCase() + booking.type.slice(1)}</div>
-                            <div class="service-name">${booking.type === 'catering' ? (booking.eventType || 'General Event') : (booking.package || 'Custom Tour')}</div>
+                            <div class="service-name">${booking.type === "catering" ? booking.eventType || "General Event" : booking.package || "Custom Tour"}</div>
                         </div>
                     </div>
                 </td>
@@ -249,20 +367,20 @@
                 </td>
                 <td>
                     <div class="event-info">
-                        <div class="event-date">${booking.date ? new Date(booking.date).toLocaleDateString() : 'TBD'}</div>
-                        <div class="event-details">${booking.type === 'catering' ? (booking.location || '') : (booking.pickup || '')}</div>
+                        <div class="event-date">${booking.date ? new Date(booking.date).toLocaleDateString() : "TBD"}</div>
+                        <div class="event-details">${booking.type === "catering" ? booking.location || "" : booking.pickup || ""}</div>
                     </div>
                 </td>
                 <td>
                     <div class="guests-info">
-                        <div class="guests-count">${booking.type === 'catering' ? (booking.guests || 0) : (booking.people || 0)}</div>
-                        <div class="guests-label">${booking.type === 'catering' ? 'Guests' : 'People'}</div>
+                        <div class="guests-count">${booking.type === "catering" ? booking.guests || 0 : booking.people || 0}</div>
+                        <div class="guests-label">${booking.type === "catering" ? "Guests" : "People"}</div>
                     </div>
                 </td>
                 <td>
                     <div class="payment-info">
-                        <div class="total-amount">Ksh ${booking.totalAmount ? booking.totalAmount.toLocaleString() : 'N/A'}</div>
-                        <div class="deposit-amount">Deposit: Ksh ${booking.depositRequired ? booking.depositRequired.toLocaleString() : 'N/A'}</div>
+                        <div class="total-amount">Ksh ${booking.totalAmount ? booking.totalAmount.toLocaleString() : "N/A"}</div>
+                        <div class="deposit-amount">Deposit: Ksh ${booking.depositRequired ? booking.depositRequired.toLocaleString() : "N/A"}</div>
                     </div>
                 </td>
                 <td>
@@ -273,95 +391,114 @@
                 </td>
                 <td>
                     <select onchange="updatePaymentStatus('${booking._id}', this.value)" class="status-select">
-                        <option value="pending" ${booking.paymentStatus === 'pending' ? 'selected' : ''}>Pending</option>
-                        <option value="deposit_paid" ${booking.paymentStatus === 'deposit_paid' ? 'selected' : ''}>Deposit Paid</option>
-                        <option value="fully_paid" ${booking.paymentStatus === 'fully_paid' ? 'selected' : ''}>Fully Paid</option>
-                        <option value="cancelled" ${booking.paymentStatus === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                        <option value="pending" ${booking.paymentStatus === "pending" ? "selected" : ""}>Pending</option>
+                        <option value="deposit_paid" ${booking.paymentStatus === "deposit_paid" ? "selected" : ""}>Deposit Paid</option>
+                        <option value="fully_paid" ${booking.paymentStatus === "fully_paid" ? "selected" : ""}>Fully Paid</option>
+                        <option value="cancelled" ${booking.paymentStatus === "cancelled" ? "selected" : ""}>Cancelled</option>
                     </select>
                 </td>
             `;
-            tbody.appendChild(row);
-        });
-    }
-
-    function formatStatus(status) {
-        const statusMap = {
-            'pending': 'Pending',
-            'deposit_paid': 'Deposit Paid',
-            'fully_paid': 'Fully Paid',
-            'cancelled': 'Cancelled'
-        };
-        return statusMap[status] || 'Pending';
-    }
-
-    function applyFilters() {
-        const typeFilter = document.getElementById('typeFilter').value;
-        const statusFilter = document.getElementById('statusFilter').value;
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-
-        let filtered = allBookings;
-
-        if (typeFilter) {
-            filtered = filtered.filter(b => b.type === typeFilter);
-        }
-
-        if (statusFilter) {
-            filtered = filtered.filter(b => (b.paymentStatus || 'pending') === statusFilter);
-        }
-
-        if (searchTerm) {
-            filtered = filtered.filter(b =>
-                b.name.toLowerCase().includes(searchTerm) ||
-                b.email.toLowerCase().includes(searchTerm) ||
-                b.phone.toLowerCase().includes(searchTerm)
-            );
-        }
-
-        displayBookings(filtered);
-    }
-
-    async function updatePaymentStatus(bookingId, status) {
-        try {
-            const adminToken = localStorage.getItem('adminToken');
-            const response = await fetch(`https://aticas-backend.onrender.com/api/bookings/${bookingId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': adminToken || ''
-                },
-                body: JSON.stringify({ paymentStatus: status })
-            });
-
-            if (response.ok) {
-                await loadBookings();
-                showNotification('Payment status updated successfully', 'success');
-            } else {
-                showNotification('Failed to update payment status', 'error');
+                    tbody.appendChild(row);
+                });
             }
-        } catch (error) {
-            console.error('Update error:', error);
-            showNotification('Failed to update payment status', 'error');
-        }
-    }
 
-    function showNotification(message, type) {
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.innerHTML = `
-            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            function formatStatus(status) {
+                const statusMap = {
+                    pending: "Pending",
+                    deposit_paid: "Deposit Paid",
+                    fully_paid: "Fully Paid",
+                    cancelled: "Cancelled",
+                };
+                return statusMap[status] || "Pending";
+            }
+
+            function applyFilters() {
+                const typeFilter = document.getElementById("typeFilter").value;
+                const statusFilter =
+                    document.getElementById("statusFilter").value;
+                const searchTerm = document
+                    .getElementById("searchInput")
+                    .value.toLowerCase();
+
+                let filtered = allBookings;
+
+                if (typeFilter) {
+                    filtered = filtered.filter((b) => b.type === typeFilter);
+                }
+
+                if (statusFilter) {
+                    filtered = filtered.filter(
+                        (b) => (b.paymentStatus || "pending") === statusFilter,
+                    );
+                }
+
+                if (searchTerm) {
+                    filtered = filtered.filter(
+                        (b) =>
+                            b.name.toLowerCase().includes(searchTerm) ||
+                            b.email.toLowerCase().includes(searchTerm) ||
+                            b.phone.toLowerCase().includes(searchTerm),
+                    );
+                }
+
+                displayBookings(filtered);
+            }
+
+            async function updatePaymentStatus(bookingId, status) {
+                try {
+                    const adminToken = localStorage.getItem("adminToken");
+                    const response = await fetch(
+                        `https://aticas-backend.onrender.com/api/bookings/${bookingId}`,
+                        {
+                            method: "PUT",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: adminToken || "",
+                            },
+                            body: JSON.stringify({ paymentStatus: status }),
+                        },
+                    );
+
+                    if (response.ok) {
+                        await loadBookings();
+                        showNotification(
+                            "Payment status updated successfully",
+                            "success",
+                        );
+                    } else {
+                        showNotification(
+                            "Failed to update payment status",
+                            "error",
+                        );
+                    }
+                } catch (error) {
+                    console.error("Update error:", error);
+                    showNotification(
+                        "Failed to update payment status",
+                        "error",
+                    );
+                }
+            }
+
+            function showNotification(message, type) {
+                const notification = document.createElement("div");
+                notification.className = `notification ${type}`;
+                notification.innerHTML = `
+            <i class="fas ${type === "success" ? "fa-check-circle" : "fa-exclamation-circle"}"></i>
             ${message}
         `;
 
-        document.body.appendChild(notification);
+                document.body.appendChild(notification);
 
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 3000);
             }
-        }, 3000);
-    }
-    </script>
-    <script src="../js/admin.js"></script>
-    <script src="../js/script.js"></script>
-</body>
-</html> 
+        </script>
+        <script src="../js/admin-notifications.js"></script>
+        <script src="../js/admin-bookings.js"></script>
+        <script src="../js/admin.js"></script>
+    </body>
+</html>
