@@ -98,238 +98,126 @@
                     Create and manage upcoming events advertised on the homepage
                 </p>
             </div>
-
-            <!-- Add Event Button -->
-            <div style="margin-bottom: 2rem">
-                <button id="addEventBtn" class="action-btn">
-                    <i class="fas fa-plus"></i> Add New Event
-                </button>
-            </div>
-
-            <!-- Filters and Search -->
-            <div class="filters-section">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input
-                        type="text"
-                        id="searchInput"
-                        placeholder="Search events by title or description..."
-                    />
-                </div>
-                <div class="filter-controls">
-                    <select id="typeFilter" class="filter-select">
-                        <option value="">All Types</option>
-                        <option value="catering">Catering</option>
-                        <option value="tour">Tour</option>
-                        <option value="graduation">Graduation</option>
-                        <option value="wedding">Wedding</option>
-                        <option value="corporate">Corporate</option>
-                    </select>
-                    <select id="statusFilter" class="filter-select">
-                        <option value="">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Loading and Error Messages -->
-            <div id="loading" class="loading" style="display: none">
-                <i class="fas fa-spinner fa-spin"></i>
-                <p>Loading events...</p>
-            </div>
-            <div
-                id="errorMsg"
-                class="notification error"
-                style="display: none; position: static; margin-bottom: 1rem"
-            ></div>
-
-            <!-- Events Grid -->
-            <div
-                id="eventsGrid"
-                class="events-grid"
-                style="
-                    display: grid;
-                    grid-template-columns: repeat(
-                        auto-fill,
-                        minmax(350px, 1fr)
-                    );
-                    gap: 1.5rem;
-                    margin-top: 2rem;
-                "
-            >
-                <!-- Events will be loaded via JavaScript -->
-            </div>
-
-            <!-- No Results Message -->
-            <div id="noResults" class="no-results" style="display: none">
-                <i class="fas fa-calendar-times"></i>
-                <h3>No events found</h3>
-                <p>Try adjusting your search or filter criteria</p>
+            <div class="filter-controls">
+                <select id="typeFilter" class="filter-select">
+                    <option value="">All Types</option>
+                    <option value="catering">Catering</option>
+                    <option value="tour">Tour</option>
+                    <option value="graduation">Graduation</option>
+                    <option value="wedding">Wedding</option>
+                    <option value="corporate">Corporate</option>
+                </select>
+                <select id="statusFilter" class="filter-select">
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
             </div>
         </div>
 
-        <!-- Add/Edit Event Modal -->
-        <div id="eventModal" class="modal event-modal" style="display: none">
-            <div class="modal-content event-modal-content">
-                <div class="modal-header">
-                    <h3 id="modalTitle">Add New Event</h3>
-                    <span class="close-modal" id="closeEventModal"
-                        >&times;</span
-                    >
-                </div>
+        <!-- Loading and Error Messages -->
+        <div id="loading" class="loading" style="display: none;">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading events...</p>
+        </div>
+        <div id="errorMsg" class="notification error" style="display: none; position: static; margin-bottom: 1rem;"></div>
 
-                <div class="modal-body">
-                    <form id="eventForm">
-                        <div class="form-row">
-                            <div class="form-group full-width">
-                                <label for="eventTitle">Event Title *</label>
-                                <input
-                                    type="text"
-                                    id="eventTitle"
-                                    placeholder="Enter event title"
-                                />
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group full-width">
-                                <label for="eventDescription"
-                                    >Description *</label
-                                >
-                                <textarea
-                                    id="eventDescription"
-                                    rows="3"
-                                    placeholder="Describe your event..."
-                                ></textarea>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="eventDate">Event Date *</label>
-                                <input type="datetime-local" id="eventDate" />
-                            </div>
-                            <div class="form-group">
-                                <label for="eventType">Event Type *</label>
-                                <select id="eventType">
-                                    <option value="">Select Type</option>
-                                    <option value="catering">Catering</option>
-                                    <option value="tour">Tour</option>
-                                    <option value="graduation">
-                                        Graduation
-                                    </option>
-                                    <option value="wedding">Wedding</option>
-                                    <option value="corporate">Corporate</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="eventLocation">Location</label>
-                                <input
-                                    type="text"
-                                    id="eventLocation"
-                                    placeholder="Event location"
-                                />
-                            </div>
-                            <div class="form-group">
-                                <label for="eventCapacity">Capacity</label>
-                                <input
-                                    type="number"
-                                    id="eventCapacity"
-                                    min="1"
-                                    placeholder="Max attendees"
-                                />
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="eventPrice"
-                                    >Starting Price (Ksh)</label
-                                >
-                                <input
-                                    type="number"
-                                    id="eventPrice"
-                                    min="0"
-                                    placeholder="0"
-                                />
-                            </div>
-                            <div class="form-group">
-                                <label for="eventImage">Event Image *</label>
-                                <input
-                                    type="file"
-                                    id="eventImage"
-                                    accept="image/*"
-                                />
-                            </div>
-                        </div>
-
-                        <div class="form-row checkbox-row">
-                            <div class="checkbox-group">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="eventFeatured" />
-                                    <span class="checkmark"></span>
-                                    Featured Event
-                                </label>
-                            </div>
-                            <div class="checkbox-group">
-                                <label class="checkbox-label">
-                                    <input
-                                        type="checkbox"
-                                        id="eventActive"
-                                        checked
-                                    />
-                                    <span class="checkmark"></span>
-                                    Active (visible on homepage)
-                                </label>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="modal-footer">
-                    <button
-                        type="button"
-                        id="cancelEventBtn"
-                        class="btn btn-secondary"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        type="submit"
-                        form="eventForm"
-                        class="btn btn-primary"
-                    >
-                        Save Event
-                    </button>
-                </div>
-            </div>
+        <!-- Events Grid -->
+        <div id="eventsGrid" class="events-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+            <!-- Events will be loaded via JavaScript -->
         </div>
 
-        <style>
-            /* Enhanced Event Modal Styling */
-            .event-modal {
-                background: rgba(0, 0, 0, 0.6);
-                backdrop-filter: blur(5px);
-                display: none;
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                z-index: 9999;
-                align-items: center;
-                justify-content: center;
-                padding: 1rem;
-            }
+        <!-- No Results Message -->
+        <div id="noResults" class="no-results" style="display: none;">
+            <i class="fas fa-calendar-times"></i>
+            <h3>No events found</h3>
+            <p>Try adjusting your search or filter criteria</p>
+        </div>
+    </div>
 
-            .event-modal[style*="display: block"] {
-                display: flex !important;
-            }
+    <!-- Add/Edit Event Modal -->
+    <div id="eventModal" class="modal" style="display: none; align-items: center !important;">
+        <div class="modal-content" style="max-width: 600px; margin: auto !important;">
+            <span class="close-modal" id="closeEventModal">&times;</span>
+            <h3 id="modalTitle">Add New Event</h3>
 
+            <form id="eventForm">
+                <div class="form-group">
+                    <label for="eventTitle">Event Title *</label>
+                    <input type="text" id="eventTitle">
+                </div>
+
+                <div class="form-group">
+                    <label for="eventDescription">Description *</label>
+                    <textarea id="eventDescription" rows="4"></textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="eventDate">Event Date *</label>
+                        <input type="datetime-local" id="eventDate">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="eventType">Event Type *</label>
+                        <select id="eventType">
+                            <option value="">Select Type</option>
+                            <option value="catering">Catering</option>
+                            <option value="tour">Tour</option>
+                            <option value="graduation">Graduation</option>
+                            <option value="wedding">Wedding</option>
+                            <option value="corporate">Corporate</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="eventLocation">Location</label>
+                        <input type="text" id="eventLocation" placeholder="Optional">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="eventCapacity">Capacity</label>
+                        <input type="number" id="eventCapacity" min="1" placeholder="Optional">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="eventPrice">Starting Price (Ksh)</label>
+                        <input type="number" id="eventPrice" min="0" placeholder="Optional">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="eventImage">Event Image *</label>
+                        <input type="file" id="eventImage" accept="image/*">
+                        <small style="color: #666; font-size: 0.8rem;">Upload a high-quality image for the event</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox" id="eventFeatured">
+                        Featured Event
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox" id="eventActive" checked>
+                        Active (visible on homepage)
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" id="cancelEventBtn" class="submit-btn" style="background: #6c757d;">Cancel</button>
+                    <button type="submit" class="submit-btn">Save Event</button>
+                </div>
+            </form>
+        </div>
+
+    <style>
             .event-modal-content {
                 background: #fff;
                 border-radius: 16px;
@@ -589,9 +477,7 @@
                     justify-content: center;
                 }
             }
-        </style>
-
-        <script>
+    </style>
             let allEvents = [];
             let editingEventId = null;
 
@@ -723,60 +609,148 @@
                 border: 2px solid ${event.active ? "#27ae60" : "#ddd"};
             `;
 
-                    eventCard.innerHTML = `
-                <img src="${imageUrl}" alt="${event.title}" style="width: 100%; height: 180px; object-fit: cover;" onerror="this.src='https://via.placeholder.com/350x180?text=Image+Not+Found';">
-                <div style="padding: 1.5rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
-                        <h3 style="margin: 0; color: #27ae60; font-size: 1.3rem;">${event.title}</h3>
-                        <div style="display: flex; gap: 0.5rem;">
-                            ${event.featured ? '<span style="background: #ffd700; color: #333; padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.8rem; font-weight: 600;">FEATURED</span>' : ""}
-                            <span style="background: ${event.active ? "#d4edda" : "#f8d7da"}; color: ${event.active ? "#155724" : "#721c24"}; padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.8rem; font-weight: 600;">
-                                ${event.active ? "ACTIVE" : "INACTIVE"}
-                            </span>
-                        </div>
-                    </div>
+            // build card content using DOM APIs to avoid inline template CSS parsing issues
+            // image
+            const img = document.createElement("img");
+            img.src = imageUrl;
+            img.alt = event.title;
+            img.style.width = "100%";
+            img.style.height = "180px";
+            img.style.objectFit = "cover";
+            img.onerror = function () {
+                this.src = "https://via.placeholder.com/350x180?text=Image+Not+Found";
+            };
 
-                    <p style="color: #666; margin-bottom: 1rem; line-height: 1.5;">${event.description}</p>
+            // content container
+            const content = document.createElement("div");
+            content.style.padding = "1.5rem";
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                        <div>
-                            <i class="fas fa-calendar" style="color: #27ae60; margin-right: 0.5rem;"></i>
-                            <strong>Date:</strong><br>
-                            <span style="font-size: 0.9rem; color: #555;">${eventDate}</span>
-                        </div>
-                        <div>
-                            <i class="fas fa-tag" style="color: #27ae60; margin-right: 0.5rem;"></i>
-                            <strong>Type:</strong><br>
-                            <span style="font-size: 0.9rem; color: #555; text-transform: capitalize;">${event.type}</span>
-                        </div>
-                    </div>
+            // header row
+            const headerRow = document.createElement("div");
+            headerRow.style.display = "flex";
+            headerRow.style.justifyContent = "space-between";
+            headerRow.style.alignItems = "flex-start";
+            headerRow.style.marginBottom = "1rem";
 
-                    ${
-                        event.location
-                            ? `
-                        <div style="margin-bottom: 1rem;">
-                            <i class="fas fa-map-marker-alt" style="color: #27ae60; margin-right: 0.5rem;"></i>
-                            <strong>Location:</strong> ${event.location}
-                        </div>
-                    `
-                            : ""
-                    }
+            const titleEl = document.createElement("h3");
+            titleEl.style.margin = "0";
+            titleEl.style.color = "#27ae60";
+            titleEl.style.fontSize = "1.3rem";
+            titleEl.textContent = event.title;
 
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        ${event.capacity ? `<span><i class="fas fa-users" style="color: #27ae60; margin-right: 0.5rem;"></i>Capacity: ${event.capacity}</span>` : "<span></span>"}
-                        ${event.price ? `<span style="color: #e67e22; font-weight: 600;">From Ksh ${event.price.toLocaleString()}</span>` : "<span></span>"}
-                    </div>
+            const badgesWrap = document.createElement("div");
+            badgesWrap.style.display = "flex";
+            badgesWrap.style.gap = "0.5rem";
 
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button onclick="editEvent('${event._id}')" class="action-btn" style="flex: 1; padding: 0.5rem; font-size: 0.9rem;">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
-                        <button onclick="deleteEvent('${event._id}')" class="action-btn" style="flex: 1; padding: 0.5rem; font-size: 0.9rem; background: #e74c3c;">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    </div>
-                </div>
-            `;
+            if (event.featured) {
+                const feat = document.createElement("span");
+                feat.textContent = "FEATURED";
+                feat.style.background = "#ffd700";
+                feat.style.color = "#333";
+                feat.style.padding = "0.2rem 0.5rem";
+                feat.style.borderRadius = "10px";
+                feat.style.fontSize = "0.8rem";
+                feat.style.fontWeight = "600";
+                badgesWrap.appendChild(feat);
+            }
+
+            const status = document.createElement("span");
+            status.textContent = event.active ? "ACTIVE" : "INACTIVE";
+            status.style.background = event.active ? "#d4edda" : "#f8d7da";
+            status.style.color = event.active ? "#155724" : "#721c24";
+            status.style.padding = "0.2rem 0.5rem";
+            status.style.borderRadius = "10px";
+            status.style.fontSize = "0.8rem";
+            status.style.fontWeight = "600";
+            badgesWrap.appendChild(status);
+
+            headerRow.appendChild(titleEl);
+            headerRow.appendChild(badgesWrap);
+            content.appendChild(headerRow);
+
+            // description
+            const desc = document.createElement("p");
+            desc.style.color = "#666";
+            desc.style.marginBottom = "1rem";
+            desc.style.lineHeight = "1.5";
+            desc.textContent = event.description;
+            content.appendChild(desc);
+
+            // details grid
+            const detailsGrid = document.createElement("div");
+            detailsGrid.style.display = "grid";
+            detailsGrid.style.gridTemplateColumns = "1fr 1fr";
+            detailsGrid.style.gap = "1rem";
+            detailsGrid.style.marginBottom = "1rem";
+
+            const dateDiv = document.createElement("div");
+            dateDiv.innerHTML = `<i class="fas fa-calendar" style="color: #27ae60; margin-right: 0.5rem;"></i>
+                <strong>Date:</strong><br>
+                <span style="font-size: 0.9rem; color: #555;">${eventDate}</span>`;
+
+            const typeDiv = document.createElement("div");
+            typeDiv.innerHTML = `<i class="fas fa-tag" style="color: #27ae60; margin-right: 0.5rem;"></i>
+                <strong>Type:</strong><br>
+                <span style="font-size: 0.9rem; color: #555; text-transform: capitalize;">${event.type}</span>`;
+
+            detailsGrid.appendChild(dateDiv);
+            detailsGrid.appendChild(typeDiv);
+            content.appendChild(detailsGrid);
+
+            // optional location
+            if (event.location) {
+                const locDiv = document.createElement("div");
+                locDiv.style.marginBottom = "1rem";
+                locDiv.innerHTML = `<i class="fas fa-map-marker-alt" style="color: #27ae60; margin-right: 0.5rem;"></i>
+                    <strong>Location:</strong> ${event.location}`;
+                content.appendChild(locDiv);
+            }
+
+            // capacity and price row
+            const capPriceRow = document.createElement("div");
+            capPriceRow.style.display = "flex";
+            capPriceRow.style.justifyContent = "space-between";
+            capPriceRow.style.alignItems = "center";
+            capPriceRow.style.marginBottom = "1rem";
+
+            const capSpan = document.createElement("span");
+            capSpan.innerHTML = event.capacity ? `<i class="fas fa-users" style="color: #27ae60; margin-right: 0.5rem;"></i>Capacity: ${event.capacity}` : "&nbsp;";
+            const priceSpan = document.createElement("span");
+            priceSpan.innerHTML = event.price ? `<span style="color: #e67e22; font-weight: 600;">From Ksh ${event.price.toLocaleString()}</span>` : "&nbsp;";
+
+            capPriceRow.appendChild(capSpan);
+            capPriceRow.appendChild(priceSpan);
+            content.appendChild(capPriceRow);
+
+            // actions
+            const actionsRow = document.createElement("div");
+            actionsRow.style.display = "flex";
+            actionsRow.style.gap = "0.5rem";
+
+            const editBtn = document.createElement("button");
+            editBtn.className = "action-btn";
+            editBtn.style.flex = "1";
+            editBtn.style.padding = "0.5rem";
+            editBtn.style.fontSize = "0.9rem";
+            editBtn.innerHTML = `<i class="fas fa-edit"></i> Edit`;
+            editBtn.addEventListener("click", () => editEvent(event._id));
+
+            const deleteBtn = document.createElement("button");
+            deleteBtn.className = "action-btn";
+            deleteBtn.style.flex = "1";
+            deleteBtn.style.padding = "0.5rem";
+            deleteBtn.style.fontSize = "0.9rem";
+            deleteBtn.style.background = "#e74c3c";
+            deleteBtn.innerHTML = `<i class="fas fa-trash"></i> Delete`;
+            deleteBtn.addEventListener("click", () => deleteEvent(event._id));
+
+            actionsRow.appendChild(editBtn);
+            actionsRow.appendChild(deleteBtn);
+            content.appendChild(actionsRow);
+
+            // append to card
+            eventCard.appendChild(img);
+            eventCard.appendChild(content);
 
                     grid.appendChild(eventCard);
                 });
@@ -1000,11 +974,6 @@
                         },
                         body: formDataObj,
                     });
-
-                    console.log("Response status:", response.status);
-                    console.log("Response headers:", [
-                        ...response.headers.entries(),
-                    ]);
 
                     if (response.ok) {
                         closeEventModal();

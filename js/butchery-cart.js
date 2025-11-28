@@ -97,20 +97,20 @@ document.addEventListener('DOMContentLoaded', function() {
     async function fetchCart() {
         const userId = localStorage.getItem('userId');
         const token = localStorage.getItem('userToken');
-        
+
         if (userId && token) {
             try {
                 // Add timeout to prevent hanging
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-                
+
                 const response = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
                     headers: { 'Authorization': `Bearer ${token}` },
                     signal: controller.signal
                 });
-                
+
                 clearTimeout(timeoutId);
-                
+
                 if (response.ok) {
                     return await response.json();
                 } else {
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Fall through to guest cart
             }
         }
-        
+
         // Fallback to unified guest cart for guests (butchery subset)
         return getGuestButcheryCart();
     }
@@ -167,14 +167,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const newQty = (existingItem ? existingItem.quantity : 0) + (item.quantity || 1);
 
         let useGuestCart = false;
-        
+
         if (userId && token) {
             // Logged-in: patch server cart
             try {
                 // Add timeout to prevent hanging
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-                
+
                 const res = await fetch('https://aticas-backend.onrender.com/api/cart/items', {
                     method: 'PATCH',
                     headers: {
@@ -189,14 +189,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     }),
                     signal: controller.signal
                 });
-                
+
                 clearTimeout(timeoutId);
-                
+
                 if (!res.ok) {
                     const errorText = await res.text();
                     throw new Error(`Server error: ${res.status} - ${errorText}`);
                 }
-                
+
                 console.log('Successfully added item to server cart');
             } catch (e) {
                 console.error('Failed to add to cart (logged-in):', e);
@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             useGuestCart = true;
         }
-        
+
         // Guest cart logic (also used as fallback for logged-in users when API fails)
         if (useGuestCart) {
             // Guest: update local cart
@@ -247,11 +247,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 const selObj = typeof selectedSize === 'string' || selectedSize === null
                     ? (selectedSize ? { size: selectedSize } : null)
                     : selectedSize;
-                
+
                 // Add timeout to prevent hanging
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-                
+
                 const response = await fetch('https://aticas-backend.onrender.com/api/cart/items', {
                     method: 'PATCH',
                     headers: {
@@ -266,14 +266,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     }),
                     signal: controller.signal
                 });
-                
+
                 clearTimeout(timeoutId);
-                
+
                 if (!response.ok) {
                     const errorText = await response.text();
                     throw new Error(`Server error: ${response.status} - ${errorText}`);
                 }
-                
+
                 console.log('Successfully removed item from server cart');
             } catch (e) {
                 console.error('Failed to remove from cart (logged-in):', e);
@@ -281,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Fall through to guest cart logic
             }
         }
-        
+
         // Guest cart logic (also used as fallback for logged-in users when API fails)
         if (!userId || !token) {
             // Guest: mutate local
@@ -314,11 +314,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 const selObj = typeof selectedSize === 'string' || selectedSize === null
                     ? (selectedSize ? { size: selectedSize } : null)
                     : selectedSize;
-                
+
                 // Add timeout to prevent hanging
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-                
+
                 const response = await fetch('https://aticas-backend.onrender.com/api/cart/items', {
                     method: 'PATCH',
                     headers: {
@@ -333,14 +333,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     }),
                     signal: controller.signal
                 });
-                
+
                 clearTimeout(timeoutId);
-                
+
                 if (!response.ok) {
                     const errorText = await response.text();
                     throw new Error(`Server error: ${response.status} - ${errorText}`);
                 }
-                
+
                 console.log('Successfully updated item in server cart');
             } catch (e) {
                 console.error('Failed to update cart item (logged-in):', e);
@@ -348,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Fall through to guest cart logic
             }
         }
-        
+
         // Guest cart logic (also used as fallback for logged-in users when API fails)
         if (!userId || !token) {
             // Guest: update local
@@ -373,15 +373,42 @@ document.addEventListener('DOMContentLoaded', function() {
         // If this page has no cart UI, skip rendering
         if (!cartContainer) return;
         const cart = await fetchCart();
-        
+
         if (!cart || !cart.items || cart.items.length === 0) {
-            cartContainer.innerHTML = `
-                <div class="empty-cart">
-                    <i class="fas fa-shopping-cart"></i>
-                    <p>Your cart is empty</p>
-                    <a href="butchery.html" class="btn">Continue Shopping</a>
-                </div>
-            `;
+            if (cartItems.length === 0) {
+                cartContainer.innerHTML = `
+                    <div class="empty-cart">
+                        <div class="empty-cart-icon">
+                            <i class="fas fa-drumstick-bite"></i>
+                        </div>
+                        <h3>Your Butchery Cart is Empty</h3>
+                        <p>Discover our premium selection of fresh, quality meats and add your favorites to get started!</p>
+                        <div class="empty-cart-actions">
+                            <a href="butchery.html" class="empty-cart-primary-btn">
+                                <i class="fas fa-meat"></i>
+                                Browse Our Butchery
+                            </a>
+                            <a href="index.html" class="empty-cart-secondary-btn">
+                                <i class="fas fa-home"></i>
+                                Back to Home
+                            </a>
+                        </div>
+                        <div class="empty-cart-features">
+                            <div class="empty-cart-feature">
+                                <i class="fas fa-award"></i>
+                                <span>Premium Quality</span>
+                            </div>
+                            <div class="empty-cart-feature">
+                                <i class="fas fa-truck"></i>
+                                <span>Fresh Delivery</span>
+                            </div>
+                            <div class="empty-cart-feature">
+                                <i class="fas fa-tags"></i>
+                                <span>Best Prices</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
             if (cartSummary) cartSummary.style.display = 'none';
             return;
         }
@@ -395,7 +422,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const unit = (item.selectedSize?.price || item.price || item.menuItem?.price || 0);
             cartHTML += `
-                <div class="cart-item" data-id="${getItemId(item)}" data-type="${item.itemType}" 
+                <div class="cart-item" data-id="${getItemId(item)}" data-type="${item.itemType}"
                      ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}
                      data-price="${unit}">
                     <img src="${getItemImage(item)}" alt="${getItemName(item)}" onerror="this.src='images/meat.jpg';">
@@ -404,19 +431,19 @@ document.addEventListener('DOMContentLoaded', function() {
                         ${item.selectedSize ? `<p>Size: ${item.selectedSize.size}</p>` : ''}
                         <p class="price">Ksh ${unit.toLocaleString()}</p>
                         <div class="quantity-controls">
-                            <button class="quantity-btn minus" data-id="${getItemId(item)}" 
-                                data-type="${item.itemType}" 
+                            <button class="quantity-btn minus" data-id="${getItemId(item)}"
+                                data-type="${item.itemType}"
                                 ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}
                                 data-price="${unit}">-</button>
                             <span class="quantity">${item.quantity}</span>
-                            <button class="quantity-btn plus" data-id="${getItemId(item)}" 
-                                data-type="${item.itemType}" 
+                            <button class="quantity-btn plus" data-id="${getItemId(item)}"
+                                data-type="${item.itemType}"
                                 ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}
                                 data-price="${unit}">+</button>
                         </div>
                     </div>
-                    <button class="remove-btn" data-id="${getItemId(item)}" 
-                        data-type="${item.itemType}" 
+                    <button class="remove-btn" data-id="${getItemId(item)}"
+                        data-type="${item.itemType}"
                         ${item.selectedSize ? `data-size="${item.selectedSize.size}"` : ''}
                         data-price="${unit}">
                         <i class="fas fa-trash"></i>
@@ -491,7 +518,7 @@ document.addEventListener('DOMContentLoaded', function() {
         toast.className = 'toast';
         toast.textContent = message;
         document.body.appendChild(toast);
-        
+
         setTimeout(() => {
             toast.classList.add('show');
             setTimeout(() => {
@@ -508,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() {
         await updateCartCount();
         if (typeof window.updateCartIndicators === 'function') { try { window.updateCartIndicators(); } catch (_) {} }
         await displayCartItems();
-        
+
         // Toggle checkout form
         if (checkoutBtn) {
             checkoutBtn.addEventListener('click', function() {
@@ -517,7 +544,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         }
-        
+
         // Handle payment method changes
         if (paymentOptions) {
             paymentOptions.forEach(option => {
