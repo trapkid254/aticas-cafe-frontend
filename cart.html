@@ -741,7 +741,7 @@
                         name: menuItem.name || item.name,
                         price: item.selectedSize ? item.selectedSize.price : (menuItem.price || item.price || 0),
                         quantity: item.quantity,
-                        image: menuItem.image || item.image || 'images/default-food.jpg',
+                        image: menuItem.image || item.image || 'images/1b.jpg',
                         itemType: item.itemType || 'Menu',
                         selectedSize: item.selectedSize
                     };
@@ -752,7 +752,7 @@
                         name: item.name,
                         price: item.selectedSize ? item.selectedSize.price : (item.price || 0),
                         quantity: item.quantity || 1,
-                        image: item.image || 'images/default-food.jpg',
+                        image: item.image || 'images/1b.jpg',
                         itemType: item.itemType || 'Menu',
                         selectedSize: item.selectedSize
                     };
@@ -810,7 +810,7 @@
 
                 const qty = item.quantity || 1;
                 const total = unitPrice * qty;
-                const defaultImage = isButchery ? 'images/meat.jpg' : 'images/default-meal.jpg';
+                const defaultImage = isButchery ? 'images/meat.jpg' : 'images/1b.jpg';
                 const image = item.image || menuItem.image || defaultImage;
 
                 console.log(`Final calculations for "${name}": unitPrice=${unitPrice}, qty=${qty}, total=${total}`);

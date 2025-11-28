@@ -1267,3 +1267,144 @@ if (e.target.classList.contains('modal')) {
                                 <strong>Created:</strong> ${formatDateTime(booking.createdAt)}
                             </div>
                         </div>
+                        <div>
+                            <div class="booking-type" style="background: ${typeColor};">
+                                ${booking.type.toUpperCase()}
+                            </div>
+                            ${getStatusBadge(booking.status)}
+                        </div>
+                    </div>
+                    <div class="booking-body">
+                        <div class="booking-details">
+                            <div class="detail-section">
+                                <h4><i class="fas fa-user"></i> Customer Information</h4>
+                                <div class="detail-item">
+                                    <span class="detail-label">Name:</span>
+                                    <span class="detail-value">${booking.name}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Phone:</span>
+                                    <span class="detail-value">${booking.phone}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Email:</span>
+                                    <span class="detail-value">${booking.email}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Event Date:</span>
+                                    <span class="detail-value">${formatDateTime(booking.date)}</span>
+                                </div>
+                            </div>
+
+                            <div class="detail-section">
+                                <h4><i class="fas fa-calendar-alt"></i> Event Details</h4>
+                                ${eventDetails}
+                                ${booking.notes ? `
+                                    <div class="detail-item">
+                                        <span class="detail-label">Notes:</span>
+                                        <span class="detail-value">${booking.notes}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+
+                            <div class="detail-section">
+                                <h4><i class="fas fa-info-circle"></i> Status & Progress</h4>
+                                <div class="detail-item">
+                                    <span class="detail-label">Current Status:</span>
+                                    <span class="detail-value">${statusText}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Payment Status:</span>
+                                    <span class="detail-value">${booking.paymentStatus || 'Pending'}</span>
+                                </div>
+                                ${booking.lastAdminUpdate ? `
+                                    <div class="detail-item">
+                                        <span class="detail-label">Last Admin Update:</span>
+                                        <span class="detail-value">${formatDateTime(booking.lastAdminUpdate)}</span>
+                                    </div>
+                                ` : ''}
+                                ${booking.lastCustomerResponse ? `
+                                    <div class="detail-item">
+                                        <span class="detail-label">Last Customer Response:</span>
+                                        <span class="detail-value">${formatDateTime(booking.lastCustomerResponse)}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        ${priceSection}
+                        ${feedbackSection}
+                        ${actions}
+                    </div>
+                </div>
+            `;
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                'pending': 'Pending Review',
+                'admin_review': 'Under Review',
+                'price_proposed': 'Price Proposed',
+                'customer_accepted': 'Customer Accepted',
+                'customer_rejected': 'Customer Rejected',
+                'confirmed': 'Confirmed',
+                'in_progress': 'In Progress',
+                'completed': 'Completed',
+                'cancelled': 'Cancelled'
+            };
+            return statusMap[status] || status;
+        }
+
+        function getStatusBadge(status) {
+            const statusClass = `status-${status.replace('_', '-')}`;
+            const statusText = getStatusText(status);
+            return `<span class="status-badge ${statusClass}">${statusText}</span>`;
+        }
+
+        function getActionButtons(booking) {
+            let buttons = [];
+
+            // Propose price button
+            if (booking.status === 'pending' || booking.status === 'admin_review' || booking.status === 'customer_rejected') {
+                buttons.push(`
+                    <button class="btn btn-warning" onclick="openPriceProposalModal('${booking._id}')">
+                        <i class="fas fa-tag"></i> Propose Price
+                    </button>
+                `);
+            }
+
+            // Update status button
+            buttons.push(`
+                <button class="btn btn-info" onclick="openStatusUpdateModal('${booking._id}')">
+                    <i class="fas fa-edit"></i> Update Status
+                </button>
+            `);
+
+            // Add feedback button
+            buttons.push(`
+                <button class="btn btn-primary" onclick="openFeedbackModal('${booking._id}')">
+                    <i class="fas fa-comments"></i> Add Feedback
+                </button>
+            `);
+
+            // Confirm booking button
+            if (booking.status === 'customer_accepted') {
+                buttons.push(`
+                    <button class="btn btn-success" onclick="confirmBooking('${booking._id}')">
+                        <i class="fas fa-check"></i> Confirm Booking
+                    </button>
+                `);
+            }
+
+            if (buttons.length === 0) return '';
+
+            return `
+                <div class="actions-section">
+                    <h4><i class="fas fa-cogs"></i> Actions</h4>
+                    ${buttons.join('')}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
