@@ -1020,6 +1020,263 @@
                 </div>
             `;
         }
+
+        function formatDateTime(dateString) {
+            if (!dateString) return 'N/A';
+            return new Date(dateString).toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatCurrency(amount) {
+            return `Ksh ${Number(amount || 0).toLocaleString()}`;
+        }
+
+        function applyFilters() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            const dateFrom = document.getElementById('dateFromFilter').value;
+            const dateTo = document.getElementById('dateToFilter').value;
+
+            filteredBookings = allBookings.filter(booking => {
+                if (statusFilter && booking.status !== statusFilter) return false;
+                if (typeFilter && booking.type !== typeFilter) return false;
+
+                if (dateFrom) {
+                    const bookingDate = new Date(booking.date);
+                    const fromDate = new Date(dateFrom);
+                    if (bookingDate < fromDate) return false;
+                }
+
+                if (dateTo) {
+                    const bookingDate = new Date(booking.date);
+                    const toDate = new Date(dateTo);
+                    toDate.setHours(23, 59, 59, 999); // End of day
+                    if (bookingDate > toDate) return false;
+                }
+
+                return true;
+            });
+
+            displayBookings();
+        }
+
+        function refreshBookings() {
+            loadBookings();
+        }
+
+        // Modal functions
+        function openPriceProposalModal(bookingId) {
+            currentBooking = allBookings.find(b => b._id === bookingId);
+            if (!currentBooking) return;
+
+            document.getElementById('proposedAmount').value = currentBooking.totalAmount || 0;
+            document.getElementById('proposalMessage').value = '';
+            document.getElementById('priceProposalModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePriceProposalModal() {
+            document.getElementById('priceProposalModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            currentBooking = null;
+        }
+
+        async function submitPriceProposal() {
+            if (!currentBooking) return;
+
+            const amount = parseFloat(document.getElementById('proposedAmount').value);
+            const message = document.getElementById('proposalMessage').value.trim();
+
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+
+            if (!message) {
+                alert('Please enter a message explaining the pricing');
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('adminToken');
+                const response = await fetch(`https://aticas-backend.onrender.com/api/bookings/${currentBooking._id}/propose-price`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ amount, message })
+                });
+
+                if (!response.ok) throw new Error('Failed to propose price');
+
+                const result = await response.json();
+                if (result.success) {
+                    closePriceProposalModal();
+                    loadBookings();
+                    alert('✅ Price proposal sent successfully!');
+                } else {
+                    throw new Error(result.error || 'Failed to propose price');
+                }
+            } catch (error) {
+                console.error('Error proposing price:', error);
+                alert(`❌ Failed to propose price: ${error.message}`);
+            }
+        }
+
+        function openStatusUpdateModal(bookingId) {
+            currentBooking = allBookings.find(b => b._id === bookingId);
+            if (!currentBooking) return;
+
+            document.getElementById('newStatus').value = currentBooking.status || 'pending';
+            document.getElementById('adminNotes').value = currentBooking.adminNotes || '';
+            document.getElementById('statusUpdateModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeStatusUpdateModal() {
+            document.getElementById('statusUpdateModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            currentBooking = null;
+        }
+
+        async function submitStatusUpdate() {
+            if (!currentBooking) return;
+
+            const status = document.getElementById('newStatus').value;
+            const adminNotes = document.getElementById('adminNotes').value.trim();
+
+            try {
+                const token = localStorage.getItem('adminToken');
+                const response = await fetch(`https://aticas-backend.onrender.com/api/bookings/${currentBooking._id}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ status, adminNotes })
+                });
+
+                if (!response.ok) throw new Error('Failed to update status');
+
+                const result = await response.json();
+                if (result.success) {
+                    closeStatusUpdateModal();
+                    loadBookings();
+                    alert('✅ Status updated successfully!');
+                } else {
+                    throw new Error(result.error || 'Failed to update status');
+                }
+            } catch (error) {
+                console.error('Error updating status:', error);
+                alert(`❌ Failed to update status: ${error.message}`);
+            }
+        }
+
+        function openFeedbackModal(bookingId) {
+            currentBooking = allBookings.find(b => b._id === bookingId);
+            if (!currentBooking) return;
+
+            document.getElementById('feedbackMessage').value = '';
+            document.getElementById('addFeedbackModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeFeedbackModal() {
+            document.getElementById('addFeedbackModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            currentBooking = null;
+        }
+
+        async function submitFeedback() {
+            if (!currentBooking) return;
+
+            const message = document.getElementById('feedbackMessage').value.trim();
+
+            if (!message) {
+                alert('Please enter a message');
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('adminToken');
+                const response = await fetch(`https://aticas-backend.onrender.com/api/bookings/${currentBooking._id}/feedback`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ message, from: 'admin' })
+                });
+
+                if (!response.ok) throw new Error('Failed to add feedback');
+
+                const result = await response.json();
+                if (result.success) {
+                    closeFeedbackModal();
+                    loadBookings();
+                    alert('✅ Feedback added successfully!');
+                } else {
+                    throw new Error(result.error || 'Failed to add feedback');
+                }
+            } catch (error) {
+                console.error('Error adding feedback:', error);
+                alert(`❌ Failed to add feedback: ${error.message}`);
+            }
+        }
+
+        async function confirmBooking(bookingId) {
+            if (!confirm('Are you sure you want to confirm this booking?')) return;
+
+            try {
+                const token = localStorage.getItem('adminToken');
+                const response = await fetch(`https://aticas-backend.onrender.com/api/bookings/${bookingId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ status: 'confirmed' })
+                });
+
+                if (!response.ok) throw new Error('Failed to confirm booking');
+
+                const result = await response.json();
+                if (result.success) {
+                    loadBookings();
+                    alert('✅ Booking confirmed successfully!');
+                } else {
+                    throw new Error(result.error || 'Failed to confirm booking');
+                }
+            } catch (error) {
+                console.error('Error confirming booking:', error);
+                alert(`❌ Failed to confirm booking: ${error.message}`);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            window.location.href = '../admin-login.html';
+        }
+
+        // Close modals when clicking outside
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                e.target.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                currentBooking = null;
+            }
+        });
+    </script>
+    <script src="../js/admin.js"></script>
+    <script src="../js/script.js"></script>
+</body>
+</html>
     </script>
 </body>
 </html>
