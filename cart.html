@@ -1684,27 +1684,6 @@
 
             // Initialize navigation buttons and UI elements
             function initializeUI() {
-                // Add debug button
-                const debugButton = document.createElement('button');
-                debugButton.textContent = 'Debug Cart';
-                debugButton.style.position = 'fixed';
-                debugButton.style.bottom = '20px';
-                debugButton.style.right = '20px';
-                debugButton.style.zIndex = '1000';
-                debugButton.style.padding = '10px 20px';
-                debugButton.style.backgroundColor = '#f44336';
-                debugButton.style.color = 'white';
-                debugButton.style.border = 'none';
-                debugButton.style.borderRadius = '4px';
-                debugButton.style.cursor = 'pointer';
-                debugButton.onclick = async () => {
-                    console.group('=== DEBUG CART ===');
-                    debugLocalStorage();
-                    console.log('Reloading cart...');
-                    await loadCarts();
-                    console.groupEnd();
-                };
-                document.body.appendChild(debugButton);
                 // Navbar, Login/Logout, and hamburger interactions are handled globally in js/script.js
             }
 
