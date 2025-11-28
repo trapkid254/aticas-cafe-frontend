@@ -880,11 +880,17 @@
 
                 // Check if both carts are empty for unified empty state
                 const bothEmpty = cafeteriaItems.length === 0 && butcheryItems.length === 0;
+                const cafeteriaHasItems = cafeteriaItems.length > 0;
+                const butcheryHasItems = butcheryItems.length > 0;
 
                 if (bothEmpty) {
                     // Hide individual sections and show unified empty cart
                     if (cafeteriaSection) cafeteriaSection.style.display = 'none';
                     if (butcherySection) butcherySection.style.display = 'none';
+
+                    // Remove single-section class for unified empty state
+                    const cartPageContainer = document.querySelector('.cart-page-container');
+                    if (cartPageContainer) cartPageContainer.classList.remove('single-section');
 
                     // Create a unified empty cart display
                     const unifiedEmptyCart = `
@@ -940,6 +946,27 @@
                     // Remove unified empty cart if it exists
                     const existingUnified = document.querySelector('.unified-empty-cart');
                     if (existingUnified) existingUnified.remove();
+
+                    // Get cart page container for layout classes
+                    const cartPageContainer = document.querySelector('.cart-page-container');
+
+                    // Show/hide sections based on content
+                    if (cafeteriaHasItems && !butcheryHasItems) {
+                        // Only cafeteria has items - hide butchery section
+                        if (cafeteriaSection) cafeteriaSection.style.display = 'block';
+                        if (butcherySection) butcherySection.style.display = 'none';
+                        if (cartPageContainer) cartPageContainer.classList.add('single-section');
+                    } else if (butcheryHasItems && !cafeteriaHasItems) {
+                        // Only butchery has items - hide cafeteria section
+                        if (cafeteriaSection) cafeteriaSection.style.display = 'none';
+                        if (butcherySection) butcherySection.style.display = 'block';
+                        if (cartPageContainer) cartPageContainer.classList.add('single-section');
+                    } else {
+                        // Both have items - show both sections
+                        if (cafeteriaSection) cafeteriaSection.style.display = 'block';
+                        if (butcherySection) butcherySection.style.display = 'block';
+                        if (cartPageContainer) cartPageContainer.classList.remove('single-section');
+                    }
 
                     // Render individual sections
                     if (cafeteriaItems.length > 0) {

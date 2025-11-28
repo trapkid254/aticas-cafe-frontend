@@ -1989,6 +1989,23 @@ iframe {
     align-items: flex-start;
 }
 
+/* When only one cart section is visible, center it properly */
+.cart-page-container:has(.cart-section[style*="display: none"])
+    .cart-section:not([style*="display: none"]) {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Fallback for browsers that don't support :has() */
+.cart-page-container.single-section {
+    justify-content: center;
+}
+
+.cart-page-container.single-section .cart-section {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
 .cart-section {
     flex: 1;
     background: #fff;
