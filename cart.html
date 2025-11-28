@@ -52,7 +52,7 @@
         <p>Review your selected meals and complete your order below.</p>
     </section>
     <div class="cart-page-container">
-        <section class="cart-section">
+        <section id="cafeteriaCartSection" class="cart-section">
             <h2><i class="fas fa-utensils"></i> Cafeteria Items</h2>
             <div id="cafeteriaCart" class="cart-items">
                 <!-- Cafeteria items will be dynamically inserted here -->
@@ -60,7 +60,7 @@
         </section>
 
             <!-- Butchery Items Section -->
-            <div class="cart-section">
+            <div id="butcheryCartSection" class="cart-section">
                 <h2><i class="fas fa-drumstick-bite"></i> Butchery Items</h2>
                 <div id="butcheryCart" class="cart-items">
                     <!-- Butchery items will be dynamically inserted here -->
@@ -356,9 +356,7 @@
         }
 
         // Load cart immediately
-        setTimeout(() => {
-            loadCarts();
-        }, 100);
+        // Cart initialization is now handled by initializeCart() function
 
             // Function to fetch cart
             async function fetchCart(isButchery = false) {
@@ -700,21 +698,29 @@
                         });
                     }
 
-                    // Display the cart
+                    // Display the cart with enhanced debugging
+                    console.log('📋 About to display cart with items:', cart);
                     displayCombinedCart(cart);
                 } catch (error) {
-                    console.error('Error loading cart:', error);
-                    // Show error message to user
-                    const cartContainer = document.getElementById('cartContainer');
-                    if (cartContainer) {
-                        cartContainer.innerHTML = `
-                            <div class="empty-cart">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                <p>Error loading cart. Please try again.</p>
-                                <button onclick="window.location.reload()" class="btn">Retry</button>
-                            </div>
-                        `;
-                    }
+                    console.error('❌ Error loading cart:', error);
+                    showCartError(`Error loading cart: ${error.message}`);
+                }
+            }
+
+            // Function to display cart errors
+            function showCartError(message) {
+                const cartContainer = document.querySelector('.cart-page-container');
+                if (cartContainer) {
+                    cartContainer.innerHTML = `
+                        <div class="empty-cart" style="text-align: center; padding: 3rem; background: #f8f9fa; border-radius: 12px; margin: 2rem 0;">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;"></i>
+                            <h3 style="color: #dc3545; margin-bottom: 1rem;">Error Loading Cart</h3>
+                            <p style="color: #666; margin-bottom: 2rem;">${message}</p>
+                            <button onclick="window.location.reload()" style="background: #27ae60; color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                <i class="fas fa-redo"></i> Retry
+                            </button>
+                        </div>
+                    `;
                 }
             }
 
@@ -755,25 +761,50 @@
 
             // Function to create cart item HTML
             function createCartItemHTML(item) {
-                const isButchery = item.itemType === 'Meat' || item.itemType === 'meat' || item.itemType === 'butchery';
+                console.log('🛠️ Creating HTML for cart item:', item);
+
+                // Enhanced butchery detection
+                const isButchery = item.itemType === 'Meat' ||
+                                 item.itemType === 'meat' ||
+                                 item.itemType === 'butchery' ||
+                                 (item.menuItem && item.menuItem.adminType === 'butchery');
+
                 const menuItem = item.menuItem || {};
                 const name = item.name || menuItem.name || 'Unnamed Item';
+
+                console.log(`Item "${name}" is butchery: ${isButchery}`);
+
+                // Validate essential data
+                if (!name || name === 'Unnamed Item') {
+                    console.warn('⚠️ Item missing name:', item);
+                }
 
                 // Compute unit price with robust fallbacks
                 let unitPrice = 0;
 
                 if (isButchery) {
-                    // For butchery items, always use per-kg price from menuItem
-                    unitPrice = typeof menuItem.price === 'number' ? Number(menuItem.price) : 0;
-                    console.log('Using per-kg price for butchery item:', unitPrice, 'for item:', name);
-                } else {
-                    // For cafeteria items, use selectedSize.price if available, otherwise menuItem.price
+                    // For butchery items, priority: selectedSize.price > item.price > menuItem.price
                     if (item.selectedSize && typeof item.selectedSize.price === 'number') {
                         unitPrice = Number(item.selectedSize.price);
-                        console.log('Using selectedSize.price for cafeteria item:', unitPrice, 'for item:', name);
-                    } else {
-                        unitPrice = (typeof item.price === 'number' ? item.price : (typeof menuItem.price === 'number' ? menuItem.price : 0));
-                        console.log('Using fallback price for cafeteria item:', unitPrice, 'for item:', name);
+                        console.log('Using selectedSize.price for butchery item:', unitPrice);
+                    } else if (typeof item.price === 'number') {
+                        unitPrice = Number(item.price);
+                        console.log('Using item.price for butchery item:', unitPrice);
+                    } else if (typeof menuItem.price === 'number') {
+                        unitPrice = Number(menuItem.price);
+                        console.log('Using menuItem.price for butchery item:', unitPrice);
+                    }
+                } else {
+                    // For cafeteria items, use selectedSize.price if available, otherwise fallback
+                    if (item.selectedSize && typeof item.selectedSize.price === 'number') {
+                        unitPrice = Number(item.selectedSize.price);
+                        console.log('Using selectedSize.price for cafeteria item:', unitPrice);
+                    } else if (typeof item.price === 'number') {
+                        unitPrice = Number(item.price);
+                        console.log('Using item.price for cafeteria item:', unitPrice);
+                    } else if (typeof menuItem.price === 'number') {
+                        unitPrice = Number(menuItem.price);
+                        console.log('Using menuItem.price for cafeteria item:', unitPrice);
                     }
                 }
 
@@ -781,6 +812,8 @@
                 const total = unitPrice * qty;
                 const defaultImage = isButchery ? 'images/meat.jpg' : 'images/default-meal.jpg';
                 const image = item.image || menuItem.image || defaultImage;
+
+                console.log(`Final calculations for "${name}": unitPrice=${unitPrice}, qty=${qty}, total=${total}`);
 
                 // Normalize type for reliable updates/removals
                 const rawType = (item.itemType || 'Menu').toString().toLowerCase();
@@ -837,7 +870,14 @@
             }
 
             function displayCombinedCart(combinedCart) {
-                console.group('Displaying Cart');
+                console.group('🛒 Displaying Combined Cart');
+                console.log('Raw cart data received:', combinedCart);
+
+                // Clear any existing error states
+                const existingError = document.querySelector('.empty-cart[style*="color: #dc3545"]');
+                if (existingError) {
+                    existingError.remove();
+                }
 
                 const cafeteriaCart = document.getElementById('cafeteriaCart');
                 const butcheryCart = document.getElementById('butcheryCart');
@@ -846,7 +886,9 @@
                 const totalElement = document.getElementById('total');
 
                 if (!cafeteriaCart || !butcheryCart) {
-                    console.error('Cart containers not found!');
+                    console.error('❌ Cart containers not found!');
+                    console.error('cafeteriaCart:', cafeteriaCart);
+                    console.error('butcheryCart:', butcheryCart);
                     return;
                 }
 
@@ -856,27 +898,48 @@
 
                 // Process items if they exist
                 if (combinedCart && combinedCart.items) {
+                    console.log('📦 Processing cart items...');
                     const items = Array.isArray(combinedCart.items) ?
                         combinedCart.items :
                         Object.values(combinedCart.items);
 
-                    items.forEach(item => {
+                    console.log('Items array:', items);
+
+                    items.forEach((item, index) => {
+                        console.log(`Processing item ${index}:`, item);
+
+                        // Enhanced butchery detection
                         const isButchery = item.itemType === 'Meat' ||
                                         item.itemType === 'meat' ||
-                                        item.itemType === 'butchery';
+                                        item.itemType === 'butchery' ||
+                                        (item.menuItem && item.menuItem.adminType === 'butchery');
+
+                        console.log(`Item ${index} is butchery:`, isButchery);
+
                         if (isButchery) {
                             butcheryItems.push(item);
+                            console.log('✅ Added to butchery items');
                         } else {
                             cafeteriaItems.push(item);
+                            console.log('✅ Added to cafeteria items');
                         }
                     });
                 }
-                // Always show both sections
-                const cafeteriaSection = cafeteriaCart.closest('.cart-section');
-                const butcherySection = butcheryCart.closest('.cart-section');
 
-                if (cafeteriaSection) cafeteriaSection.style.display = 'block';
-                if (butcherySection) butcherySection.style.display = 'block';
+                console.log('🍽️ Cafeteria items:', cafeteriaItems.length, cafeteriaItems);
+                console.log('🥩 Butchery items:', butcheryItems.length, butcheryItems);
+
+                const cafeteriaSection = document.getElementById('cafeteriaCartSection');
+                const butcherySection = document.getElementById('butcheryCartSection');
+
+                if (!cafeteriaSection || !butcherySection) {
+                    console.error('❌ Cart sections not found!');
+                    console.error('cafeteriaSection:', cafeteriaSection);
+                    console.error('butcherySection:', butcherySection);
+                }
+
+                // Get cart page container once for reuse
+                const cartPageContainer = document.querySelector('.cart-page-container');
 
                 // Check if both carts are empty for unified empty state
                 const bothEmpty = cafeteriaItems.length === 0 && butcheryItems.length === 0;
@@ -889,7 +952,6 @@
                     if (butcherySection) butcherySection.style.display = 'none';
 
                     // Remove single-section class for unified empty state
-                    const cartPageContainer = document.querySelector('.cart-page-container');
                     if (cartPageContainer) cartPageContainer.classList.remove('single-section');
 
                     // Create a unified empty cart display
@@ -932,7 +994,6 @@
                     `;
 
                     // Insert unified empty cart before the first cart section
-                    const cartPageContainer = document.querySelector('.cart-page-container');
                     if (cartPageContainer) {
                         const existingUnified = cartPageContainer.querySelector('.unified-empty-cart');
                         if (existingUnified) existingUnified.remove();
@@ -947,8 +1008,7 @@
                     const existingUnified = document.querySelector('.unified-empty-cart');
                     if (existingUnified) existingUnified.remove();
 
-                    // Get cart page container for layout classes
-                    const cartPageContainer = document.querySelector('.cart-page-container');
+                    // Use existing cart page container for layout classes
 
                     // Show/hide sections based on content
                     if (cafeteriaHasItems && !butcheryHasItems) {
@@ -969,9 +1029,19 @@
                     }
 
                     // Render individual sections
+                    // Display items in their respective containers
+                    console.log('🖼️ Rendering cart items...');
+
                     if (cafeteriaItems.length > 0) {
-                        cafeteriaCart.innerHTML = cafeteriaItems.map(item => createCartItemHTML(item)).join('');
+                        console.log('Rendering cafeteria items:', cafeteriaItems);
+                        const cafeteriaHTML = cafeteriaItems.map((item, index) => {
+                            console.log(`Creating HTML for cafeteria item ${index}:`, item);
+                            return createCartItemHTML(item);
+                        }).join('');
+                        cafeteriaCart.innerHTML = cafeteriaHTML;
+                        console.log('✅ Cafeteria items rendered');
                     } else {
+                        console.log('No cafeteria items, showing empty state');
                         cafeteriaCart.innerHTML = `
                             <div class="empty-cart">
                                 <div class="empty-cart-icon">
@@ -989,9 +1059,17 @@
                         `;
                     }
 
+                    // Populate butchery items
                     if (butcheryItems.length > 0) {
-                        butcheryCart.innerHTML = butcheryItems.map(item => createCartItemHTML(item)).join('');
+                        console.log('Rendering butchery items:', butcheryItems);
+                        const butcheryHTML = butcheryItems.map((item, index) => {
+                            console.log(`Creating HTML for butchery item ${index}:`, item);
+                            return createCartItemHTML(item);
+                        }).join('');
+                        butcheryCart.innerHTML = butcheryHTML;
+                        console.log('✅ Butchery items rendered');
                     } else {
+                        console.log('No butchery items, showing empty state');
                         butcheryCart.innerHTML = `
                             <div class="empty-cart">
                                 <div class="empty-cart-icon">
@@ -1655,25 +1733,6 @@
                         if (phoneInput) phoneInput.required = true;
                     }
                 } catch(_) {}
-                // If user is logged in, hide Name/Phone fields and remove required
-                try {
-                    const isLoggedIn = !!localStorage.getItem('userToken');
-                    const nameInput = document.getElementById('name');
-                    const phoneInput = document.getElementById('phone');
-                    const nameGroup = nameInput?.closest('.form-group');
-                    const phoneGroup = phoneInput?.closest('.form-group');
-                    if (isLoggedIn) {
-                        if (nameInput) nameInput.required = false;
-                        if (phoneInput) phoneInput.required = false;
-                        if (nameGroup) nameGroup.style.display = 'none';
-                        if (phoneGroup) phoneGroup.style.display = 'none';
-                    } else {
-                        if (nameGroup) nameGroup.style.display = '';
-                        if (phoneGroup) phoneGroup.style.display = '';
-                        if (nameInput) nameInput.required = true;
-                        if (phoneInput) phoneInput.required = true;
-                    }
-                } catch(_) {}
 
                 function openCheckoutModal() {
                     if (!checkoutModal) return;
@@ -1833,12 +1892,31 @@
                 });
             })();
 
-            // Initialize UI and bind interactive handlers (we are already inside DOMContentLoaded)
-                // initializeUI(); // Removed debug button
-                loadCarts();
+            // Comprehensive cart initialization
+            console.log('🚀 Starting cart initialization...');
 
-                // Event delegation is now handled in initCartEventListeners()
+            // Initialize all components in proper order
+            async function initializeCart() {
+                try {
+                    console.log('📦 Loading carts...');
+                    await loadCarts();
 
+                    console.log('🔗 Initializing event listeners...');
+                    initCartEventListeners();
+                    initMeatOrderControls();
+
+                    console.log('🔧 Initializing UI components...');
+                    initializeUI();
+
+                    console.log('✅ Cart initialization complete!');
+                } catch (error) {
+                    console.error('❌ Cart initialization failed:', error);
+                    showCartError(`Initialization failed: ${error.message}`);
+                }
+            }
+
+            // Start initialization
+            initializeCart();
                 // Checkout modal controls
                 const checkoutBtn = document.getElementById('checkoutBtn');
                 const checkoutModal = document.getElementById('checkoutModal');

@@ -6,7 +6,6 @@
     <title>My Bookings - ATICAS CAFE'</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
-    <!-- Algerian font is not available on Google Fonts, so we use a similar decorative font as fallback -->
     <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
     <style>
         .booking-history-section {
@@ -15,122 +14,279 @@
             display: flex;
             justify-content: center;
         }
-        .receipt {
+
+        .booking-card {
             background-color: #fff;
             border: 1px solid #ddd;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(39,174,96,0.1);
             padding: 2rem;
-            width: 100%;
-            max-width: 600px;
-            font-family: 'Courier New', Courier, monospace;
-        }
-        .receipt-header {
-            text-align: center;
             margin-bottom: 2rem;
+            width: 100%;
+            max-width: 700px;
+            font-family: 'Segoe UI', Arial, sans-serif;
         }
-        .receipt-header h2 {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-        }
-        .receipt-body {
-            text-align: center;
-            padding: 3rem 0;
-            border-top: 1px dashed #ccc;
-            border-bottom: 1px dashed #ccc;
-        }
-        .receipt-body p {
-            font-size: 1.2rem;
-            color: #555;
+
+        .booking-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 1.5rem;
-        }
-        .receipt-footer {
-            text-align: center;
-            margin-top: 2rem;
-            font-size: 0.9rem;
-            color: #888;
+            padding-bottom: 1rem;
+            border-bottom: 2px dashed #27ae60;
         }
 
-        /* Booking Tab Styles */
-        .booking-tab {
+        .booking-id {
+            font-size: 1rem;
             color: #666;
-        }
-        .booking-tab.active {
-            background: #27ae60 !important;
-            color: white !important;
-        }
-        .booking-tab:hover:not(.active) {
-            background: #e8f5e8;
-            color: #27ae60;
+            font-family: 'Courier New', monospace;
         }
 
-        /* Status Badge Styles */
         .status-badge {
-            padding: 0.4rem 1rem;
+            padding: 0.5rem 1rem;
             border-radius: 20px;
             font-weight: bold;
             font-size: 0.9rem;
             display: inline-block;
         }
-        .status-pending {
-            background: #fff3cd;
-            color: #856404;
-        }
-        .status-confirmed {
-            background: #d1ecf1;
-            color: #0c5460;
-        }
-        .status-completed {
-            background: #d4edda;
-            color: #155724;
-        }
-        .status-cancelled {
-            background: #f8d7da;
-            color: #721c24;
+
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-admin_review { background: #cce5ff; color: #004085; }
+        .status-price_proposed { background: #d1ecf1; color: #0c5460; }
+        .status-customer_accepted { background: #d4edda; color: #155724; }
+        .status-customer_rejected { background: #f8d7da; color: #721c24; }
+        .status-confirmed { background: #d4edda; color: #155724; }
+        .status-in_progress { background: #fff3cd; color: #856404; }
+        .status-completed { background: #d4edda; color: #155724; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+
+        .booking-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
         }
 
-        /* Category Section Styles */
-        .booking-category {
-            margin-bottom: 3rem;
+        .detail-item {
+            margin-bottom: 0.8rem;
         }
-        .category-header {
-            text-align: center;
-            margin-bottom: 2rem;
-            padding: 1rem;
+
+        .detail-label {
+            font-weight: 600;
+            color: #27ae60;
+            margin-right: 0.5rem;
+        }
+
+        .price-section {
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
             border-left: 4px solid #27ae60;
         }
-        .category-header h2 {
-            color: #27ae60;
-            margin: 0;
-            font-size: 1.5rem;
-        }
-        .category-header p {
-            color: #666;
-            margin: 0.5rem 0 0 0;
-            font-size: 1rem;
+
+        .price-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
         }
 
-        /* Empty State Styles */
-        .empty-category {
-            text-align: center;
-            padding: 3rem 2rem;
+        .price-item.total {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #27ae60;
+            border-top: 1px solid #dee2e6;
+            padding-top: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .feedback-section {
+            margin-top: 2rem;
+            border-top: 1px solid #dee2e6;
+            padding-top: 1.5rem;
+        }
+
+        .feedback-item {
             background: #f8f9fa;
-            border-radius: 12px;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .feedback-item.admin {
+            background: #e7f3ff;
+            border-left: 4px solid #0066cc;
+        }
+
+        .feedback-item.customer {
+            background: #f0f8e7;
+            border-left: 4px solid #27ae60;
+        }
+
+        .feedback-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .feedback-from {
+            font-weight: bold;
+            color: #27ae60;
+        }
+
+        .feedback-from.admin {
+            color: #0066cc;
+        }
+
+        .feedback-timestamp {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .proposed-price {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .proposed-price .price {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #856404;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #219150;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .feedback-form {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .feedback-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            resize: vertical;
+        }
+
+        .feedback-textarea:focus {
+            border-color: #27ae60;
+            outline: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: #f8f9fa;
+            border-radius: 16px;
             border: 2px dashed #dee2e6;
         }
-        .empty-category i {
-            font-size: 3rem;
+
+        .empty-state i {
+            font-size: 4rem;
             color: #adb5bd;
             margin-bottom: 1rem;
         }
-        .empty-category h3 {
+
+        .empty-state h3 {
             color: #6c757d;
-            margin-bottom: 0.5rem;
+            margin-bottom: 1rem;
         }
-        .empty-category p {
+
+        .empty-state p {
             color: #adb5bd;
+            margin-bottom: 2rem;
+        }
+
+        .guest-notice {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 1px solid #ffeaa7;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .guest-notice h3 {
+            color: #856404;
+            margin-bottom: 1rem;
+        }
+
+        .guest-notice p {
+            color: #856404;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .booking-details {
+                grid-template-columns: 1fr;
+            }
+
+            .booking-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .price-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
         }
     </style>
 </head>
@@ -142,7 +298,7 @@
             <span class="cafeteria-name">ATICAS CAFE'</span>
         </div>
         <div class="navbar-center">
-            <div class="moving-text">Welcome to <b>Aticas Cafe'</b>. Your Hospitality Partner - Enjoy our freshly prepared meals at affordable prices! Open from Mon - Sat @ 6:00am - 12:00am</div>
+            <div class="moving-text">Welcome to <b></b>Aticas Cafe'</b>. Your Hospitality Partner - Enjoy our freshly prepared meals at affordable prices! Open from Mon - Sat @ 6:00am - 12:00am</div>
         </div>
         <div class="navbar-right">
             <a href="cart.html" class="cart-icon"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cartCount">0</span></a>
@@ -171,29 +327,49 @@
     <!-- Bookings Content -->
     <section class="booking-history-section">
         <div style="width:100%;max-width:800px;">
-            <!-- Booking Categories Header -->
+            <!-- Header -->
             <div style="text-align:center;margin-bottom:3rem;">
                 <h1 class="typewriter-on-scroll" style="font-size:2.5rem;color:#27ae60;margin-bottom:1rem;font-family:'UnifrakturCook',cursive;">My Bookings</h1>
-                <p class="typewriter-on-scroll" style="color:#666;font-size:1.1rem;">Track your bookings and their current status</p>
+                <p class="typewriter-on-scroll" style="color:#666;font-size:1.1rem;">Track your bookings and manage price negotiations</p>
             </div>
 
-            <!-- Booking Category Tabs -->
-            <div style="display:flex;justify-content:center;margin-bottom:3rem;background:#f8f9fa;border-radius:12px;padding:0.5rem;box-shadow:0 2px 10px rgba(0,0,0,0.1);">
-                <button class="booking-tab active" data-category="all" style="padding:1rem 2rem;border:none;background:transparent;border-radius:8px;font-weight:bold;cursor:pointer;transition:all 0.3s;margin:0 0.5rem;">
-                    <i class="fas fa-list"></i> All Bookings
-                </button>
-                <button class="booking-tab" data-category="events" style="padding:1rem 2rem;border:none;background:transparent;border-radius:8px;font-weight:bold;cursor:pointer;transition:all 0.3s;margin:0 0.5rem;">
-                    <i class="fas fa-birthday-cake"></i> Events
-                </button>
-                <button class="booking-tab" data-category="tours" style="padding:1rem 2rem;border:none;background:transparent;border-radius:8px;font-weight:bold;cursor:pointer;transition:all 0.3s;margin:0 0.5rem;">
-                    <i class="fas fa-hiking"></i> Tours
-                </button>
+            <!-- Loading State -->
+            <div id="loadingState" style="text-align:center;padding:2rem;">
+                <i class="fas fa-spinner fa-spin" style="font-size:2rem;color:#27ae60;"></i>
+                <p style="margin-top:1rem;color:#666;">Loading your bookings...</p>
             </div>
 
             <!-- Bookings Container -->
             <div id="bookingsContainer"></div>
         </div>
     </section>
+
+    <!-- Price Response Modal -->
+    <div id="priceResponseModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:1000;overflow-y:auto;">
+        <div style="max-width:500px;margin:5rem auto;background:white;border-radius:16px;padding:2rem;">
+            <div style="text-align:center;margin-bottom:2rem;">
+                <h3 id="modalTitle" style="color:#27ae60;margin-bottom:0.5rem;">Respond to Price Proposal</h3>
+                <p id="modalSubtitle" style="color:#666;">Please provide your feedback</p>
+            </div>
+
+            <div id="proposedPriceDisplay" style="background:#fff3cd;border-radius:8px;padding:1rem;margin-bottom:1.5rem;text-align:center;">
+                <span style="font-size:0.9rem;color:#856404;">Proposed Amount:</span>
+                <div id="proposedAmount" style="font-size:1.5rem;font-weight:bold;color:#856404;">Ksh 0</div>
+            </div>
+
+            <textarea id="responseMessage" placeholder="Add your message (optional)..." style="width:100%;min-height:100px;padding:1rem;border:2px solid #e1e5e9;border-radius:8px;margin-bottom:1.5rem;resize:vertical;"></textarea>
+
+            <div style="display:flex;gap:1rem;justify-content:center;">
+                <button id="acceptPrice" class="btn btn-primary">
+                    <i class="fas fa-check"></i> Accept Price
+                </button>
+                <button id="rejectPrice" class="btn btn-danger">
+                    <i class="fas fa-times"></i> Reject Price
+                </button>
+                <button id="cancelResponse" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">
@@ -205,7 +381,7 @@
             <a href="#"><i class="fab fa-youtube"></i></a>
         </div>
         <p class="built-by">
-            Proudly built with <i class="fas fa-heart" style="color: greenyellow"></i>
+            Proudly built with <i class="fas fa-heart" style="color:red;"></i>
         </p>
         <p class="copyright">
             &copy; 2025 Aticas Cafe. All rights reserved.
@@ -215,126 +391,353 @@
     <script src="js/script.js"></script>
     <script>
         const bookingsContainer = document.getElementById('bookingsContainer');
+        const loadingState = document.getElementById('loadingState');
         const token = localStorage.getItem('userToken');
 
         let allBookings = [];
-        let currentCategory = 'all';
+        let currentBooking = null;
 
-        // Tab functionality
-        document.querySelectorAll('.booking-tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                document.querySelectorAll('.booking-tab').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                currentCategory = this.dataset.category;
-                displayBookings();
-            });
-        });
+        // Modal elements
+        const priceResponseModal = document.getElementById('priceResponseModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalSubtitle = document.getElementById('modalSubtitle');
+        const proposedAmount = document.getElementById('proposedAmount');
+        const responseMessage = document.getElementById('responseMessage');
+        const acceptPrice = document.getElementById('acceptPrice');
+        const rejectPrice = document.getElementById('rejectPrice');
+        const cancelResponse = document.getElementById('cancelResponse');
 
         function getStatusBadge(status) {
-            const statusClass = `status-${status.toLowerCase()}`;
-            const statusText = status.charAt(0).toUpperCase() + status.slice(1);
-            return `<span class="status-badge ${statusClass}">${statusText}</span>`;
+            const statusMap = {
+                'pending': 'Pending Review',
+                'admin_review': 'Under Review',
+                'price_proposed': 'Price Proposed',
+                'customer_accepted': 'Price Accepted',
+                'customer_rejected': 'Price Rejected',
+                'confirmed': 'Confirmed',
+                'in_progress': 'In Progress',
+                'completed': 'Completed',
+                'cancelled': 'Cancelled'
+            };
+
+            const statusText = statusMap[status] || status.charAt(0).toUpperCase() + status.slice(1);
+            return `<span class="status-badge status-${status.replace('_', '-')}">${statusText}</span>`;
+        }
+
+        function formatDateTime(dateString) {
+            return new Date(dateString).toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatCurrency(amount) {
+            return `Ksh ${Number(amount || 0).toLocaleString()}`;
         }
 
         function createBookingCard(booking) {
             const isEventBooking = booking.type === 'catering' || booking.type === 'tour';
+            const canRespondToPrice = booking.status === 'price_proposed';
 
             let bookingDetails = '';
             if (isEventBooking) {
                 if (booking.type === 'catering') {
                     bookingDetails = `
-                        <div><b>Event Type:</b> ${booking.eventType || 'N/A'}</div>
-                        <div><b>Guests:</b> ${booking.guests || 'N/A'}</div>
-                        <div><b>Location:</b> ${booking.location || 'N/A'}</div>
+                        <div class="detail-item">
+                            <span class="detail-label">Event Type:</span>
+                            ${booking.eventType || 'N/A'}
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Guests:</span>
+                            ${booking.guests || 'N/A'}
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Location:</span>
+                            ${booking.location || 'N/A'}
+                        </div>
                     `;
                 } else if (booking.type === 'tour') {
                     bookingDetails = `
-                        <div><b>Package:</b> ${booking.package || 'N/A'}</div>
-                        <div><b>People:</b> ${booking.people || 'N/A'}</div>
-                        <div><b>Pickup:</b> ${booking.pickup || 'N/A'}</div>
+                        <div class="detail-item">
+                            <span class="detail-label">Package:</span>
+                            ${booking.package || 'N/A'}
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">People:</span>
+                            ${booking.people || 'N/A'}
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Pickup:</span>
+                            ${booking.pickup || 'N/A'}
+                        </div>
                     `;
                 }
             }
 
+            // Price section
+            const currentAmount = booking.finalAmount || booking.totalAmount || 0;
+            const originalAmount = booking.originalAmount || 0;
+            const depositRequired = booking.depositRequired || 0;
+
+            let priceSection = `
+                <div class="price-section">
+                    <h4 style="margin:0 0 1rem 0;color:#27ae60;">Pricing Details</h4>
+            `;
+
+            if (originalAmount > 0 && originalAmount !== currentAmount) {
+                priceSection += `
+                    <div class="price-item">
+                        <span>Original Estimate:</span>
+                        <span style="text-decoration:line-through;color:#999;">${formatCurrency(originalAmount)}</span>
+                    </div>
+                `;
+            }
+
+            priceSection += `
+                <div class="price-item">
+                    <span>Current Amount:</span>
+                    <span>${formatCurrency(currentAmount)}</span>
+                </div>
+                <div class="price-item">
+                    <span>Deposit Required (70%):</span>
+                    <span>${formatCurrency(depositRequired)}</span>
+                </div>
+                <div class="price-item total">
+                    <span>Total Amount:</span>
+                    <span>${formatCurrency(currentAmount)}</span>
+                </div>
+            </div>
+            `;
+
+            // Feedback section
+            let feedbackSection = '';
+            if (booking.feedback && booking.feedback.length > 0) {
+                feedbackSection = `
+                    <div class="feedback-section">
+                        <h4 style="margin:0 0 1rem 0;color:#27ae60;">Communication History</h4>
+                `;
+
+                booking.feedback.forEach(feedback => {
+                    const isAdmin = feedback.from === 'admin';
+                    feedbackSection += `
+                        <div class="feedback-item ${feedback.from}">
+                            <div class="feedback-header">
+                                <span class="feedback-from ${feedback.from}">
+                                    ${isAdmin ? `Admin ${feedback.adminName || ''}` : 'You'}
+                                </span>
+                                <span class="feedback-timestamp">${formatDateTime(feedback.timestamp)}</span>
+                            </div>
+                            <div class="feedback-message">${feedback.message}</div>
+                            ${feedback.proposedAmount ? `
+                                <div class="proposed-price">
+                                    <i class="fas fa-tag"></i> Proposed Price:
+                                    <span class="price">${formatCurrency(feedback.proposedAmount)}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+
+                feedbackSection += '</div>';
+            }
+
+            // Action buttons
+            let actionButtons = '';
+            if (canRespondToPrice) {
+                actionButtons = `
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="openPriceResponseModal('${booking._id}', '${currentAmount}')">
+                            <i class="fas fa-reply"></i> Respond to Price
+                        </button>
+                    </div>
+                `;
+            }
+
             return `
-                <div class="receipt" style="background:#fff;border-radius:14px;border:1.5px solid #e0e0e0;box-shadow:0 6px 24px rgba(39,174,96,0.08);padding:2.5rem 2rem 2rem 2rem;width:100%;max-width:540px;margin:2.5rem auto 0 auto;font-family:'Segoe UI',Arial,sans-serif;">
-                    <div class="receipt-header" style="text-align:center;margin-bottom:2.2rem;">
-                        <div style="font-family:'UnifrakturCook',cursive;font-size:2.3rem;color:#27ae60;letter-spacing:2px;">Aticas Cafe</div>
-                        <div style="font-size:1.1rem;color:#888;margin-top:0.2rem;">Booking Confirmation</div>
-                        <div style="margin-top:0.7rem;font-size:1rem;"><b>Date:</b> ${new Date(booking.date || booking.createdAt).toLocaleString()}</div>
-                        <div style="margin-top:0.2rem;font-size:1rem;"><b>Booking ID:</b> ${booking._id}</div>
-                        <div style="margin-top:1rem;">
+                <div class="booking-card">
+                    <div class="booking-header">
+                        <div>
+                            <div class="booking-id">Booking #${booking._id}</div>
+                            <div style="margin-top:0.5rem;">
+                                <strong>Date:</strong> ${formatDateTime(booking.date)}
+                            </div>
+                        </div>
+                        <div>
                             ${getStatusBadge(booking.status)}
                         </div>
                     </div>
-                    <div class="receipt-body" style="padding:2.2rem 0 1.5rem 0;border-top:1px dashed #b2dfdb;border-bottom:1px dashed #b2dfdb;">
-                        <div style="margin-bottom:1.1rem;"><b>Customer:</b> ${booking.name} (${booking.phone})</div>
-                        <div style="margin-bottom:1.1rem;"><b>Email:</b> ${booking.email}</div>
-                        ${bookingDetails}
-                        ${booking.notes ? `<div style="margin-bottom:1.1rem;"><b>Notes:</b> ${booking.notes}</div>` : ''}
-                        <div style="text-align:right;margin-top:1.3rem;font-size:1.15rem;"><b>Total:</b> <span style="color:#27ae60;">Ksh ${Number(booking.totalAmount || 0).toLocaleString()}</span></div>
+
+                    <div class="booking-details">
+                        <div>
+                            <div class="detail-item">
+                                <span class="detail-label">Name:</span>
+                                ${booking.name}
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Phone:</span>
+                                ${booking.phone}
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Email:</span>
+                                ${booking.email}
+                            </div>
+                        </div>
+                        <div>
+                            ${bookingDetails}
+                            ${booking.notes ? `
+                                <div class="detail-item">
+                                    <span class="detail-label">Notes:</span>
+                                    ${booking.notes}
+                                </div>
+                            ` : ''}
+                        </div>
                     </div>
-                    <div class="receipt-footer" style="text-align:center;margin-top:2.2rem;font-size:1rem;color:#888;">
-                        Thank you for your booking!<br>We appreciate your business.<br>
-                        <b>Contact Us: +254 786 181 670 | +254 759 995 245</b>
-                    </div>
+
+                    ${priceSection}
+                    ${feedbackSection}
+                    ${actionButtons}
                 </div>
             `;
         }
 
-        function displayBookings() {
-            let filteredBookings = allBookings;
+        function openPriceResponseModal(bookingId, amount) {
+            currentBooking = allBookings.find(b => b._id === bookingId);
+            if (!currentBooking) return;
 
-            if (currentCategory === 'events') {
-                filteredBookings = allBookings.filter(booking => booking.type === 'catering' || booking.type === 'tour');
-            } else if (currentCategory === 'tours') {
-                filteredBookings = allBookings.filter(booking => booking.type === 'tour');
-            }
+            proposedAmount.textContent = formatCurrency(amount);
+            responseMessage.value = '';
+            priceResponseModal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
 
-            if (filteredBookings.length === 0) {
-                bookingsContainer.innerHTML = `
-                    <div class="empty-category">
-                        <i class="fas fa-calendar-times"></i>
-                        <h3 class="typewriter-on-scroll">No Bookings Yet</h3>
-                        <p>You haven't made any bookings yet.</p>
-                        <a href="our-services.html" style="display:inline-block;margin-top:1rem;padding:0.8rem 1.5rem;background-color:#27ae60;color:white;border:none;border-radius:5px;font-weight:bold;cursor:pointer;text-decoration:none;">Book Now</a>
-                    </div>
-                `;
-            } else {
-                bookingsContainer.innerHTML = filteredBookings.map(booking => createBookingCard(booking)).join('<hr style="margin:2rem 0;">');
+        function closePriceResponseModal() {
+            priceResponseModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            currentBooking = null;
+            responseMessage.value = '';
+        }
+
+        async function respondToPrice(accept) {
+            if (!currentBooking) return;
+
+            const message = responseMessage.value.trim() || (accept ? 'Price accepted' : 'Price rejected');
+            const endpoint = accept ? 'accept-price' : 'reject-price';
+
+            try {
+                const response = await fetch(`https://aticas-backend.onrender.com/api/bookings/${currentBooking._id}/${endpoint}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to ${accept ? 'accept' : 'reject'} price`);
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    closePriceResponseModal();
+                    loadBookings(); // Refresh bookings
+                    alert(`✅ Price ${accept ? 'accepted' : 'rejected'} successfully!`);
+                } else {
+                    throw new Error(result.error || 'Operation failed');
+                }
+            } catch (error) {
+                console.error('Error responding to price:', error);
+                alert(`❌ Failed to ${accept ? 'accept' : 'reject'} price: ${error.message}`);
             }
         }
 
-        (async function() {
+        function displayBookings() {
+            loadingState.style.display = 'none';
+
+            if (allBookings.length === 0) {
+                if (token) {
+                    bookingsContainer.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-calendar-times"></i>
+                            <h3>No Bookings Yet</h3>
+                            <p>You haven't made any bookings yet. Start by booking our catering services!</p>
+                            <a href="outside-catering.html" class="btn btn-primary">
+                                <i class="fas fa-calendar-plus"></i> Book Catering
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    bookingsContainer.innerHTML = `
+                        <div class="guest-notice">
+                            <h3><i class="fas fa-info-circle"></i> Login to View Your Bookings</h3>
+                            <p>To view and manage your bookings, including price negotiations, please login to your account.</p>
+                            <button onclick="document.getElementById('loginBtn').click()" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </button>
+                        </div>
+                    `;
+                }
+            } else {
+                const bookingCards = allBookings.map(booking => createBookingCard(booking)).join('');
+                bookingsContainer.innerHTML = bookingCards;
+            }
+        }
+
+        async function loadBookings() {
             try {
+                loadingState.style.display = 'block';
+
                 if (token) {
                     // Logged-in user: fetch their bookings
                     const response = await fetch('https://aticas-backend.onrender.com/api/bookings/user', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
-                    allBookings = response.ok ? await response.json() : [];
-                    displayBookings();
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        allBookings = result.bookings || [];
+                    } else {
+                        throw new Error('Failed to fetch bookings');
+                    }
                 } else {
-                    // Guest: show message to login
-                    bookingsContainer.innerHTML = `
-                        <div class="empty-category">
-                            <i class="fas fa-sign-in-alt"></i>
-                            <h3 class="typewriter-on-scroll">Login Required</h3>
-                            <p>Please login to view your bookings.</p>
-                            <button onclick="document.getElementById('loginBtn').click()" style="display:inline-block;margin-top:1rem;padding:0.8rem 1.5rem;background-color:#27ae60;color:white;border:none;border-radius:5px;font-weight:bold;cursor:pointer;">Login</button>
-                        </div>
-                    `;
+                    // Guest user: no bookings to show
+                    allBookings = [];
                 }
+
+                displayBookings();
             } catch (error) {
+                console.error('Error loading bookings:', error);
+                loadingState.style.display = 'none';
                 bookingsContainer.innerHTML = `
-                    <div style="text-align:center;color:#e74c3c;">
-                        Failed to load your bookings. Please try again later.<br>
-                        <button onclick="location.reload()" style="margin-top:1.2rem;padding:0.7rem 1.5rem;background:#27ae60;color:#fff;border:none;border-radius:6px;font-weight:bold;cursor:pointer;">Retry</button>
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle" style="color:#dc3545;"></i>
+                        <h3>Failed to Load Bookings</h3>
+                        <p>Unable to load your bookings. Please check your connection and try again.</p>
+                        <button onclick="loadBookings()" class="btn btn-primary">
+                            <i class="fas fa-redo"></i> Retry
+                        </button>
                     </div>
                 `;
-                console.error('Error loading bookings:', error);
             }
-        })();
+        }
+
+        // Event listeners
+        cancelResponse.addEventListener('click', closePriceResponseModal);
+        acceptPrice.addEventListener('click', () => respondToPrice(true));
+        rejectPrice.addEventListener('click', () => respondToPrice(false));
+
+        // Close modal when clicking outside
+        priceResponseModal.addEventListener('click', function(e) {
+            if (e.target === priceResponseModal) {
+                closePriceResponseModal();
+            }
+        });
+
+        // Initialize
+        loadBookings();
     </script>
 </body>
 </html>
