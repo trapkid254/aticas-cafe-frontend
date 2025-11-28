@@ -956,6 +956,7 @@
         }
 
         function getStatusText(status) {
+            const safeStatus = status || 'pending';
             const statusMap = {
                 'pending': 'Pending Review',
                 'admin_review': 'Under Review',
@@ -967,12 +968,13 @@
                 'completed': 'Completed',
                 'cancelled': 'Cancelled'
             };
-            return statusMap[status] || status;
+            return statusMap[safeStatus] || safeStatus;
         }
 
         function getStatusBadge(status) {
-            const statusClass = `status-${status.replace('_', '-')}`;
-            const statusText = getStatusText(status);
+            const safeStatus = status || 'pending';
+            const statusClass = `status-${safeStatus.replace('_', '-')}`;
+            const statusText = getStatusText(safeStatus);
             return `<span class="status-badge ${statusClass}">${statusText}</span>`;
         }
 
