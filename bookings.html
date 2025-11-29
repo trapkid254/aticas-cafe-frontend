@@ -357,16 +357,61 @@
                 <div id="proposedAmount" style="font-size:1.5rem;font-weight:bold;color:#856404;">Ksh 0</div>
             </div>
 
+            <div id="counterOfferSection" style="display:none;margin-bottom:1.5rem;">
+                <label style="display:block;margin-bottom:0.5rem;font-weight:600;color:#27ae60;">Counter Offer Amount (Ksh):</label>
+                <input type="number" id="counterOfferAmount" min="0" step="0.01" placeholder="Enter your counter offer" style="width:100%;padding:0.75rem;border:2px solid #e1e5e9;border-radius:8px;font-size:1rem;">
+            </div>
+
             <textarea id="responseMessage" placeholder="Add your message (optional)..." style="width:100%;min-height:100px;padding:1rem;border:2px solid #e1e5e9;border-radius:8px;margin-bottom:1.5rem;resize:vertical;"></textarea>
 
-            <div style="display:flex;gap:1rem;justify-content:center;">
+            <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
                 <button id="acceptPrice" class="btn btn-primary">
                     <i class="fas fa-check"></i> Accept Price
+                </button>
+                <button id="counterOfferBtn" class="btn btn-warning" style="background:#f39c12;color:white;">
+                    <i class="fas fa-handshake"></i> Make Counter Offer
                 </button>
                 <button id="rejectPrice" class="btn btn-danger">
                     <i class="fas fa-times"></i> Reject Price
                 </button>
                 <button id="cancelResponse" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:1000;overflow-y:auto;">
+        <div style="max-width:500px;margin:5rem auto;background:white;border-radius:16px;padding:2rem;">
+            <div style="text-align:center;margin-bottom:2rem;">
+                <h3 style="color:#27ae60;margin-bottom:0.5rem;">Proceed to Payment</h3>
+                <p style="color:#666;">Complete your booking payment</p>
+            </div>
+
+            <div style="background:#f8f9fa;border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;">
+                    <span>Deposit Required (70%):</span>
+                    <span id="depositAmount" style="font-weight:bold;color:#27ae60;">Ksh 0</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:1.1rem;font-weight:bold;">
+                    <span>Total Amount:</span>
+                    <span id="totalPaymentAmount" style="color:#27ae60;">Ksh 0</span>
+                </div>
+            </div>
+
+            <div style="margin-bottom:1.5rem;">
+                <label style="display:block;margin-bottom:0.5rem;font-weight:600;color:#27ae60;">Payment Method:</label>
+                <select id="paymentMethod" style="width:100%;padding:0.75rem;border:2px solid #e1e5e9;border-radius:8px;font-size:1rem;">
+                    <option value="mpesa">M-Pesa</option>
+                    <option value="card">Credit/Debit Card</option>
+                    <option value="bank">Bank Transfer</option>
+                </select>
+            </div>
+
+            <div style="display:flex;gap:1rem;justify-content:center;">
+                <button id="proceedToPayment" class="btn btn-primary">
+                    <i class="fas fa-credit-card"></i> Proceed to Payment
+                </button>
+                <button id="cancelPayment" class="btn btn-secondary">Cancel</button>
             </div>
         </div>
     </div>
@@ -399,6 +444,7 @@
 
         // Modal elements
         const priceResponseModal = document.getElementById('priceResponseModal');
+        const paymentModal = document.getElementById('paymentModal');
         const modalTitle = document.getElementById('modalTitle');
         const modalSubtitle = document.getElementById('modalSubtitle');
         const proposedAmount = document.getElementById('proposedAmount');
@@ -406,6 +452,14 @@
         const acceptPrice = document.getElementById('acceptPrice');
         const rejectPrice = document.getElementById('rejectPrice');
         const cancelResponse = document.getElementById('cancelResponse');
+        const counterOfferBtn = document.getElementById('counterOfferBtn');
+        const counterOfferSection = document.getElementById('counterOfferSection');
+        const counterOfferAmount = document.getElementById('counterOfferAmount');
+        const proceedToPayment = document.getElementById('proceedToPayment');
+        const cancelPayment = document.getElementById('cancelPayment');
+        const depositAmount = document.getElementById('depositAmount');
+        const totalPaymentAmount = document.getElementById('totalPaymentAmount');
+        const paymentMethod = document.getElementById('paymentMethod');
 
         function getStatusBadge(status) {
             const statusMap = {
@@ -609,6 +663,9 @@
 
             proposedAmount.textContent = formatCurrency(amount);
             responseMessage.value = '';
+            counterOfferSection.style.display = 'none';
+            counterOfferAmount.value = '';
+            counterOfferBtn.textContent = 'Make Counter Offer';
             priceResponseModal.style.display = 'block';
             document.body.style.overflow = 'hidden';
         }
@@ -620,11 +677,23 @@
             responseMessage.value = '';
         }
 
-        async function respondToPrice(accept) {
+        async function respondToPrice(accept, counterOfferAmount = null) {
             if (!currentBooking) return;
 
-            const message = responseMessage.value.trim() || (accept ? 'Price accepted' : 'Price rejected');
-            const endpoint = accept ? 'accept-price' : 'reject-price';
+            let message = responseMessage.value.trim();
+            let endpoint = accept ? 'accept-price' : 'reject-price';
+            let requestBody = { message };
+
+            if (counterOfferAmount !== null) {
+                // Counter offer
+                endpoint = 'counter-offer';
+                requestBody.counterOfferAmount = counterOfferAmount;
+                message = message || `Counter offer: ${formatCurrency(counterOfferAmount)}`;
+            } else {
+                message = message || (accept ? 'Price accepted' : 'Price rejected');
+            }
+
+            requestBody.message = message;
 
             try {
                 const response = await fetch(`https://aticas-backend.onrender.com/api/bookings/${currentBooking._id}/${endpoint}`, {
@@ -632,11 +701,11 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ message })
+                    body: JSON.stringify(requestBody)
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Failed to ${accept ? 'accept' : 'reject'} price`);
+                    throw new Error(`Failed to ${counterOfferAmount !== null ? 'make counter offer' : (accept ? 'accept' : 'reject')} price`);
                 }
 
                 const result = await response.json();
@@ -644,13 +713,62 @@
                 if (result.success) {
                     closePriceResponseModal();
                     loadBookings(); // Refresh bookings
-                    alert(`✅ Price ${accept ? 'accepted' : 'rejected'} successfully!`);
+                    const action = counterOfferAmount !== null ? 'counter offer submitted' : `price ${accept ? 'accepted' : 'rejected'}`;
+                    alert(`✅ ${action} successfully!`);
                 } else {
                     throw new Error(result.error || 'Operation failed');
                 }
             } catch (error) {
                 console.error('Error responding to price:', error);
-                alert(`❌ Failed to ${accept ? 'accept' : 'reject'} price: ${error.message}`);
+                const action = counterOfferAmount !== null ? 'make counter offer' : (accept ? 'accept' : 'reject');
+                alert(`❌ Failed to ${action}: ${error.message}`);
+            }
+        }
+
+        function showPaymentModal(amount) {
+            const deposit = Math.round(amount * 0.7);
+            depositAmount.textContent = formatCurrency(deposit);
+            totalPaymentAmount.textContent = formatCurrency(amount);
+            paymentModal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePaymentModal() {
+            paymentModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        async function processPayment() {
+            if (!currentBooking) return;
+
+            const method = paymentMethod.value;
+            const amount = currentBooking.finalAmount || currentBooking.totalAmount;
+
+            // For now, just show a success message and update booking status
+            // In a real implementation, this would integrate with payment processors
+            alert(`✅ Payment initiated via ${method}. Amount: ${formatCurrency(amount)}\n\nNote: This is a demo. Actual payment integration would be implemented here.`);
+
+            closePaymentModal();
+
+            // Update booking status to confirmed (assuming payment was successful)
+            try {
+                const response = await fetch(`https://aticas-backend.onrender.com/api/bookings/${currentBooking._id}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token ? `Bearer ${token}` : undefined
+                    },
+                    body: JSON.stringify({
+                        status: 'confirmed',
+                        paymentStatus: 'deposit_paid'
+                    })
+                });
+
+                if (response.ok) {
+                    loadBookings(); // Refresh bookings
+                }
+            } catch (error) {
+                console.error('Error updating booking status:', error);
             }
         }
 
@@ -726,13 +844,40 @@
 
         // Event listeners
         cancelResponse.addEventListener('click', closePriceResponseModal);
-        acceptPrice.addEventListener('click', () => respondToPrice(true));
+        acceptPrice.addEventListener('click', () => {
+            const amount = currentBooking.finalAmount || currentBooking.totalAmount;
+            closePriceResponseModal();
+            showPaymentModal(amount);
+        });
         rejectPrice.addEventListener('click', () => respondToPrice(false));
+        counterOfferBtn.addEventListener('click', () => {
+            if (counterOfferSection.style.display === 'none') {
+                counterOfferSection.style.display = 'block';
+                counterOfferBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Counter Offer';
+                counterOfferAmount.focus();
+            } else {
+                const amount = parseFloat(counterOfferAmount.value);
+                if (!amount || amount <= 0) {
+                    alert('Please enter a valid counter offer amount.');
+                    counterOfferAmount.focus();
+                    return;
+                }
+                respondToPrice(null, amount);
+            }
+        });
+        proceedToPayment.addEventListener('click', processPayment);
+        cancelPayment.addEventListener('click', closePaymentModal);
 
         // Close modal when clicking outside
         priceResponseModal.addEventListener('click', function(e) {
             if (e.target === priceResponseModal) {
                 closePriceResponseModal();
+            }
+        });
+
+        paymentModal.addEventListener('click', function(e) {
+            if (e.target === paymentModal) {
+                closePaymentModal();
             }
         });
 

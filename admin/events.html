@@ -198,6 +198,13 @@
 
                 <div class="form-group">
                     <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox" id="eventFixedPrice">
+                        Fixed Price (non-negotiable)
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
                         <input type="checkbox" id="eventFeatured">
                         Featured Event
                     </label>
@@ -642,6 +649,18 @@
             badgesWrap.style.display = "flex";
             badgesWrap.style.gap = "0.5rem";
 
+            if (event.fixedPrice) {
+                const fixed = document.createElement("span");
+                fixed.textContent = "FIXED PRICE";
+                fixed.style.background = "#17a2b8";
+                fixed.style.color = "white";
+                fixed.style.padding = "0.2rem 0.5rem";
+                fixed.style.borderRadius = "10px";
+                fixed.style.fontSize = "0.8rem";
+                fixed.style.fontWeight = "600";
+                badgesWrap.appendChild(fixed);
+            }
+
             if (event.featured) {
                 const feat = document.createElement("span");
                 feat.textContent = "FEATURED";
@@ -785,6 +804,8 @@
                             event.capacity || "";
                         document.getElementById("eventPrice").value =
                             event.price || "";
+                        document.getElementById("eventFixedPrice").checked =
+                            event.fixedPrice || false;
                         document.getElementById("eventFeatured").checked =
                             event.featured || false;
                         document.getElementById("eventActive").checked =
@@ -803,6 +824,7 @@
                 } else {
                     modalTitle.textContent = "Add New Event";
                     form.reset();
+                    document.getElementById("eventFixedPrice").checked = false;
                     document.getElementById("eventActive").checked = true;
                     if (imageLabel) {
                         imageLabel.innerHTML = "Event Image *";
@@ -916,6 +938,10 @@
                     formDataObj.append("price", price);
                 }
 
+                formDataObj.append(
+                    "fixedPrice",
+                    document.getElementById("eventFixedPrice").checked,
+                );
                 formDataObj.append(
                     "featured",
                     document.getElementById("eventFeatured").checked,
