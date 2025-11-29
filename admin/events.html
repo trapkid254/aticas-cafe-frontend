@@ -99,19 +99,27 @@
                 </p>
             </div>
             <div class="filter-controls">
-                <select id="typeFilter" class="filter-select">
-                    <option value="">All Types</option>
-                    <option value="catering">Catering</option>
-                    <option value="tour">Tour</option>
-                    <option value="graduation">Graduation</option>
-                    <option value="wedding">Wedding</option>
-                    <option value="corporate">Corporate</option>
-                </select>
-                <select id="statusFilter" class="filter-select">
-                    <option value="">All Status</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                </select>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <input type="text" id="searchInput" placeholder="Search events..." style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; width: 250px;">
+                        <select id="typeFilter" class="filter-select">
+                            <option value="">All Types</option>
+                            <option value="catering">Catering</option>
+                            <option value="tour">Tour</option>
+                            <option value="graduation">Graduation</option>
+                            <option value="wedding">Wedding</option>
+                            <option value="corporate">Corporate</option>
+                        </select>
+                        <select id="statusFilter" class="filter-select">
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <button id="addEventBtn" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-plus"></i> Add Event
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -497,6 +505,13 @@
                     }
 
                     await loadEvents();
+                } catch (error) {
+                    console.error("Failed to initialize events page:", error);
+                    // If there's an auth error, redirect to login
+                    if (error.message && error.message.includes("401")) {
+                        window.location.href = "admin-login.html";
+                        return;
+                    }
 
                     // Add event listeners
                     document
@@ -554,6 +569,13 @@
                             },
                         },
                     );
+
+                    if (res.status === 401) {
+                        // Token expired, redirect to login
+                        window.location.href = "admin-login.html";
+                        return;
+                    }
+
                     const data = await res.json();
 
                     loading.style.display = "none";
@@ -569,7 +591,15 @@
                     displayEvents(allEvents);
                 } catch (err) {
                     loading.style.display = "none";
-                    errorMsg.textContent = "Failed to load events.";
+                    console.error("Error loading events:", err);
+
+                    // Check if it's an authentication error
+                    if (err.message && err.message.includes("401")) {
+                        window.location.href = "admin-login.html";
+                        return;
+                    }
+
+                    errorMsg.textContent = "Failed to load events. Please check your connection.";
                     errorMsg.style.display = "block";
                 }
             }
@@ -1001,6 +1031,12 @@
                         body: formDataObj,
                     });
 
+                    if (response.status === 401) {
+                        // Token expired, redirect to login
+                        window.location.href = "admin-login.html";
+                        return;
+                    }
+
                     if (response.ok) {
                         closeEventModal();
                         await loadEvents();
@@ -1063,6 +1099,12 @@
                             },
                         },
                     );
+
+                    if (response.status === 401) {
+                        // Token expired, redirect to login
+                        window.location.href = "admin-login.html";
+                        return;
+                    }
 
                     if (response.ok) {
                         await loadEvents();

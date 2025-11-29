@@ -357,11 +357,17 @@
                                     event.type.charAt(0).toUpperCase() +
                                     event.type.slice(1);
 
-                                const imageUrl =
-                                    event.image &&
-                                    event.image.startsWith("http")
-                                        ? event.image
-                                        : `https://aticas-backend.onrender.com${event.image}`;
+                                // Handle image URL construction with better fallbacks
+                                let imageUrl = 'images/1b.jpg'; // Default fallback
+
+                                if (event.image) {
+                                    if (event.image.startsWith("http")) {
+                                        imageUrl = event.image;
+                                    } else if (event.image.startsWith("/uploads/")) {
+                                        // Check if the image exists by trying to load it
+                                        imageUrl = `https://aticas-backend.onrender.com${event.image}`;
+                                    }
+                                }
 
                                 return `
                         <div class="event-card">
