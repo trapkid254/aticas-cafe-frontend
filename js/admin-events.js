@@ -266,22 +266,35 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             showLoading(true);
+            const adminType = window.getAdminType ? window.getAdminType() : 'cafeteria';
             const response = await fetch(`https://aticas-backend.onrender.com/api/events/${eventId}`, {
                 method: 'DELETE',
                 headers: {
-                    'Authorization': `Bearer ${adminToken}`
+                    'Authorization': `Bearer ${adminToken}`,
+                    'X-Admin-Type': adminType,
+                    'Content-Type': 'application/json'
                 }
             });
 
+            const responseData = await response.json();
+            
             if (!response.ok) {
-                throw new Error('Failed to delete event');
+                const errorMessage = responseData.message || 'Failed to delete event';
+                throw new Error(errorMessage);
             }
 
             showSuccess('Event deleted successfully');
             await loadEvents();
         } catch (error) {
             console.error('Error deleting event:', error);
-            showError('Failed to delete event');
+            const errorMessage = error.message || 'Failed to delete event. Please try again.';
+            showError(errorMessage);
+            
+            // If unauthorized, redirect to login
+            if (error.message.includes('401') || error.message.includes('unauthorized')) {
+                localStorage.removeItem('adminToken');
+                window.location.href = '/admin/admin-login.html';
+            }
         } finally {
             showLoading(false);
         }
