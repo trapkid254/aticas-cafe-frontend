@@ -149,10 +149,31 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Render standard booking form for fixed price events
     function renderStandardBookingForm(event, isLoggedIn, loginPrompt) {
+        // Get user data if logged in
+        const userData = isLoggedIn ? JSON.parse(localStorage.getItem('userData') || '{}') : {};
+        
         return `
             <form id="bookingForm">
                 <div class="form-group">
-                    <label for="attendees">Number of People</label>
+                    <label for="customerName">Full Name <span class="required">*</span></label>
+                    <input type="text" id="customerName" class="form-control" 
+                           value="${userData.name || ''}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="customerEmail">Email Address <span class="required">*</span></label>
+                    <input type="email" id="customerEmail" class="form-control" 
+                           value="${userData.email || ''}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="customerPhone">Phone Number <span class="required">*</span></label>
+                    <input type="tel" id="customerPhone" class="form-control" 
+                           value="${userData.phone || ''}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="attendees">Number of People <span class="required">*</span></label>
                     <input type="number" id="attendees" class="form-control" min="1" value="1" required>
                 </div>
                 
@@ -583,21 +604,39 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Get user info from local storage
+            // Get user info from form or local storage
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
             // token is already declared above
+            
+            // If user is logged in, we'll still get the data from the form to allow updates
+            const customerName = document.getElementById('customerName')?.value || userData.name || '';
+            const customerEmail = document.getElementById('customerEmail')?.value || userData.email || '';
+            const customerPhone = document.getElementById('customerPhone')?.value || userData.phone || '';
+            
+            // Validate required fields from the form
+            if (!customerName || customerName.trim() === '') {
+                showBookingError('Please enter your full name');
+                return;
+            }
+            
+            if (!customerEmail || customerEmail.trim() === '') {
+                showBookingError('Please enter your email address');
+                return;
+            }
+            
+            if (!customerPhone || customerPhone.trim() === '') {
+                showBookingError('Please enter your phone number');
+                return;
+            }
             
             // Prepare booking data in the format expected by the server
             const bookingData = {
                 attendees: parseInt(attendees, 10),
                 specialRequests: specialRequests,
-                totalPrice: event.price * parseInt(attendees, 10), // Calculate total price based on attendees
-                // The following fields will be added by the server from the JWT token if user is logged in
-                // or will be set to empty strings for guests (though the API might require them)
-                customerName: userData.name || 'Event Attendee',
-                customerEmail: userData.email || '',
-                customerPhone: userData.phone || '',
-                // Include any other fields that might be required
+                totalPrice: event.price * parseInt(attendees, 10),
+                customerName: customerName,
+                customerEmail: customerEmail,
+                customerPhone: customerPhone,
                 eventId: event._id,
                 eventTitle: event.title
             };
