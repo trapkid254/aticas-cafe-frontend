@@ -585,24 +585,24 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Get user info from local storage
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            const token = localStorage.getItem('userToken');
             
-            // Calculate deposit (assuming 20% of total price)
-            const depositRequired = Math.ceil(totalPrice * 0.2);
-            
-            // Prepare booking data with all required fields
+            // Prepare booking data in the format expected by the server
             const bookingData = {
                 attendees: parseInt(attendees, 10),
                 specialRequests: specialRequests,
-                totalAmount: totalPrice,
-                depositRequired: depositRequired,
-                date: event.date || new Date(), // Use event date or current date if not available
-                name: userData.name || 'Event Attendee',
-                email: userData.email,
-                phone: userData.phone || '',
-                type: 'event',
+                totalPrice: event.price * parseInt(attendees, 10), // Calculate total price based on attendees
+                // The following fields will be added by the server from the JWT token if user is logged in
+                // or will be set to empty strings for guests (though the API might require them)
+                customerName: userData.name || 'Event Attendee',
+                customerEmail: userData.email || '',
+                customerPhone: userData.phone || '',
+                // Include any other fields that might be required
                 eventId: event._id,
                 eventTitle: event.title
             };
+            
+            console.log('Prepared booking data:', bookingData);
 
             console.log('Submitting event booking:', bookingData);
 
@@ -616,7 +616,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         'Authorization': `Bearer ${token}`,
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify(bookingData),
+                    body: JSON.stringify({
+                        attendees: bookingData.attendees,
+                        specialRequests: bookingData.specialRequests,
+                        totalPrice: bookingData.totalPrice
+                        // The server will handle adding user info from the token
+                    }),
                     credentials: 'include'
                 });
                 
