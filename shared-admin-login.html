@@ -257,6 +257,7 @@
                     // Store both items in a single transaction
                     localStorage.setItem('adminToken', data.token);
                     localStorage.setItem('adminData', JSON.stringify(adminData));
+                    localStorage.setItem('adminType', adminData.adminType); // Also store separately for compatibility
                     
                     // Add a small delay to ensure localStorage is written
                     setTimeout(() => {

@@ -496,6 +496,19 @@
             let allEvents = [];
             let editingEventId = null;
 
+            function getAdminType() {
+                let adminType = "cafeteria";
+                try {
+                    const adminData = JSON.parse(localStorage.getItem("adminData"));
+                    if (adminData && adminData.adminType) {
+                        adminType = adminData.adminType;
+                    }
+                } catch (e) {
+                    // Fallback
+                }
+                return localStorage.getItem("adminType") || adminType;
+            }
+
             document.addEventListener("DOMContentLoaded", async function () {
                 try {
                     const adminToken = localStorage.getItem("adminToken");
@@ -552,6 +565,8 @@
                 const errorMsg = document.getElementById("errorMsg");
                 const adminToken = localStorage.getItem("adminToken");
 
+                const adminType = getAdminType();
+
                 loading.style.display = "block";
                 errorMsg.style.display = "none";
 
@@ -561,9 +576,7 @@
                         {
                             headers: {
                                 Authorization: `Bearer ${adminToken}`,
-                                "X-Admin-Type":
-                                    localStorage.getItem("adminType") ||
-                                    "cafeteria",
+                                "X-Admin-Type": adminType,
                             },
                         },
                     );
@@ -879,7 +892,7 @@
 
                 // Check admin authentication first
                 const adminToken = localStorage.getItem("adminToken");
-                const adminType = localStorage.getItem("adminType");
+                const adminType = getAdminType();
 
                 if (!adminToken) {
                     showNotification(
@@ -1083,6 +1096,7 @@
                     return;
 
                 const adminToken = localStorage.getItem("adminToken");
+                const adminType = getAdminType();
 
                 try {
                     const response = await fetch(
@@ -1091,9 +1105,7 @@
                             method: "DELETE",
                             headers: {
                                 Authorization: `Bearer ${adminToken}`,
-                                "X-Admin-Type":
-                                    localStorage.getItem("adminType") ||
-                                    "cafeteria",
+                                "X-Admin-Type": adminType,
                             },
                         },
                     );
