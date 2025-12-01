@@ -512,41 +512,39 @@
                         window.location.href = "admin-login.html";
                         return;
                     }
-
-                    // Add event listeners
-                    document
-                        .getElementById("addEventBtn")
-                        .addEventListener("click", () => openEventModal());
-                    document
-                        .getElementById("closeEventModal")
-                        .addEventListener("click", () => closeEventModal());
-                    document
-                        .getElementById("cancelEventBtn")
-                        .addEventListener("click", () => closeEventModal());
-                    document
-                        .getElementById("eventModal")
-                        .addEventListener("click", (e) => {
-                            if (
-                                e.target ===
-                                document.getElementById("eventModal")
-                            )
-                                closeEventModal();
-                        });
-                    document
-                        .getElementById("eventForm")
-                        .addEventListener("submit", handleEventSubmit);
-                    document
-                        .getElementById("typeFilter")
-                        .addEventListener("change", applyFilters);
-                    document
-                        .getElementById("statusFilter")
-                        .addEventListener("change", applyFilters);
-                    document
-                        .getElementById("searchInput")
-                        .addEventListener("input", applyFilters);
-                } catch (error) {
-                    console.error("Failed to initialize events page:", error);
                 }
+
+                // Add event listeners (always, regardless of loadEvents success/failure)
+                document
+                    .getElementById("addEventBtn")
+                    .addEventListener("click", () => openEventModal());
+                document
+                    .getElementById("closeEventModal")
+                    .addEventListener("click", () => closeEventModal());
+                document
+                    .getElementById("cancelEventBtn")
+                    .addEventListener("click", () => closeEventModal());
+                document
+                    .getElementById("eventModal")
+                    .addEventListener("click", (e) => {
+                        if (
+                            e.target ===
+                            document.getElementById("eventModal")
+                        )
+                            closeEventModal();
+                    });
+                document
+                    .getElementById("eventForm")
+                    .addEventListener("submit", handleEventSubmit);
+                document
+                    .getElementById("typeFilter")
+                    .addEventListener("change", applyFilters);
+                document
+                    .getElementById("statusFilter")
+                    .addEventListener("change", applyFilters);
+                document
+                    .getElementById("searchInput")
+                    .addEventListener("input", applyFilters);
             });
 
             async function loadEvents() {
