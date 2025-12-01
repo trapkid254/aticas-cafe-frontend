@@ -619,8 +619,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     body: JSON.stringify({
                         attendees: bookingData.attendees,
                         specialRequests: bookingData.specialRequests,
-                        totalPrice: bookingData.totalPrice
-                        // The server will handle adding user info from the token
+                        totalPrice: bookingData.totalPrice,
+                        customerName: bookingData.customerName,
+                        customerEmail: bookingData.customerEmail,
+                        customerPhone: bookingData.customerPhone,
+                        eventId: bookingData.eventId,
+                        eventTitle: bookingData.eventTitle
                     }),
                     credentials: 'include'
                 });
