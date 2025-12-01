@@ -17,22 +17,29 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fetch event details
     async function fetchEventDetails(eventId) {
         try {
-            const response = await fetch(`https://aticas-backend.onrender.com/api/events/${eventId}`);
+            const response = await fetch(`https://aticas-backend.onrender.com/api/events`);
             
             if (!response.ok) {
-                throw new Error('Failed to fetch event details');
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             const data = await response.json();
             
-            if (data.success && data.event) {
-                displayEventDetails(data.event);
+            if (data.success && data.events && Array.isArray(data.events)) {
+                // Find the specific event by ID from the events array
+                const event = data.events.find(e => e._id === eventId);
+                
+                if (event) {
+                    displayEventDetails(event);
+                } else {
+                    throw new Error('Event not found');
+                }
             } else {
-                throw new Error('Invalid event data received');
+                throw new Error('Invalid events data received');
             }
         } catch (error) {
-            console.error('Error:', error);
-            showError(error.message || 'An error occurred while loading the event');
+            console.error('Error fetching event details:', error);
+            showError(`Failed to load event: ${error.message}. Please try again later.`);
         } finally {
             loadingDiv.style.display = 'none';
         }
