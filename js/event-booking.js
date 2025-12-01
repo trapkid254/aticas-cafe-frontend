@@ -607,6 +607,8 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Submitting event booking:', bookingData);
 
             try {
+                console.log('Sending booking data:', JSON.stringify(bookingData, null, 2));
+                
                 const response = await fetch(`https://aticas-backend.onrender.com/api/events/${event._id}/bookings`, {
                     method: 'POST',
                     headers: {
@@ -615,25 +617,35 @@ document.addEventListener('DOMContentLoaded', function() {
                         'Accept': 'application/json'
                     },
                     body: JSON.stringify(bookingData),
-                    credentials: 'include' // Include cookies if needed
+                    credentials: 'include'
                 });
                 
-                console.log('Booking response status:', response.status);
+                console.log('Response status:', response.status);
+                console.log('Response headers:', Object.fromEntries(response.headers.entries()));
                 
-                // Handle non-JSON responses
+                // Get response text first to handle both JSON and non-JSON responses
+                const responseText = await response.text();
                 let data;
-                const contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                    data = await response.json();
-                    console.log('Booking response data:', data);
-                } else {
-                    const text = await response.text();
-                    console.log('Non-JSON response:', text);
-                    throw new Error('Invalid response from server');
+                
+                try {
+                    data = responseText ? JSON.parse(responseText) : {};
+                    console.log('Parsed response data:', data);
+                } catch (e) {
+                    console.log('Raw response text:', responseText);
+                    throw new Error(`Failed to parse response: ${responseText.substring(0, 200)}`);
                 }
                 
                 if (!response.ok) {
-                    throw new Error(data.message || `Server error: ${response.status}`);
+                    const errorMessage = data.message || 
+                                      data.error?.message ||
+                                      `Server returned ${response.status} status`;
+                    console.error('Server error details:', {
+                        status: response.status,
+                        statusText: response.statusText,
+                        data: data,
+                        rawResponse: responseText
+                    });
+                    throw new Error(errorMessage);
                 }
                 
                 // Show success message
@@ -645,15 +657,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 2000);
                 
             } catch (error) {
-                console.error('Booking error:', {
-                    error: error,
+                console.error('Booking error details:', {
+                    name: error.name,
                     message: error.message,
-                    stack: error.stack
+                    stack: error.stack,
+                    bookingData: bookingData,
+                    userData: userData
                 });
                 
-                // More specific error messages based on error type
-                let errorMessage = 'Failed to book event. Please try again later.';
+                let errorMessage = 'Failed to create booking';
+                if (error.message.includes('400')) {
+                    errorMessage = 'Invalid booking data. Please check your information and try again.';
+                } else if (error.message.includes('401') || error.message.includes('403')) {
+                    errorMessage = 'Session expired. Please log in again.';
+                    // Optionally redirect to login
+                    // window.location.href = `login.html?redirect=event-booking.html?id=${event._id}`;
+                    // return;
+                } else if (error.message.includes('500')) {
+                    errorMessage = 'Server error. Please try again later.';
+                }
                 
+                // More specific error messages based on error type
                 if (error instanceof TypeError) {
                     errorMessage = 'Network error. Please check your connection.';
                 } else if (error.message.includes('401')) {
