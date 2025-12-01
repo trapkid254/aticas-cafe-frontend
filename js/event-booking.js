@@ -583,12 +583,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // For logged-in users, we don't need to send customer info as it's retrieved from token
-            // For guest users, we'd need to collect this info, but currently only logged-in users can book
+            // Get user info from local storage
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            
+            // Calculate deposit (assuming 20% of total price)
+            const depositRequired = Math.ceil(totalPrice * 0.2);
+            
+            // Prepare booking data with all required fields
             const bookingData = {
-                attendees: attendees,
+                attendees: parseInt(attendees, 10),
                 specialRequests: specialRequests,
-                totalPrice: totalPrice
+                totalAmount: totalPrice,
+                depositRequired: depositRequired,
+                date: event.date || new Date(), // Use event date or current date if not available
+                name: userData.name || 'Event Attendee',
+                email: userData.email,
+                phone: userData.phone || '',
+                type: 'event',
+                eventId: event._id,
+                eventTitle: event.title
             };
 
             console.log('Submitting event booking:', bookingData);
