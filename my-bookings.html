@@ -397,32 +397,6 @@
                     }
                 } catch (error) {
                     console.error('Error accepting price:', error);
-                    alert('Failed to accept price. Please try again.');
-                }
-            }
-        };
-
-        (async function() {
-            try {
-                if (token) {
-                    // Logged-in user: fetch their bookings and event bookings
-                    const [bookingsResponse, eventBookingsResponse] = await Promise.all([
-                        fetch('https://aticas-backend.onrender.com/api/bookings/user', {
-                            headers: { 'Authorization': `Bearer ${token}` }
-                        }),
-                        fetch('https://aticas-backend.onrender.com/api/user/event-bookings', {
-                            headers: { 'Authorization': `Bearer ${token}` }
-                        })
-                    ]);
-
-                    allBookings = bookingsResponse.ok ? (await bookingsResponse.json()).bookings || [] : [];
-                    allEventBookings = eventBookingsResponse.ok ? (await eventBookingsResponse.json()).bookings || [] : [];
-
-                    displayBookings();
-                } else {
-                    // Guest: show bookings from localStorage (only regular bookings for guests)
-                    const guestBookings = JSON.parse(localStorage.getItem('guestBookings') || '[]');
-                    allBookings = guestBookings;
                     allEventBookings = []; // Guests can't make event bookings currently
 
                     if (allBookings.length > 0) {

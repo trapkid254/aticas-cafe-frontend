@@ -233,12 +233,25 @@ document.addEventListener('DOMContentLoaded', function() {
             let count = 0;
             
             if (isLoggedIn) {
+                const token = localStorage.getItem('userToken');
+                if (!token) {
+                    // If no token, clear user data and show login
+                    localStorage.removeItem('userData');
+                    return 0;
+                }
+                
                 // For logged-in users, fetch from backend
                 const response = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('userToken')}`
-                    }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
+                
+                if (response.status === 401) {
+                    // Token expired or invalid
+                    localStorage.removeItem('userToken');
+                    localStorage.removeItem('userData');
+                    window.dispatchEvent(new Event('authChange'));
+                    return 0;
+                }
                 
                 if (response.ok) {
                     const cart = await response.json();
@@ -273,11 +286,21 @@ document.addEventListener('DOMContentLoaded', function() {
         updateCartCount();
         
         // Listen for auth changes
+        window.addEventListener('authChange', updateCartCount);
+        
+        // Listen for storage events from other tabs
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'userToken' || e.key === 'userId') {
+                updateCartCount();
+            }
+        });
+        
+        // Override localStorage.setItem to detect auth changes
         const originalSetItem = localStorage.setItem;
-        localStorage.setItem = function(key) {
+        localStorage.setItem = function(key, value) {
             originalSetItem.apply(this, arguments);
             if (key === 'userToken' || key === 'userId') {
-                updateCartCount();
+                window.dispatchEvent(new Event('authChange'));
             }
         };
     }
