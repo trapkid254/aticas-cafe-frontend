@@ -149,66 +149,44 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Render standard booking form for fixed price events
     function renderStandardBookingForm(event, isLoggedIn, loginPrompt) {
-            return `
-                <form id="bookingForm">
-                    <div class="form-group">
-                        <label for="attendees">Number of People</label>
-                        <input type="number" id="attendees" class="form-control" min="1" value="1" required>
+        return `
+            <form id="bookingForm">
+                <div class="form-group">
+                    <label for="attendees">Number of People</label>
+                    <input type="number" id="attendees" class="form-control" min="1" value="1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="specialRequests">Special Requests (Optional)</label>
+                    <textarea id="specialRequests" class="form-control" rows="3"></textarea>
+                </div>
+                
+                <div class="price-summary">
+                    <div class="price-row">
+                        <span>Price per person:</span>
+                        <span>Ksh ${event.price.toLocaleString()}</span>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="specialRequests">Special Requests (Optional)</label>
-                        <textarea id="specialRequests" class="form-control" rows="3"></textarea>
+                    <div class="price-row">
+                        <span>Number of people:</span>
+                        <span id="attendeeCount">1</span>
                     </div>
-                    
-                    <div class="price-summary">
-                        <div class="price-row">
-                            <span>Price per person:</span>
-                            <span>Ksh ${event.price.toLocaleString()}</span>
-                        </div>
-                        <div class="price-row">
-                            <span>Number of people:</span>
-                            <span id="attendeeCount">1</span>
-                        </div>
-                        <div class="price-row total-price">
-                            <span>Total:</span>
-                            <span id="totalPrice">Ksh ${event.price.toLocaleString()}</span>
-                        </div>
+                    <div class="price-row total-price">
+                        <span>Total:</span>
+                        <span id="totalPrice">Ksh ${event.price.toLocaleString()}</span>
                     </div>
-                    
-                    ${isLoggedIn ? `
-                        <button type="submit" class="btn-book">Continue to Payment</button>
-                    ` : `
-                        <a href="login.html?redirect=event-booking.html?id=${event._id}" class="btn btn-book">Log In to Book</a>
-                    `}
-                    
-                    ${loginPrompt}
-                    
-                    <div id="bookingError" class="error-message"></div>
-                    <div id="bookingSuccess" class="success-message"></div>
-                </form>
-            `;
-        } else {
-            return `
-                <form id="bookingForm">
-                    <div class="form-group">
-                        <label for="specialRequests">Special Requests (Optional)</label>
-                        <textarea id="specialRequests" class="form-control" rows="3"></textarea>
-                    </div>
-                    
-                    ${isLoggedIn ? `
-                        <button type="submit" class="btn-book">Book Now</button>
-                    ` : `
-                        <a href="login.html?redirect=event-booking.html?id=${event._id}" class="btn btn-book">Log In to Book</a>
-                    `}
-                    
-                    ${loginPrompt}
-                    
-                    <div id="bookingError" class="error-message"></div>
-                    <div id="bookingSuccess" class="success-message"></div>
-                </form>
-            `;
-        }
+                </div>
+                
+                ${isLoggedIn 
+                    ? '<button type="submit" class="btn-book">Continue to Payment</button>'
+                    : `<a href="login.html?redirect=event-booking.html?id=${event._id}" class="btn btn-book">Log In to Book</a>`
+                }
+                
+                ${loginPrompt}
+                
+                <div id="bookingError" class="error-message"></div>
+                <div id="bookingSuccess" class="success-message"></div>
+            </form>
+        `;
     }
     
     // Render negotiation status and messages
