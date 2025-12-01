@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Payment - ATICAS CAFE'</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
+    <style>
+        .payment-container {
+            max-width: 600px;
+            margin: 120px auto 40px auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            padding: 2.5rem 2rem 2rem 2rem;
+            text-align: center;
+        }
+        .payment-container h2 {
+            color: #27ae60;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        .payment-container .fa-money-bill-wave {
+            font-size: 3.5rem;
+            color: #27ae60;
+            margin-bottom: 1rem;
+        }
+        .booking-details {
+            text-align: left;
+            margin: 2rem 0 1.5rem 0;
+            background: #f8f8f8;
+            border-radius: 10px;
+            padding: 1.2rem 1rem;
+        }
+        .booking-details h4 {
+            margin-bottom: 0.7rem;
+            color: #222;
+        }
+        .booking-details ul {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 1rem 0;
+        }
+        .booking-details li {
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+        .booking-details .booking-label {
+            font-weight: bold;
+            color: #27ae60;
+        }
+        .till-number {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+        .till-number h3 {
+            color: #856404;
+            margin-bottom: 0.5rem;
+            font-size: 1.4rem;
+        }
+        .till-number .till-code {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #27ae60;
+            letter-spacing: 0.2rem;
+            font-family: monospace;
+        }
+        .payment-instructions {
+            background: #e8f5e8;
+            border-left: 4px solid #27ae60;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            text-align: left;
+        }
+        .payment-instructions h4 {
+            color: #27ae60;
+            margin-bottom: 0.5rem;
+        }
+        .payment-instructions ol {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+        .payment-instructions li {
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+        .status-notice {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+        .status-notice .fa-clock {
+            color: #856404;
+            margin-right: 0.5rem;
+        }
+        .continue-btn {
+            padding: 0.8rem 1.5rem;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 1.2rem;
+            transition: background-color 0.3s;
+        }
+        .continue-btn:hover {
+            background-color: #ff5252;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-left">
+            <img src="images/1b.jpg" alt="Cafeteria Logo" class="logo">
+            <span class="cafeteria-name">ATICAS CAFE'</span>
+        </div>
+        <div class="navbar-center">
+            <div class="moving-text">Complete your event booking payment at Aticas Cafe'.</div>
+        </div>
+        <div class="navbar-right">
+            <a href="cart.html" class="cart-icon"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cartCount">0</span></a>
+            <button class="login-btn" id="loginBtn">Login</button>
+            <div class="hamburger-menu" id="hamburgerMenu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+        </div>
+    </nav>
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="index.html"><i class="fas fa-home"></i> Home</a>
+        <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
+        <a href="menu.html"><i class="fas fa-utensils"></i> Menu</a>
+        <a href="orders.html"><i class="fas fa-receipt"></i> My Orders</a>
+        <a href="contact.html"><i class="fas fa-envelope"></i> Contact</a>
+    </div>
+
+    <div class="payment-container">
+        <i class="fas fa-money-bill-wave"></i>
+        <h2>Complete Your Payment</h2>
+        <p>Your event booking has been created and is pending admin approval.</p>
+
+        <div class="booking-details" id="bookingDetails">
+            <!-- Booking details will be loaded here -->
+        </div>
+
+        <div class="till-number">
+            <h3>Pay to Till Number:</h3>
+            <div class="till-code">634536</div>
+        </div>
+
+        <div class="payment-instructions">
+            <h4><i class="fas fa-info-circle"></i> Payment Instructions:</h4>
+            <ol>
+                <li>Use M-Pesa or any mobile money service</li>
+                <li>Enter the till number <strong>634536</strong> as the recipient</li>
+                <li>Enter the exact amount shown above</li>
+                <li>Include your name and "Event Booking" in the payment description</li>
+                <li>Send us a screenshot of the payment confirmation</li>
+            </ol>
+        </div>
+
+        <div class="status-notice">
+            <i class="fas fa-clock"></i>
+            <strong>Booking Status: Pending</strong><br>
+            Your booking will be confirmed once payment is received and approved by our admin team.
+        </div>
+
+        <div style="display: flex; justify-content: center; gap: 1.2rem; margin-top: 1.2rem;">
+            <button class="view-bookings-btn" id="viewBookingsBtn" style="padding: 0.8rem 1.5rem; background-color: #ffc107; color: #222; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; transition: background-color 0.3s;">View My Bookings</button>
+            <button class="continue-btn" id="continueBtn">Continue to Home</button>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="social-icons">
+            <a href="#"><i class="fab fa-facebook"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-linkedin"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+        </div>
+        <p class="built-by">
+            Proudly built with <i class="fas fa-heart" style="color:red"></i>
+        </p>
+            &copy; 2025 Aticas Cafe. All rights reserved.
+        </p>
+    </footer>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const eventId = params.get('eventId');
+            const attendees = params.get('attendees');
+            const total = params.get('total');
+            const bookingDetailsElement = document.getElementById('bookingDetails');
+
+            if (!eventId || !attendees || !total) {
+                bookingDetailsElement.innerHTML = '<p>Invalid booking details. Please try booking again.</p>';
+                return;
+            }
+
+            // Load event details to show booking information
+            fetchEventDetails(eventId, attendees, total);
+        });
+
+        async function fetchEventDetails(eventId, attendees, total) {
+            try {
+                const response = await fetch(`https://aticas-backend.onrender.com/api/events`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch event details');
+                }
+
+                const data = await response.json();
+                if (data.success && data.events) {
+                    const event = data.events.find(e => e._id === eventId);
+                    if (event) {
+                        displayBookingDetails(event, attendees, total);
+                    } else {
+                        throw new Error('Event not found');
+                    }
+                } else {
+                    throw new Error('Invalid events data');
+                }
+            } catch (error) {
+                console.error('Error fetching event:', error);
+                document.getElementById('bookingDetails').innerHTML = '<p>Could not load booking details. Please check your bookings page.</p>';
+            }
+        }
+
+        function displayBookingDetails(event, attendees, total) {
+            const eventDate = new Date(event.date).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            const bookingDetailsElement = document.getElementById('bookingDetails');
+            bookingDetailsElement.innerHTML = `
+                <h4>Booking Summary</h4>
+                <ul>
+                    <li><span class="booking-label">Event:</span> ${event.title}</li>
+                    <li><span class="booking-label">Date:</span> ${eventDate}</li>
+                    <li><span class="booking-label">Location:</span> ${event.location || 'TBD'}</li>
+                    <li><span class="booking-label">Attendees:</span> ${attendees}</li>
+                    <li><span class="booking-label">Total Amount:</span> Ksh ${parseFloat(total).toLocaleString()}</li>
+                </ul>
+            `;
+        }
+
+        // Button event listeners
+        document.getElementById('viewBookingsBtn')?.addEventListener('click', () => {
+            window.location.href = 'my-bookings.html';
+        });
+
+        document.getElementById('continueBtn')?.addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+    </script>
+    <script src="js/script.js"></script>
+</body>
+</html>

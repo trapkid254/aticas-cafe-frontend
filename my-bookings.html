@@ -226,6 +226,7 @@
         const token = localStorage.getItem('userToken');
 
         let allBookings = [];
+        let allEventBookings = [];
         let currentCategory = 'all';
 
         // Tab functionality
@@ -246,9 +247,18 @@
 
         function createBookingCard(booking) {
             const isEventBooking = booking.type === 'catering' || booking.type === 'tour';
+            const isEventBookingFromEvents = booking.eventTitle; // New event booking format
 
             let bookingDetails = '';
-            if (isEventBooking) {
+            if (isEventBookingFromEvents) {
+                bookingDetails = `
+                    <div><b>Event:</b> ${booking.eventTitle}</div>
+                    <div><b>Event Type:</b> ${booking.eventType || 'N/A'}</div>
+                    <div><b>Attendees:</b> ${booking.attendees || 'N/A'}</div>
+                    <div><b>Event Date:</b> ${new Date(booking.eventDate).toLocaleDateString()}</div>
+                    ${booking.specialRequests ? `<div><b>Special Requests:</b> ${booking.specialRequests}</div>` : ''}
+                `;
+            } else if (isEventBooking) {
                 if (booking.type === 'catering') {
                     bookingDetails = `
                         <div><b>Event Type:</b> ${booking.eventType || 'N/A'}</div>
@@ -306,13 +316,21 @@
         }
 
         function displayBookings() {
-            let filteredBookings = allBookings;
+            let filteredBookings = [];
 
-            if (currentCategory === 'events') {
-                filteredBookings = allBookings.filter(booking => booking.type === 'catering' || booking.type === 'tour');
+            if (currentCategory === 'all') {
+                filteredBookings = [...allBookings, ...allEventBookings];
+            } else if (currentCategory === 'events') {
+                filteredBookings = [
+                    ...allBookings.filter(booking => booking.type === 'catering' || booking.type === 'tour'),
+                    ...allEventBookings
+                ];
             } else if (currentCategory === 'tours') {
                 filteredBookings = allBookings.filter(booking => booking.type === 'tour');
             }
+
+            // Sort by date (newest first)
+            filteredBookings.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
 
             if (filteredBookings.length === 0) {
                 bookingsContainer.innerHTML = `
@@ -387,16 +405,26 @@
         (async function() {
             try {
                 if (token) {
-                    // Logged-in user: fetch their bookings
-                    const response = await fetch('https://aticas-backend.onrender.com/api/bookings/user', {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    allBookings = response.ok ? await response.json() : [];
+                    // Logged-in user: fetch their bookings and event bookings
+                    const [bookingsResponse, eventBookingsResponse] = await Promise.all([
+                        fetch('https://aticas-backend.onrender.com/api/bookings/user', {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        }),
+                        fetch('https://aticas-backend.onrender.com/api/user/event-bookings', {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        })
+                    ]);
+
+                    allBookings = bookingsResponse.ok ? (await bookingsResponse.json()).bookings || [] : [];
+                    allEventBookings = eventBookingsResponse.ok ? (await eventBookingsResponse.json()).bookings || [] : [];
+
                     displayBookings();
                 } else {
-                    // Guest: show bookings from localStorage
+                    // Guest: show bookings from localStorage (only regular bookings for guests)
                     const guestBookings = JSON.parse(localStorage.getItem('guestBookings') || '[]');
                     allBookings = guestBookings;
+                    allEventBookings = []; // Guests can't make event bookings currently
+
                     if (allBookings.length > 0) {
                         displayBookings();
                     } else {

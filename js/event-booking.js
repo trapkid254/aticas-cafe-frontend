@@ -583,21 +583,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
+            // For logged-in users, we don't need to send customer info as it's retrieved from token
+            // For guest users, we'd need to collect this info, but currently only logged-in users can book
             const bookingData = {
-                eventId: event._id,
                 attendees: attendees,
                 specialRequests: specialRequests,
-                totalPrice: totalPrice,
-                // Add any additional required fields expected by the backend
-                eventTitle: event.title,
-                eventDate: event.date,
-                eventType: event.type
+                totalPrice: totalPrice
             };
-            
-            console.log('Submitting booking:', bookingData);
-            
+
+            console.log('Submitting event booking:', bookingData);
+
             try {
-                const response = await fetch('https://aticas-backend.onrender.com/api/bookings', {
+                const response = await fetch(`https://aticas-backend.onrender.com/api/events/${event._id}/bookings`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -627,11 +624,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Show success message
-                showBookingSuccess('Booking successful! Redirecting to your bookings...');
-                
-                // Redirect to bookings page after a short delay
+                showBookingSuccess('Booking created successfully! Redirecting to payment...');
+
+                // Redirect to payment page with booking details
                 setTimeout(() => {
-                    window.location.href = 'my-bookings.html';
+                    window.location.href = `event-payment.html?eventId=${event._id}&attendees=${attendees}&total=${totalPrice}`;
                 }, 2000);
                 
             } catch (error) {

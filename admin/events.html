@@ -801,6 +801,72 @@
             capPriceRow.appendChild(priceSpan);
             content.appendChild(capPriceRow);
 
+            // bookings section
+            if (event.bookings && event.bookings.length > 0) {
+                const bookingsToggle = document.createElement("div");
+                bookingsToggle.style.marginTop = "1rem";
+                bookingsToggle.style.padding = "0.5rem";
+                bookingsToggle.style.background = "#f8f9fa";
+                bookingsToggle.style.borderRadius = "8px";
+                bookingsToggle.style.cursor = "pointer";
+                bookingsToggle.style.display = "flex";
+                bookingsToggle.style.justifyContent = "space-between";
+                bookingsToggle.style.alignItems = "center";
+                bookingsToggle.innerHTML = `
+                    <span><i class="fas fa-calendar-check"></i> Bookings (${event.bookings.length})</span>
+                    <i class="fas fa-chevron-down" id="toggle-${event._id}"></i>
+                `;
+
+                const bookingsList = document.createElement("div");
+                bookingsList.id = `bookings-${event._id}`;
+                bookingsList.style.display = "none";
+                bookingsList.style.marginTop = "1rem";
+                bookingsList.style.padding = "1rem";
+                bookingsList.style.background = "#fff";
+                bookingsList.style.borderRadius = "8px";
+                bookingsList.style.border = "1px solid #dee2e6";
+
+                // Populate bookings
+                event.bookings.forEach(booking => {
+                    const bookingItem = document.createElement("div");
+                    bookingItem.style.padding = "0.75rem";
+                    bookingItem.style.borderBottom = "1px solid #f0f0f0";
+                    bookingItem.style.display = "flex";
+                    bookingItem.style.justifyContent = "space-between";
+                    bookingItem.style.alignItems = "center";
+
+                    const statusClass = booking.status === 'confirmed' ? 'status-confirmed' :
+                                      booking.status === 'cancelled' ? 'status-cancelled' : 'status-pending';
+
+                    bookingItem.innerHTML = `
+                        <div>
+                            <strong>${booking.customerName}</strong> (${booking.attendees} people)<br>
+                            <small>${booking.customerEmail} | ${booking.customerPhone}</small><br>
+                            <small>Booked: ${new Date(booking.bookingDate).toLocaleDateString()}</small>
+                        </div>
+                        <div style="text-align: right;">
+                            <span class="status-badge ${statusClass}" style="font-size: 0.8rem;">${booking.status.toUpperCase()}</span><br>
+                            <select onchange="updateBookingStatus('${event._id}', '${booking._id}', this.value)" style="margin-top: 0.5rem; padding: 0.25rem; font-size: 0.8rem;">
+                                <option value="pending" ${booking.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                <option value="confirmed" ${booking.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+                                <option value="cancelled" ${booking.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                            </select>
+                        </div>
+                    `;
+
+                    bookingsList.appendChild(bookingItem);
+                });
+
+                bookingsToggle.addEventListener("click", () => {
+                    const isVisible = bookingsList.style.display !== "none";
+                    bookingsList.style.display = isVisible ? "none" : "block";
+                    document.getElementById(`toggle-${event._id}`).style.transform = isVisible ? "rotate(0deg)" : "rotate(180deg)";
+                });
+
+                content.appendChild(bookingsToggle);
+                content.appendChild(bookingsList);
+            }
+
             // actions
             const actionsRow = document.createElement("div");
             actionsRow.style.display = "flex";
@@ -1178,6 +1244,35 @@
                 }
 
                 displayEvents(filtered);
+            }
+
+            async function updateBookingStatus(eventId, bookingId, newStatus) {
+                try {
+                    const adminToken = localStorage.getItem("adminToken");
+                    const adminType = getAdminType();
+
+                    const response = await fetch(`https://aticas-backend.onrender.com/api/admin/events/${eventId}/bookings/${bookingId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${adminToken}`,
+                            'X-Admin-Type': adminType
+                        },
+                        body: JSON.stringify({ status: newStatus })
+                    });
+
+                    if (response.ok) {
+                        showNotification(`Booking status updated to ${newStatus}`, "success");
+                        // Reload events to refresh the data
+                        await loadEvents();
+                    } else {
+                        const error = await response.json();
+                        showNotification(error.error || "Failed to update booking status", "error");
+                    }
+                } catch (error) {
+                    console.error("Error updating booking status:", error);
+                    showNotification("Failed to update booking status", "error");
+                }
             }
 
             function showNotification(message, type) {
