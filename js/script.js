@@ -240,22 +240,30 @@ document.addEventListener('DOMContentLoaded', function() {
                     return 0;
                 }
                 
-                // For logged-in users, fetch from backend
-                const response = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                if (response.status === 401) {
-                    // Token expired or invalid
-                    localStorage.removeItem('userToken');
-                    localStorage.removeItem('userData');
-                    window.dispatchEvent(new Event('authChange'));
-                    return 0;
-                }
-                
-                if (response.ok) {
+                try {
+                    // For logged-in users, fetch from backend
+                    const response = await fetch(`https://aticas-backend.onrender.com/api/cart/${userId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    
+                    if (response.status === 401) {
+                        // Token expired or invalid
+                        localStorage.removeItem('userToken');
+                        localStorage.removeItem('userData');
+                        window.dispatchEvent(new Event('authChange'));
+                        return 0;
+                    }
+                    
+                    if (!response.ok) {
+                        console.error('Error fetching cart:', response.statusText);
+                        return 0;
+                    }
+                    
                     const cart = await response.json();
-                    count = cart.items?.reduce((total, item) => total + (item.quantity || 1), 0) || 0;
+                    return cart.items ? cart.items.reduce((total, item) => total + (item.quantity || 1), 0) : 0;
+                } catch (error) {
+                    console.error('Error fetching cart:', error);
+                    return 0;
                 }
             } else {
                 // For guests, use localStorage
