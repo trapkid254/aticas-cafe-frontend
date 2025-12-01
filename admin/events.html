@@ -493,74 +493,93 @@
                 }
             }
     </style>
-            let allEvents = [];
-            let editingEventId = null;
-
-            function getAdminType() {
-                let adminType = "cafeteria";
-                try {
-                    const adminData = JSON.parse(localStorage.getItem("adminData"));
-                    if (adminData && adminData.adminType) {
-                        adminType = adminData.adminType;
-                    }
-                } catch (e) {
-                    // Fallback
-                }
-                return localStorage.getItem("adminType") || adminType;
+    <!-- Include the admin-events.js script -->
+    <script src="../js/admin-events.js"></script>
+    <script>
+    // Keep only the utility functions that might be used by other scripts
+    function getAdminType() {
+        let adminType = "cafeteria";
+        try {
+            const storedAdminData = JSON.parse(localStorage.getItem('adminData') || '{}');
+            if (storedAdminData && storedAdminData.adminType) {
+                adminType = storedAdminData.adminType;
+            } else if (localStorage.getItem('adminType')) {
+                adminType = localStorage.getItem('adminType');
             }
+        } catch (e) {
+            console.error('Error getting admin type:', e);
+        }
+        return adminType;
+    }
+    
+    // Make these functions globally available for other scripts
+    window.getAdminType = getAdminType;
 
-            document.addEventListener("DOMContentLoaded", async function () {
-                try {
-                    const adminToken = localStorage.getItem("adminToken");
-                    if (!adminToken) {
-                        window.location.href = "admin-login.html";
-                        return;
-                    }
+    // Add event listeners when the DOM is fully loaded
+    document.addEventListener("DOMContentLoaded", function() {
+        // Check if user is authenticated
+        const adminToken = localStorage.getItem("adminToken");
+        if (!adminToken) {
+            window.location.href = "admin-login.html";
+            return;
+        }
 
-                    await loadEvents();
-                } catch (error) {
-                    console.error("Failed to initialize events page:", error);
-                    // If there's an auth error, redirect to login
-                    if (error.message && error.message.includes("401")) {
-                        window.location.href = "admin-login.html";
-                        return;
-                    }
-                }
-
-                // Add event listeners (always, regardless of loadEvents success/failure)
-                document
-                    .getElementById("addEventBtn")
-                    .addEventListener("click", () => openEventModal());
-                document
-                    .getElementById("closeEventModal")
-                    .addEventListener("click", () => closeEventModal());
-                document
-                    .getElementById("cancelEventBtn")
-                    .addEventListener("click", () => closeEventModal());
-                document
-                    .getElementById("eventModal")
-                    .addEventListener("click", (e) => {
-                        if (
-                            e.target ===
-                            document.getElementById("eventModal")
-                        )
-                            closeEventModal();
-                    });
-                document
-                    .getElementById("eventForm")
-                    .addEventListener("submit", handleEventSubmit);
-                document
-                    .getElementById("typeFilter")
-                    .addEventListener("change", applyFilters);
-                document
-                    .getElementById("statusFilter")
-                    .addEventListener("change", applyFilters);
-                document
-                    .getElementById("searchInput")
-                    .addEventListener("input", applyFilters);
+        // Add event listeners for the modal
+        const addEventBtn = document.getElementById("addEventBtn");
+        const closeModalBtn = document.getElementById("closeEventModal");
+        const cancelBtn = document.getElementById("cancelEventBtn");
+        const eventForm = document.getElementById("eventForm");
+        const typeFilter = document.getElementById("typeFilter");
+        const statusFilter = document.getElementById("statusFilter");
+        const searchInput = document.getElementById("searchInput");
+        const eventModal = document.getElementById("eventModal");
+        
+        // Add event listeners if elements exist
+        if (addEventBtn) {
+            addEventBtn.addEventListener("click", () => window.openEventModal());
+        }
+        
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener("click", () => window.closeEventModal());
+        }
+        
+        if (cancelBtn) {
+            cancelBtn.addEventListener("click", () => window.closeEventModal());
+        }
+        
+        if (eventForm) {
+            eventForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                window.handleEventSubmit(e);
             });
-
-            async function loadEvents() {
+        }
+        
+        if (typeFilter) {
+            typeFilter.addEventListener("change", () => window.applyFilters());
+        }
+        
+        if (statusFilter) {
+            statusFilter.addEventListener("change", () => window.applyFilters());
+        }
+        
+        if (searchInput) {
+            searchInput.addEventListener("input", () => window.applyFilters());
+        }
+        
+        // Click outside modal to close
+        if (eventModal) {
+            eventModal.addEventListener("click", (e) => {
+                if (e.target === eventModal) {
+                    window.closeEventModal();
+                }
+            });
+        }
+    });
+    </script>
+    <script>
+    // This function is now in admin-events.js
+    // It's kept here for backward compatibility
+    window.loadEvents = async function() {
                 const loading = document.getElementById("loading");
                 const errorMsg = document.getElementById("errorMsg");
                 const adminToken = localStorage.getItem("adminToken");
