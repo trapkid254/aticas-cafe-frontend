@@ -585,7 +585,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Get user info from local storage
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const token = localStorage.getItem('userToken');
+            // token is already declared above
             
             // Prepare booking data in the format expected by the server
             const bookingData = {
