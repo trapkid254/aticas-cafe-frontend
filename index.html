@@ -339,19 +339,8 @@
                                     day: "numeric",
                                 });
 
-                                // Determine booking link based on event type
-                                let bookingLink = "#";
-                                if (
-                                    event.type === "catering" ||
-                                    event.type === "wedding" ||
-                                    event.type === "graduation"
-                                ) {
-                                    bookingLink = "outside-catering.html";
-                                } else if (event.type === "tour") {
-                                    bookingLink = "touring.html";
-                                } else if (event.type === "corporate") {
-                                    bookingLink = "our-services.html";
-                                }
+                                // Set booking link to the dedicated event booking page
+                                const bookingLink = `event-booking.html?id=${event._id}`;
 
                                 const eventTypeLabel =
                                     event.type.charAt(0).toUpperCase() +

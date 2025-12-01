@@ -64,24 +64,44 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const response = await fetch('https://aticas-backend.onrender.com/api/events', {
                 headers: {
-                    'Authorization': `Bearer ${adminToken}`
+                    'Authorization': `Bearer ${adminToken}`,
+                    'Content-Type': 'application/json',
+                    'X-Admin-Type': getAdminType()
                 }
             });
 
             if (!response.ok) {
-                throw new Error('Failed to load events');
+                if (response.status === 401) {
+                    // Token expired or invalid
+                    localStorage.removeItem('adminToken');
+                    window.location.href = '/admin/admin-login.html';
+                    return;
+                }
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Failed to load events');
             }
 
             const data = await response.json();
             if (data.success && Array.isArray(data.events)) {
                 allEvents = data.events;
                 displayEvents(allEvents);
+                
+                // Show message if no events found
+                if (allEvents.length === 0) {
+                    noResults.style.display = 'block';
+                    eventsGrid.innerHTML = '';
+                } else {
+                    noResults.style.display = 'none';
+                }
             } else {
-                throw new Error('Invalid data format');
+                throw new Error('Invalid data format received from server');
             }
         } catch (error) {
             console.error('Error loading events:', error);
-            showError('Failed to load events. Please try again.');
+            showError(`Error: ${error.message}`);
+            eventsGrid.innerHTML = '';
+            noResults.style.display = 'block';
+            noResults.textContent = 'Failed to load events. Please try refreshing the page.';
         } finally {
             showLoading(false);
         }
@@ -260,7 +280,12 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     window.deleteEvent = async function(eventId) {
-        if (!confirm('Are you sure you want to delete this event?')) {
+        if (!eventId) {
+            showError('Invalid event ID');
+            return;
+        }
+
+        if (!confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
             return;
         }
 
@@ -269,19 +294,32 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(`https://aticas-backend.onrender.com/api/events/${eventId}`, {
                 method: 'DELETE',
                 headers: {
-                    'Authorization': `Bearer ${adminToken}`
+                    'Authorization': `Bearer ${adminToken}`,
+                    'Content-Type': 'application/json',
+                    'X-Admin-Type': getAdminType()
                 }
             });
 
+            const data = await response.json();
+
             if (!response.ok) {
-                throw new Error('Failed to delete event');
+                if (response.status === 401) {
+                    // Token expired or invalid
+                    localStorage.removeItem('adminToken');
+                    window.location.href = '/admin/admin-login.html';
+                    return;
+                } else if (response.status === 404) {
+                    throw new Error('Event not found or already deleted');
+                } else {
+                    throw new Error(data.message || 'Failed to delete event');
+                }
             }
 
             showSuccess('Event deleted successfully');
             await loadEvents();
         } catch (error) {
             console.error('Error deleting event:', error);
-            showError('Failed to delete event');
+            showError(error.message || 'Failed to delete event. Please try again.');
         } finally {
             showLoading(false);
         }
