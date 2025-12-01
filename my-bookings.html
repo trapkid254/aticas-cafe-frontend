@@ -440,19 +440,18 @@
                 });
 
                 if (response.ok) {
-                    allBookings = await response.json();
+                    const data = await response.json();
+                    // Ensure allBookings is an array
+                    allBookings = Array.isArray(data) ? data : [];
                     displayBookings();
                 } else {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
             } catch (error) {
                 console.error('Error loading bookings:', error);
-                bookingsContainer.innerHTML = `
-                    <div style="text-align:center;color:#e74c3c;">
-                        Failed to load your bookings. Please try again later.<br>
-                        <button onclick="location.reload()" style="margin-top:1.2rem;padding:0.7rem 1.5rem;background:#27ae60;color:#fff;border:none;border-radius:6px;font-weight:bold;cursor:pointer;">Retry</button>
-                    </div>
-                `;
+                // Initialize as empty array if there's an error
+                allBookings = [];
+                displayBookings(); // This will show the "No Bookings Yet" message
             }
         }
 
