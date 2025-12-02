@@ -2,10 +2,12 @@
 
 /* Global Admin Styles */
 .admin-content {
-    margin-left: 250px;
-    padding: 2rem;
-    min-height: calc(100vh - 80px);
+    margin-left: 180px;
+    padding: 1.5rem 2rem;
+    min-height: calc(100vh - 70px);
     background: #f8f9fa;
+    width: calc(100% - 180px);
+    box-sizing: border-box;
 }
 
 .admin-navbar {
@@ -69,21 +71,24 @@
     position: fixed;
     left: 0;
     top: 70px;
-    width: 250px;
+    width: 180px;
     height: calc(100vh - 70px);
     background: white;
     box-shadow: 2px 0 10px rgba(0,0,0,0.1);
     padding-top: 1rem;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .admin-sidebar a {
     display: flex;
     align-items: center;
-    padding: 1rem 1.5rem;
+    padding: 0.7rem 1rem;
     color: #666;
     text-decoration: none;
     transition: all 0.3s ease;
     border-left: 3px solid transparent;
+    font-size: 0.9rem;
 }
 
 .admin-sidebar a:hover,

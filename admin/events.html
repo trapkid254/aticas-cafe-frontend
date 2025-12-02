@@ -91,16 +91,17 @@
         </div>
 
         <!-- Admin Content -->
-        <div class="admin-content">
+        <div class="admin-content events-page-content">
             <div class="page-header">
                 <h2><i class="fas fa-calendar-alt"></i> Event Management</h2>
                 <p class="page-subtitle">
                     Create and manage upcoming events advertised on the homepage
                 </p>
             </div>
+            
             <div class="filter-controls">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <div style="display: flex; gap: 1rem; align-items: center;">
+                    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
                         <input type="text" id="searchInput" placeholder="Search events..." style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; width: 250px;">
                         <select id="typeFilter" class="filter-select">
                             <option value="">All Types</option>
@@ -121,27 +122,28 @@
                     </button>
                 </div>
             </div>
-        </div>
 
-        <!-- Loading and Error Messages -->
-        <div id="loading" class="loading" style="display: none;">
-            <i class="fas fa-spinner fa-spin"></i>
-            <p>Loading events...</p>
-        </div>
-        <div id="errorMsg" class="notification error" style="display: none; position: static; margin-bottom: 1rem;"></div>
+            <!-- Loading and Error Messages -->
+            <div id="loading" class="loading" style="display: none;">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading events...</p>
+            </div>
+            <div id="errorMsg" class="notification error" style="display: none; position: static; margin-bottom: 1rem;"></div>
 
-        <!-- Events Grid -->
-        <div id="eventsGrid" class="events-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
-            <!-- Events will be loaded via JavaScript -->
-        </div>
+            <!-- Events Grid Container -->
+            <div class="events-grid-container">
+                <div id="eventsGrid" class="events-grid">
+                    <!-- Events will be loaded via JavaScript -->
+                </div>
 
-        <!-- No Results Message -->
-        <div id="noResults" class="no-results" style="display: none;">
-            <i class="fas fa-calendar-times"></i>
-            <h3>No events found</h3>
-            <p>Try adjusting your search or filter criteria</p>
+                <!-- No Results Message -->
+                <div id="noResults" class="no-results" style="display: none;">
+                    <i class="fas fa-calendar-times"></i>
+                    <h3>No events found</h3>
+                    <p>Try adjusting your search or filter criteria</p>
+                </div>
+            </div>
         </div>
-    </div>
 
     <!-- Add/Edit Event Modal -->
     <div id="eventModal" class="modal" style="display: none; align-items: center !important;">
@@ -493,6 +495,162 @@
                 }
             }
     </style>
+    
+    <!-- Events Page Specific Styles -->
+    <style>
+        /* Reduce sidebar size for events page */
+        .admin-sidebar {
+            width: 180px !important;
+            padding-top: 1rem !important;
+        }
+        
+        .admin-sidebar a {
+            padding: 0.7rem 1rem !important;
+            font-size: 0.95rem !important;
+            gap: 0.6rem !important;
+        }
+        
+        .admin-sidebar i {
+            font-size: 1rem !important;
+            width: 18px !important;
+        }
+        
+        /* Adjust content area to account for smaller sidebar */
+        .events-page-content {
+            margin-left: 180px !important;
+            margin-top: 60px !important;
+            padding: 1rem 2rem 2rem 2rem !important;
+            max-width: 100% !important;
+            width: calc(100% - 180px) !important;
+            box-sizing: border-box !important;
+            display: flex;
+            flex-direction: column;
+            min-height: calc(100vh - 60px);
+        }
+        
+        /* Compact page header */
+        .events-page-content .page-header {
+            margin-bottom: 1rem !important;
+            padding-bottom: 0.75rem !important;
+        }
+        
+        .events-page-content .page-header h2 {
+            font-size: 1.75rem !important;
+            margin-bottom: 0.25rem !important;
+        }
+        
+        .events-page-content .page-subtitle {
+            font-size: 0.9rem !important;
+            margin: 0 !important;
+        }
+        
+        /* Compact filter controls */
+        .events-page-content .filter-controls {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 1rem;
+        }
+        
+        /* Events Grid Container */
+        .events-grid-container {
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            position: relative;
+            flex: 1;
+        }
+        
+        /* Professional Events Grid */
+        .events-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+            gap: 1.5rem;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        
+        /* Loading and error messages positioning */
+        #loading,
+        #errorMsg {
+            position: relative !important;
+            margin: 1rem 0 !important;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            .admin-sidebar {
+                width: 160px !important;
+            }
+            
+            .events-page-content {
+                margin-left: 160px !important;
+            }
+            
+            .events-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 1.2rem;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .admin-sidebar {
+                width: 140px !important;
+            }
+            
+            .events-page-content {
+                margin-left: 140px !important;
+            }
+            
+            .events-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 1rem;
+            }
+        }
+        
+        /* Ensure no overflow issues */
+        body {
+            overflow-x: hidden;
+        }
+        
+        /* Better spacing for event cards */
+        .event-card-admin {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            max-width: 100%;
+        }
+        
+        .event-card-admin:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.12) !important;
+        }
+        
+        /* No results styling */
+        .no-results {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        /* Ensure events are visible immediately */
+        @media (min-width: 992px) {
+            .events-page-content {
+                padding-top: 0.75rem !important;
+            }
+            
+            .page-header {
+                margin-bottom: 0.75rem !important;
+            }
+            
+            .filter-controls {
+                margin-bottom: 0.75rem !important;
+            }
+        }
+    </style>
     <!-- Include the admin-events.js script -->
     <script src="../js/admin-events.js"></script>
     <script>
@@ -642,14 +800,21 @@
                 const grid = document.getElementById("eventsGrid");
                 const noResults = document.getElementById("noResults");
 
+                if (!grid) {
+                    console.error("Events grid element not found");
+                    return;
+                }
+
                 grid.innerHTML = "";
 
                 if (events.length === 0) {
                     noResults.style.display = "block";
+                    grid.style.display = "none";
                     return;
                 }
 
                 noResults.style.display = "none";
+                grid.style.display = "grid"; // Ensure grid is visible
 
                 events.forEach((event) => {
                     const eventDate = new Date(event.date).toLocaleDateString(
