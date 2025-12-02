@@ -62,11 +62,11 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadEvents() {
         showLoading(true);
         try {
-            const response = await fetch('https://aticas-backend.onrender.com/api/events', {
+            // Use admin events endpoint so admins can manage all events (not just public/upcoming)
+            const response = await fetch('https://aticas-backend.onrender.com/api/admin/events', {
                 headers: {
                     'Authorization': `Bearer ${adminToken}`,
-                    'Content-Type': 'application/json',
-                    'X-Admin-Type': getAdminType()
+                    'Content-Type': 'application/json'
                 }
             });
 
@@ -291,16 +291,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             showLoading(true);
-            const response = await fetch(`https://aticas-backend.onrender.com/api/events/${eventId}`, {
+            // Use admin delete endpoint that exists on the backend
+            const response = await fetch(`https://aticas-backend.onrender.com/api/admin/events/${eventId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${adminToken}`,
-                    'Content-Type': 'application/json',
-                    'X-Admin-Type': getAdminType()
+                    'Content-Type': 'application/json'
                 }
             });
 
-            const data = await response.json();
+            // Safely parse JSON if available; fall back to generic message
+            let data = null;
+            let rawText = '';
+            try {
+                rawText = await response.text();
+                data = rawText ? JSON.parse(rawText) : null;
+            } catch {
+                data = null;
+            }
 
             if (!response.ok) {
                 if (response.status === 401) {
@@ -311,7 +319,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else if (response.status === 404) {
                     throw new Error('Event not found or already deleted');
                 } else {
-                    throw new Error(data.message || 'Failed to delete event');
+                    const serverMessage = data && (data.message || data.error);
+                    throw new Error(serverMessage || `Failed to delete event (status ${response.status})`);
                 }
             }
 
