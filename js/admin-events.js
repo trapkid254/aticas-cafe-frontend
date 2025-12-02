@@ -190,24 +190,36 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!event) return;
             
             modalTitle.textContent = 'Edit Event';
-            document.getElementById('eventTitle').value = event.title;
-            document.getElementById('eventDescription').value = event.description;
-            document.getElementById('eventType').value = event.type;
-            
+            const titleEl = document.getElementById('eventTitle');
+            const descEl = document.getElementById('eventDescription');
+            const typeEl = document.getElementById('eventType');
+            const dateEl = document.getElementById('eventDate');
+            const locEl = document.getElementById('eventLocation');
+            const capEl = document.getElementById('eventCapacity');
+            const priceEl = document.getElementById('eventPrice');
+            const activeEl = document.getElementById('eventActive'); // matches events.html
+
+            if (titleEl) titleEl.value = event.title || '';
+            if (descEl) descEl.value = event.description || '';
+            if (typeEl) typeEl.value = event.type || '';
+
             // Format date for datetime-local input
-            const date = new Date(event.date);
-            const formattedDate = date.toISOString().slice(0, 16);
-            document.getElementById('eventDate').value = formattedDate;
+            if (dateEl && event.date) {
+                const date = new Date(event.date);
+                const formattedDate = date.toISOString().slice(0, 16);
+                dateEl.value = formattedDate;
+            }
             
-            document.getElementById('eventLocation').value = event.location || '';
-            document.getElementById('eventCapacity').value = event.capacity || '';
-            document.getElementById('eventPrice').value = event.price || '';
-            document.getElementById('isActive').checked = event.isActive !== false;
+            if (locEl) locEl.value = event.location || '';
+            if (capEl) capEl.value = event.capacity || '';
+            if (priceEl) priceEl.value = event.price || '';
+            if (activeEl) activeEl.checked = event.active !== false;
         } else {
             // Add new mode
             modalTitle.textContent = 'Add New Event';
-            form.reset();
-            document.getElementById('isActive').checked = true;
+            if (form) form.reset();
+            const activeEl = document.getElementById('eventActive');
+            if (activeEl) activeEl.checked = true;
         }
         
         eventModal.style.display = 'flex';
