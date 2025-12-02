@@ -1182,39 +1182,39 @@
                 const form = document.getElementById("eventForm");
                 const modalTitle = document.getElementById("modalTitle");
                 const imageInput = document.getElementById("eventImage");
-                const imageLabel =
-                    imageInput.parentElement.querySelector("label");
+                const imageLabel = imageInput ? imageInput.parentElement.querySelector("label") : null;
 
                 if (eventId) {
                     modalTitle.textContent = "Edit Event";
                     const event = allEvents.find((e) => e._id === eventId);
                     if (event) {
-                        document.getElementById("eventTitle").value =
-                            event.title;
-                        document.getElementById("eventDescription").value =
-                            event.description;
-                        document.getElementById("eventDate").value = new Date(
-                            event.date,
-                        )
-                            .toISOString()
-                            .slice(0, 16);
-                        document.getElementById("eventType").value = event.type;
-                        document.getElementById("eventLocation").value =
-                            event.location || "";
-                        document.getElementById("eventCapacity").value =
-                            event.capacity || "";
-                        document.getElementById("eventPrice").value =
-                            event.price || "";
-                        document.getElementById("eventFixedPrice").checked =
-                            event.fixedPrice || false;
-                        document.getElementById("eventFeatured").checked =
-                            event.featured || false;
-                        document.getElementById("eventActive").checked =
-                            event.active !== false;
+                        const titleEl = document.getElementById("eventTitle");
+                        const descEl = document.getElementById("eventDescription");
+                        const dateEl = document.getElementById("eventDate");
+                        const typeEl = document.getElementById("eventType");
+                        const locEl = document.getElementById("eventLocation");
+                        const capEl = document.getElementById("eventCapacity");
+                        const priceEl = document.getElementById("eventPrice");
+                        const fixedEl = document.getElementById("eventFixedPrice");
+                        const featuredEl = document.getElementById("eventFeatured");
+                        const activeEl = document.getElementById("eventActive");
+
+                        if (titleEl) titleEl.value = event.title || "";
+                        if (descEl) descEl.value = event.description || "";
+                        if (dateEl && event.date) {
+                            dateEl.value = new Date(event.date).toISOString().slice(0, 16);
+                        }
+                        if (typeEl) typeEl.value = event.type || "";
+                        if (locEl) locEl.value = event.location || "";
+                        if (capEl) capEl.value = event.capacity || "";
+                        if (priceEl) priceEl.value = event.price || "";
+                        if (fixedEl) fixedEl.checked = !!event.fixedPrice;
+                        if (featuredEl) featuredEl.checked = !!event.featured;
+                        if (activeEl) activeEl.checked = event.active !== false;
 
                         // Clear file input and show current image info
-                        imageInput.value = "";
-                        if (imageLabel) {
+                        if (imageInput) imageInput.value = "";
+                        if (imageLabel && event.image) {
                             const currentImageUrl =
                                 event.image && event.image.startsWith("http")
                                     ? event.image
@@ -1224,22 +1224,26 @@
                     }
                 } else {
                     modalTitle.textContent = "Add New Event";
-                    form.reset();
-                    document.getElementById("eventFixedPrice").checked = false;
-                    document.getElementById("eventActive").checked = true;
+                    if (form) form.reset();
+                    const fixedEl = document.getElementById("eventFixedPrice");
+                    const activeEl = document.getElementById("eventActive");
+                    if (fixedEl) fixedEl.checked = false;
+                    if (activeEl) activeEl.checked = true;
                     if (imageLabel) {
                         imageLabel.innerHTML = "Event Image *";
                     }
                 }
 
-                modal.style.display = "block";
-                // Ensure the modal scrolls to the top to show all form details
-                requestAnimationFrame(() => {
-                    const modalContent = document.querySelector(
-                        "#eventModal .modal-content",
-                    );
-                    if (modalContent) modalContent.scrollTop = 0;
-                });
+                if (modal) {
+                    modal.style.display = "block";
+                    // Ensure the modal scrolls to the top to show all form details
+                    requestAnimationFrame(() => {
+                        const modalContent = document.querySelector(
+                            "#eventModal .modal-content",
+                        );
+                        if (modalContent) modalContent.scrollTop = 0;
+                    });
+                }
             }
 
             function closeEventModal() {
