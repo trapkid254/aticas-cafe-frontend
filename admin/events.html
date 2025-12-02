@@ -664,11 +664,37 @@
                         },
                     );
 
-                    // Construct proper image URL
-                    const imageUrl =
-                        event.image && event.image.startsWith("http")
-                            ? event.image
-                            : `https://aticas-backend.onrender.com${event.image}`;
+                    // Construct proper image URL with better handling
+                    let imageUrl = "../images/1b.jpg"; // Default fallback
+                    
+                    console.log("Processing event image:", {
+                        eventId: event._id,
+                        eventTitle: event.title,
+                        imageField: event.image
+                    });
+                    
+                    if (event.image) {
+                        // Clean up the image path
+                        let imagePath = event.image.trim();
+                        
+                        if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+                            // Already a full URL
+                            imageUrl = imagePath;
+                        } else if (imagePath.startsWith("/uploads/")) {
+                            // Relative path - construct full URL
+                            imageUrl = `https://aticas-backend.onrender.com${imagePath}`;
+                        } else if (imagePath.startsWith("uploads/")) {
+                            // Missing leading slash
+                            imageUrl = `https://aticas-backend.onrender.com/${imagePath}`;
+                        } else {
+                            // Try with /uploads/ prefix
+                            imageUrl = `https://aticas-backend.onrender.com/uploads/${imagePath}`;
+                        }
+                        
+                        console.log("Constructed image URL:", imageUrl);
+                    } else {
+                        console.warn("Event has no image field:", event._id);
+                    }
 
                     const eventCard = document.createElement("div");
                     eventCard.className = "event-card-admin";
@@ -684,12 +710,57 @@
             // image
             const img = document.createElement("img");
             img.src = imageUrl;
-            img.alt = event.title;
+            img.alt = event.title || "Event Image";
             img.style.width = "100%";
             img.style.height = "180px";
             img.style.objectFit = "cover";
+            img.style.backgroundColor = "#f0f0f0"; // Background color while loading
+            img.loading = "lazy"; // Lazy load images
+            
+            // Better error handling - try multiple fallbacks
             img.onerror = function () {
+                console.error("Failed to load event image. Original URL:", imageUrl, "Event image field:", event.image);
+                
+                // Prevent infinite error loop
+                if (this.dataset.retryCount && parseInt(this.dataset.retryCount) > 2) {
+                    console.warn("Max retries reached, using fallback image");
+                    this.src = "../images/1b.jpg";
+                    this.onerror = null;
+                    return;
+                }
+                
+                // Track retry count
+                this.dataset.retryCount = (parseInt(this.dataset.retryCount) || 0) + 1;
+                
+                // Try alternative paths
+                if (event.image) {
+                    let altPath = null;
+                    
+                    // Try different URL constructions
+                    if (event.image.startsWith("/uploads/")) {
+                        altPath = `https://aticas-backend.onrender.com${event.image}`;
+                    } else if (event.image.startsWith("uploads/")) {
+                        altPath = `https://aticas-backend.onrender.com/${event.image}`;
+                    } else if (!event.image.startsWith("http")) {
+                        altPath = `https://aticas-backend.onrender.com/uploads/${event.image}`;
+                    }
+                    
+                    if (altPath && this.src !== altPath) {
+                        console.log("Trying alternative image path:", altPath);
+                        this.src = altPath;
+                        return;
+                    }
+                }
+                
+                // Final fallback
+                console.warn("All image paths failed, using default logo");
                 this.src = "../images/1b.jpg";
+                this.onerror = null; // Prevent infinite loop
+            };
+            
+            // Log successful image load for debugging
+            img.onload = function() {
+                console.log("Successfully loaded event image:", imageUrl);
             };
 
             // content container
@@ -1176,6 +1247,9 @@
                     }
 
                     if (response.ok) {
+                        const responseData = await response.json();
+                        console.log("Event saved successfully:", responseData);
+                        
                         closeEventModal();
                         await loadEvents();
                         showNotification(
