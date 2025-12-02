@@ -370,17 +370,17 @@
 
         // Function to accept price
         window.acceptPrice = async function(bookingId) {
+            if (!bookingId) return;
             if (confirm('Are you sure you want to accept this price?')) {
                 try {
                     if (token) {
-                        // For logged-in users, send to backend
+                        // For logged-in users, send to backend (matches PUT /api/bookings/:id/accept-price)
                         const response = await fetch(`https://aticas-backend.onrender.com/api/bookings/${bookingId}/accept-price`, {
-                            method: 'PATCH',
+                            method: 'PUT',
                             headers: {
-                                'Authorization': `Bearer ${token}`,
                                 'Content-Type': 'application/json'
                             },
-                            body: JSON.stringify({ priceAccepted: true })
+                            body: JSON.stringify({ message: 'Price accepted by customer' })
                         });
 
                         if (response.ok) {
@@ -390,7 +390,7 @@
                             alert('Failed to accept price. Please try again.');
                         }
                     } else {
-                        // For guests, update localStorage
+                        // For guests, update localStorage (legacy support)
                         const guestBookings = JSON.parse(localStorage.getItem('guestBookings') || '[]');
                         const bookingIndex = guestBookings.findIndex(b => b._id === bookingId);
                         if (bookingIndex > -1) {
