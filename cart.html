@@ -360,6 +360,16 @@
         // Load cart immediately
         // Cart initialization is now handled by initializeCart() function
 
+        // Ensure cart is loaded when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Cart page loaded, initializing cart...');
+            if (typeof initializeCart === 'function') {
+                initializeCart();
+            } else {
+                console.error('❌ initializeCart function not found!');
+            }
+        });
+
             // Function to fetch cart
             async function fetchCart(isButchery = false) {
                 const userId = localStorage.getItem('userId');
