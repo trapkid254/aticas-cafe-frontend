@@ -544,7 +544,7 @@
                 const token = localStorage.getItem("adminToken");
                 if (!token) {
                     console.error("No admin token found");
-                    window.location.href = "/admin/admin-login.html";
+                    window.location.href = "/shared-admin-login.html";
                     return {};
                 }
                 return {
@@ -559,7 +559,7 @@
                     // Token expired or invalid, redirect to login
                     localStorage.removeItem("adminToken");
                     localStorage.removeItem("adminData");
-                    window.location.href = "/admin/admin-login.html";
+                    window.location.href = "/shared-admin-login.html";
                     throw new Error("Session expired. Please login again.");
                 }
                 if (!response.ok) {
@@ -574,7 +574,7 @@
                     // Check if user is authenticated
                     const token = localStorage.getItem("adminToken");
                     if (!token) {
-                        window.location.href = "/admin/admin-login.html";
+                        window.location.href = "/shared-admin-login.html";
                         return;
                     }
 
