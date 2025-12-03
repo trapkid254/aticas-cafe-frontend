@@ -1770,8 +1770,36 @@
                         if (mpesaDetails) {
                             mpesaDetails.style.display = e.target.value === 'mpesa' ? 'block' : 'none';
                         }
+                        // Update payment details based on cart type
+                        updatePaymentDetails();
                     });
                 });
+
+                // Function to update payment details based on cart type
+                function updatePaymentDetails() {
+                    const isButchery = (localStorage.getItem('cartDepartment') || 'cafeteria') === 'butchery';
+                    const mpesaDetails = document.getElementById('mpesaDetails');
+                    if (!mpesaDetails) return;
+
+                    const paymentMethod = document.querySelector('input[name="payment"]:checked')?.value;
+                    if (paymentMethod !== 'mpesa') return;
+
+                    const paymentInfo = mpesaDetails.querySelector('div[style*="font-size:0.96rem"]');
+                    if (paymentInfo) {
+                        if (isButchery) {
+                            paymentInfo.innerHTML = 'Pay the total to Paybill <b style="color:#27ae60;">522533</b> (Account: 7825739) OR Till <b style="color:#27ae60;">5628838</b>. Use your phone number above. We will verify your payment.';
+                        } else {
+                            paymentInfo.innerHTML = 'Pay the total to Till <b style="color:#27ae60;">634536</b>. Use your phone number above. We will verify your payment.';
+                        }
+                    }
+                }
+
+                // Call updatePaymentDetails when modal opens
+                if (checkoutBtn) {
+                    checkoutBtn.addEventListener('click', () => {
+                        setTimeout(updatePaymentDetails, 100); // Small delay to ensure modal is fully open
+                    });
+                }
 
                 // Toggle Delivery Location section when order type changes
                 const orderTypeRadios = document.querySelectorAll('input[name="orderType"]');
