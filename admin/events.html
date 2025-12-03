@@ -868,11 +868,41 @@
                         console.log("Successfully loaded event image:", imageUrl);
                     },
                     onError: function(imgEl, errorInfo) {
-                        console.error("Failed to load event image after all retries:", {
-                            originalPath: event.image,
-                            constructedUrl: imageUrl,
-                            errorInfo: errorInfo
-                        });
+                        console.group("Failed to load event image after all retries");
+                        console.error("Event ID:", event._id);
+                        console.error("Event Title:", event.title);
+                        console.error("Original Path:", event.image || 'N/A');
+                        console.error("Constructed URL:", imageUrl);
+                        console.error("Error Info:", errorInfo);
+                        console.error("Final Image Element:", imgEl);
+                        console.groupEnd();
+                        
+                        // Verify image existence on server with detailed diagnostics
+                        if (window.ImageUtils && event.image) {
+                            window.ImageUtils.verifyImageExists(event.image).then(result => {
+                                if (!result.exists) {
+                                    console.group(`[ImageUtils] Image Verification Failed for Event: ${event.title}`);
+                                    console.error('Event ID:', event._id);
+                                    console.error('Image Path:', event.image);
+                                    console.error('Verification Result:', result);
+                                    if (result.similarFiles && result.similarFiles.length > 0) {
+                                        console.warn('Similar files found in uploads directory:', result.similarFiles);
+                                    }
+                                    if (result.totalFilesInDir !== undefined) {
+                                        console.info(`Total files in uploads directory: ${result.totalFilesInDir}`);
+                                    }
+                                    console.groupEnd();
+                                    
+                                    // Show admin-friendly message
+                                    console.warn(`⚠️ Image missing for event "${event.title}". File: ${event.image}`);
+                                    console.warn(`💡 Recommendation: Re-upload the image for this event or check if the file exists on the server.`);
+                                } else {
+                                    console.log(`✓ Image verified for event "${event.title}": ${event.image}`);
+                                }
+                            }).catch(err => {
+                                console.warn(`[ImageUtils] Image verification failed:`, err);
+                            });
+                        }
                     }
                 })
                 : (() => {

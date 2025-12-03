@@ -85,22 +85,30 @@ function createImageElement(imagePath, altText = 'Event Image', options = {}) {
     img.onerror = function() {
         retryCount++;
         
-        // Log the error
+        // Log the error with detailed information
         logImageError({
             originalPath: imagePath,
-            constructedUrl: imageUrl,
+            constructedUrl: this.src || imageUrl,
             retryCount: retryCount,
-            eventId: options.eventId || 'unknown'
+            eventId: options.eventId || 'unknown',
+            currentAttempt: retryCount,
+            maxRetries: IMAGE_CONFIG.maxRetries
         });
 
         // Prevent infinite loop
         if (retryCount >= IMAGE_CONFIG.maxRetries) {
-            console.warn(`[ImageUtils] Max retries (${IMAGE_CONFIG.maxRetries}) reached for image: ${imagePath}. Using fallback.`);
+            console.warn(`[ImageUtils] Max retries (${IMAGE_CONFIG.maxRetries}) reached for image: ${imagePath || 'N/A'}. Using fallback.`);
+            console.warn(`[ImageUtils] Final failed URL: ${this.src}`);
             this.src = fallback;
             this.onerror = null; // Prevent further error handling
             
             if (onError) {
-                onError(this, { maxRetriesReached: true });
+                onError(this, { 
+                    maxRetriesReached: true,
+                    originalPath: imagePath,
+                    finalFailedUrl: this.src,
+                    retryCount: retryCount
+                });
             }
             return;
         }
@@ -110,20 +118,26 @@ function createImageElement(imagePath, altText = 'Event Image', options = {}) {
         const nextUrl = alternativeUrls[retryCount - 1];
         
         if (nextUrl && this.src !== nextUrl) {
-            console.log(`[ImageUtils] Retry ${retryCount}: Trying alternative URL: ${nextUrl}`);
+            console.log(`[ImageUtils] Retry ${retryCount}/${IMAGE_CONFIG.maxRetries}: Trying alternative URL: ${nextUrl}`);
             setTimeout(() => {
                 this.src = nextUrl;
             }, IMAGE_CONFIG.retryDelay * retryCount);
             return;
         }
 
-        // Final fallback
-        console.warn(`[ImageUtils] All alternative URLs failed. Using fallback image.`);
+        // Final fallback - no more alternatives
+        console.warn(`[ImageUtils] All alternative URLs exhausted. Using fallback image.`);
+        console.warn(`[ImageUtils] Original path: ${imagePath || 'N/A'}, Failed URL: ${this.src}`);
         this.src = fallback;
         this.onerror = null;
         
         if (onError) {
-            onError(this, { allAlternativesFailed: true });
+            onError(this, { 
+                allAlternativesFailed: true,
+                originalPath: imagePath,
+                finalFailedUrl: this.src,
+                retryCount: retryCount
+            });
         }
     };
 
@@ -177,19 +191,39 @@ function generateAlternativeUrls(imagePath, context = 'user') {
 /**
  * Verifies if an image exists on the server
  * @param {string} imagePath - The image path to verify
- * @returns {Promise<boolean>} - True if image exists, false otherwise
+ * @returns {Promise<Object>} - Verification result with detailed information
  */
 async function verifyImageExists(imagePath) {
-    if (!imagePath) return false;
-    
-    const imageUrl = constructImageUrl(imagePath);
+    if (!imagePath) {
+        return { exists: false, error: 'No image path provided' };
+    }
     
     try {
-        const response = await fetch(imageUrl, { method: 'HEAD' });
-        return response.ok;
+        // Use the backend verification endpoint for more detailed information
+        const verifyUrl = `${IMAGE_CONFIG.backendUrl}/api/images/verify?path=${encodeURIComponent(imagePath)}`;
+        const response = await fetch(verifyUrl);
+        
+        if (response.ok) {
+            const data = await response.json();
+            return data;
+        } else {
+            // Fallback to HEAD request if verification endpoint fails
+            const imageUrl = constructImageUrl(imagePath);
+            const headResponse = await fetch(imageUrl, { method: 'HEAD' });
+            return {
+                exists: headResponse.ok,
+                verified: false,
+                method: 'HEAD',
+                url: imageUrl
+            };
+        }
     } catch (error) {
         console.warn(`[ImageUtils] Failed to verify image: ${imagePath}`, error);
-        return false;
+        return {
+            exists: false,
+            error: error.message,
+            verified: false
+        };
     }
 }
 
@@ -204,7 +238,15 @@ function logImageError(errorInfo) {
         ...errorInfo
     };
     
-    console.error('[ImageUtils] Image load error:', logEntry);
+    // Enhanced console logging with detailed information
+    console.groupCollapsed(`[ImageUtils] Image Load Error (${logEntry.retryCount || 1}/${IMAGE_CONFIG.maxRetries})`);
+    console.error('Original Path:', logEntry.originalPath || 'N/A');
+    console.error('Constructed URL:', logEntry.constructedUrl || 'N/A');
+    console.error('Event ID:', logEntry.eventId || 'N/A');
+    console.error('Retry Count:', logEntry.retryCount || 0);
+    console.error('Timestamp:', logEntry.timestamp);
+    console.error('Full Error Object:', logEntry);
+    console.groupEnd();
     
     // Store in localStorage for potential reporting (limit to last 50 errors)
     try {
@@ -219,6 +261,7 @@ function logImageError(errorInfo) {
         localStorage.setItem('imageErrorLog', JSON.stringify(errorLog));
     } catch (e) {
         // Silently fail if localStorage is not available
+        console.warn('[ImageUtils] Failed to store error log:', e);
     }
 }
 
@@ -277,6 +320,64 @@ function clearImageErrorLog() {
     }
 }
 
+/**
+ * Diagnoses image loading issues for a specific event
+ * @param {string} eventId - The event ID to diagnose
+ * @param {string} imagePath - The image path from the event
+ * @returns {Promise<Object>} - Diagnosis results
+ */
+async function diagnoseImageIssue(eventId, imagePath) {
+    const diagnosis = {
+        eventId: eventId,
+        originalPath: imagePath,
+        timestamp: new Date().toISOString(),
+        issues: [],
+        recommendations: []
+    };
+
+    // Check if path is provided
+    if (!imagePath || imagePath.trim() === '') {
+        diagnosis.issues.push('No image path provided in event data');
+        diagnosis.recommendations.push('Upload an image for this event');
+        return diagnosis;
+    }
+
+    // Check path format
+    const trimmedPath = imagePath.trim();
+    if (!trimmedPath.startsWith('/uploads/') && !trimmedPath.startsWith('uploads/') && !trimmedPath.startsWith('http')) {
+        diagnosis.issues.push('Image path format may be incorrect');
+        diagnosis.recommendations.push('Expected format: /uploads/filename.ext or uploads/filename.ext');
+    }
+
+    // Try to verify image exists
+    try {
+        const exists = await verifyImageExists(imagePath);
+        if (!exists) {
+            diagnosis.issues.push('Image file does not exist on server');
+            diagnosis.recommendations.push('Re-upload the image or check server file system');
+        } else {
+            diagnosis.verified = true;
+        }
+    } catch (error) {
+        diagnosis.issues.push(`Failed to verify image: ${error.message}`);
+        diagnosis.recommendations.push('Check server connectivity and CORS settings');
+    }
+
+    // Check error log for this event
+    try {
+        const errorLog = JSON.parse(localStorage.getItem('imageErrorLog') || '[]');
+        const eventErrors = errorLog.filter(err => err.eventId === eventId);
+        if (eventErrors.length > 0) {
+            diagnosis.recentErrors = eventErrors.slice(-5); // Last 5 errors
+            diagnosis.issues.push(`${eventErrors.length} previous load errors for this event`);
+        }
+    } catch (e) {
+        // Ignore
+    }
+
+    return diagnosis;
+}
+
 // Export functions for use in other scripts
 if (typeof window !== 'undefined') {
     window.ImageUtils = {
@@ -288,6 +389,7 @@ if (typeof window !== 'undefined') {
         logImageSuccess,
         getImageErrorStats,
         clearImageErrorLog,
+        diagnoseImageIssue,
         IMAGE_CONFIG
     };
 }
