@@ -20,6 +20,23 @@ const IMAGE_CONFIG = {
 };
 
 /**
+ * Gets a random fallback image to avoid showing the same fallback for all missing images
+ * @param {string} context - 'user' or 'admin' to determine fallback path
+ * @returns {string} - Random fallback image path
+ */
+function getRandomFallbackImage(context = 'user') {
+    if (context === 'admin') {
+        // For admin context, use relative paths
+        const randomIndex = Math.floor(Math.random() * IMAGE_CONFIG.fallbackImages.length);
+        return `../${IMAGE_CONFIG.fallbackImages[randomIndex]}`;
+    } else {
+        // For user context, use direct paths
+        const randomIndex = Math.floor(Math.random() * IMAGE_CONFIG.fallbackImages.length);
+        return IMAGE_CONFIG.fallbackImages[randomIndex];
+    }
+}
+
+/**
  * Constructs a proper image URL from an event image field
  * @param {string} imagePath - The image path from the database
  * @param {string} context - 'user' or 'admin' to determine fallback path
@@ -407,7 +424,6 @@ if (typeof window !== 'undefined') {
         getImageErrorStats,
         clearImageErrorLog,
         diagnoseImageIssue,
-        getRandomFallbackImage,
         IMAGE_CONFIG
     };
 }
