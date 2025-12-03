@@ -123,7 +123,9 @@ document.addEventListener('DOMContentLoaded', function() {
             eventCard.className = 'event-card';
             eventCard.innerHTML = `
                 <div class="event-image-container">
-                    <img src="${event.image || '../images/1b.jpg'}" alt="${event.title}" onerror="this.src='../images/1b.jpg';">
+                    <img src="${window.ImageUtils ? window.ImageUtils.constructImageUrl(event.image, 'admin') : (event.image || '../images/1b.jpg')}" 
+                         alt="${event.title}" 
+                         onerror="if(window.ImageUtils){window.ImageUtils.logImageError({originalPath:'${event.image || ''}',constructedUrl:this.src,eventId:'${event._id}'});} this.src='../images/1b.jpg'; this.onerror=null;">
                     <span class="event-type ${event.type}">${event.type}</span>
                 </div>
                 <div class="event-details">

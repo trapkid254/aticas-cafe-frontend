@@ -57,15 +57,12 @@ document.addEventListener('DOMContentLoaded', function() {
             minute: '2-digit'
         });
         
-        // Handle image URL
-        let imageUrl = 'images/1b.jpg'; // Default fallback
-        if (event.image) {
-            if (event.image.startsWith('http')) {
-                imageUrl = event.image;
-            } else if (event.image.startsWith('/uploads/')) {
-                imageUrl = `https://aticas-backend.onrender.com${event.image}`;
-            }
-        }
+        // Use ImageUtils for consistent image URL construction
+        const imageUrl = window.ImageUtils 
+            ? window.ImageUtils.constructImageUrl(event.image, 'user')
+            : (event.image && event.image.startsWith('/uploads/') 
+                ? `https://aticas-backend.onrender.com${event.image}` 
+                : 'images/1b.jpg');
         
         // Check if user is admin
         const isAdmin = localStorage.getItem('adminToken') !== null;
@@ -76,7 +73,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const eventHTML = `
             <div class="event-details">
                 <div class="event-header">
-                    <img src="${imageUrl}" alt="${event.title}" class="event-image" onerror="this.src='images/1b.jpg';">
+                    <img src="${imageUrl}" alt="${event.title}" class="event-image" 
+                         onerror="if(window.ImageUtils){window.ImageUtils.logImageError({originalPath:'${event.image || ''}',constructedUrl:this.src,eventId:'${event._id}'});} this.src='images/1b.jpg'; this.onerror=null;">
                     <div class="event-info">
                         <h1 class="event-title">${event.title}</h1>
                         <div class="event-meta">

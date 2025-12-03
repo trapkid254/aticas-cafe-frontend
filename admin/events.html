@@ -651,7 +651,8 @@
             }
         }
     </style>
-    <!-- Include the admin-events.js script -->
+    <!-- Include image utilities and admin-events.js script -->
+    <script src="../js/image-utils.js"></script>
     <script src="../js/admin-events.js"></script>
     <script>
     // Keep only the utility functions that might be used by other scripts
@@ -829,37 +830,19 @@
                         },
                     );
 
-                    // Construct proper image URL with better handling
-                    let imageUrl = "../images/1b.jpg"; // Default fallback
-                    
+                    // Use ImageUtils for consistent image URL construction
+                    const imageUrl = window.ImageUtils 
+                        ? window.ImageUtils.constructImageUrl(event.image, 'admin')
+                        : (event.image && event.image.startsWith('/uploads/') 
+                            ? `https://aticas-backend.onrender.com${event.image}` 
+                            : '../images/1b.jpg');
+
                     console.log("Processing event image:", {
                         eventId: event._id,
                         eventTitle: event.title,
-                        imageField: event.image
+                        imageField: event.image,
+                        constructedUrl: imageUrl
                     });
-                    
-                    if (event.image) {
-                        // Clean up the image path
-                        let imagePath = event.image.trim();
-                        
-                        if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
-                            // Already a full URL
-                            imageUrl = imagePath;
-                        } else if (imagePath.startsWith("/uploads/")) {
-                            // Relative path - construct full URL
-                            imageUrl = `https://aticas-backend.onrender.com${imagePath}`;
-                        } else if (imagePath.startsWith("uploads/")) {
-                            // Missing leading slash
-                            imageUrl = `https://aticas-backend.onrender.com/${imagePath}`;
-                        } else {
-                            // Try with /uploads/ prefix
-                            imageUrl = `https://aticas-backend.onrender.com/uploads/${imagePath}`;
-                        }
-                        
-                        console.log("Constructed image URL:", imageUrl);
-                    } else {
-                        console.warn("Event has no image field:", event._id);
-                    }
 
                     const eventCard = document.createElement("div");
                     eventCard.className = "event-card-admin";
@@ -871,62 +854,43 @@
                 border: 2px solid ${event.active ? "#27ae60" : "#ddd"};
             `;
 
-            // build card content using DOM APIs to avoid inline template CSS parsing issues
-            // image
-            const img = document.createElement("img");
-            img.src = imageUrl;
-            img.alt = event.title || "Event Image";
-            img.style.width = "100%";
-            img.style.height = "180px";
-            img.style.objectFit = "cover";
-            img.style.backgroundColor = "#f0f0f0"; // Background color while loading
-            img.loading = "lazy"; // Lazy load images
-            
-            // Better error handling - try multiple fallbacks
-            img.onerror = function () {
-                console.error("Failed to load event image. Original URL:", imageUrl, "Event image field:", event.image);
-                
-                // Prevent infinite error loop
-                if (this.dataset.retryCount && parseInt(this.dataset.retryCount) > 2) {
-                    console.warn("Max retries reached, using fallback image");
-                    this.src = "../images/1b.jpg";
-                    this.onerror = null;
-                    return;
-                }
-                
-                // Track retry count
-                this.dataset.retryCount = (parseInt(this.dataset.retryCount) || 0) + 1;
-                
-                // Try alternative paths
-                if (event.image) {
-                    let altPath = null;
-                    
-                    // Try different URL constructions
-                    if (event.image.startsWith("/uploads/")) {
-                        altPath = `https://aticas-backend.onrender.com${event.image}`;
-                    } else if (event.image.startsWith("uploads/")) {
-                        altPath = `https://aticas-backend.onrender.com/${event.image}`;
-                    } else if (!event.image.startsWith("http")) {
-                        altPath = `https://aticas-backend.onrender.com/uploads/${event.image}`;
+            // Use ImageUtils to create image element with comprehensive error handling
+            const img = window.ImageUtils 
+                ? window.ImageUtils.createImageElement(event.image, event.title || "Event Image", {
+                    context: 'admin',
+                    style: {
+                        width: "100%",
+                        height: "180px",
+                        objectFit: "cover"
+                    },
+                    eventId: event._id,
+                    onLoad: function(imgEl) {
+                        console.log("Successfully loaded event image:", imageUrl);
+                    },
+                    onError: function(imgEl, errorInfo) {
+                        console.error("Failed to load event image after all retries:", {
+                            originalPath: event.image,
+                            constructedUrl: imageUrl,
+                            errorInfo: errorInfo
+                        });
                     }
-                    
-                    if (altPath && this.src !== altPath) {
-                        console.log("Trying alternative image path:", altPath);
-                        this.src = altPath;
-                        return;
-                    }
-                }
-                
-                // Final fallback
-                console.warn("All image paths failed, using default logo");
-                this.src = "../images/1b.jpg";
-                this.onerror = null; // Prevent infinite loop
-            };
-            
-            // Log successful image load for debugging
-            img.onload = function() {
-                console.log("Successfully loaded event image:", imageUrl);
-            };
+                })
+                : (() => {
+                    // Fallback if ImageUtils not available
+                    const fallbackImg = document.createElement("img");
+                    fallbackImg.src = imageUrl;
+                    fallbackImg.alt = event.title || "Event Image";
+                    fallbackImg.style.width = "100%";
+                    fallbackImg.style.height = "180px";
+                    fallbackImg.style.objectFit = "cover";
+                    fallbackImg.style.backgroundColor = "#f0f0f0";
+                    fallbackImg.loading = "lazy";
+                    fallbackImg.onerror = function() {
+                        this.src = "../images/1b.jpg";
+                        this.onerror = null;
+                    };
+                    return fallbackImg;
+                })();
 
             // content container
             const content = document.createElement("div");

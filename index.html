@@ -308,6 +308,7 @@
             });
         </script>
 
+        <script src="js/image-utils.js"></script>
         <script src="js/script.js"></script>
         <script>
             // Load upcoming events
@@ -347,21 +348,17 @@
                                     event.type.charAt(0).toUpperCase() +
                                     event.type.slice(1);
 
-                                // Handle image URL construction with better fallbacks
-                                let imageUrl = 'images/1b.jpg'; // Default fallback
-
-                                if (event.image) {
-                                    if (event.image.startsWith("http")) {
-                                        imageUrl = event.image;
-                                    } else if (event.image.startsWith("/uploads/")) {
-                                        // Check if the image exists by trying to load it
-                                        imageUrl = `https://aticas-backend.onrender.com${event.image}`;
-                                    }
-                                }
+                                // Use ImageUtils for consistent image URL construction
+                                const imageUrl = window.ImageUtils 
+                                    ? window.ImageUtils.constructImageUrl(event.image, 'user')
+                                    : (event.image && event.image.startsWith('/uploads/') 
+                                        ? `https://aticas-backend.onrender.com${event.image}` 
+                                        : 'images/1b.jpg');
 
                                 return `
                         <div class="event-card">
-                            <img src="${imageUrl}" alt="${event.title}" class="event-image" onerror="this.src='images/1b.jpg';">
+                            <img src="${imageUrl}" alt="${event.title}" class="event-image" 
+                                 onerror="if(window.ImageUtils){window.ImageUtils.logImageError({originalPath:'${event.image || ''}',constructedUrl:this.src,eventId:'${event._id}'});} this.src='images/1b.jpg'; this.onerror=null;">
                             <div class="event-content">
                                 <h3 class="event-title">${event.title}</h3>
                                 <div class="event-date">
