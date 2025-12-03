@@ -8,7 +8,15 @@ const IMAGE_CONFIG = {
     defaultFallback: 'images/1b.jpg',
     adminFallback: '../images/1b.jpg',
     maxRetries: 3,
-    retryDelay: 100 // milliseconds
+    retryDelay: 100, // milliseconds
+    fallbackImages: [
+        'images/1b.jpg',
+        'images/1a.jpg',
+        'images/1c.jpg',
+        'images/1d.jpg',
+        'images/1e.jpg'
+    ],
+    debugMode: true
 };
 
 /**
@@ -99,15 +107,19 @@ function createImageElement(imagePath, altText = 'Event Image', options = {}) {
         if (retryCount >= IMAGE_CONFIG.maxRetries) {
             console.warn(`[ImageUtils] Max retries (${IMAGE_CONFIG.maxRetries}) reached for image: ${imagePath || 'N/A'}. Using fallback.`);
             console.warn(`[ImageUtils] Final failed URL: ${this.src}`);
-            this.src = fallback;
+
+            // Use a random fallback image to avoid showing the same fallback for all missing images
+            const randomFallback = getRandomFallbackImage(context);
+            this.src = randomFallback;
             this.onerror = null; // Prevent further error handling
-            
+
             if (onError) {
-                onError(this, { 
+                onError(this, {
                     maxRetriesReached: true,
                     originalPath: imagePath,
                     finalFailedUrl: this.src,
-                    retryCount: retryCount
+                    retryCount: retryCount,
+                    fallbackUsed: randomFallback
                 });
             }
             return;
@@ -128,17 +140,21 @@ function createImageElement(imagePath, altText = 'Event Image', options = {}) {
         // Final fallback - no more alternatives
         console.warn(`[ImageUtils] All alternative URLs exhausted. Using fallback image.`);
         console.warn(`[ImageUtils] Original path: ${imagePath || 'N/A'}, Failed URL: ${this.src}`);
-        this.src = fallback;
+
+        // Use a random fallback image to avoid showing the same fallback for all missing images
+        const randomFallback = getRandomFallbackImage(context);
+        this.src = randomFallback;
         this.onerror = null;
-        
-        if (onError) {
-            onError(this, { 
-                allAlternativesFailed: true,
-                originalPath: imagePath,
-                finalFailedUrl: this.src,
-                retryCount: retryCount
-            });
-        }
+
+         if (onError) {
+             onError(this, {
+                 allAlternativesFailed: true,
+                 originalPath: imagePath,
+                 finalFailedUrl: this.src,
+                 retryCount: retryCount,
+                 fallbackUsed: randomFallback
+             });
+         }
     };
 
     // Log successful loads
@@ -222,7 +238,8 @@ async function verifyImageExists(imagePath) {
         return {
             exists: false,
             error: error.message,
-            verified: false
+            verified: false,
+            fallbackRecommendation: getRandomFallbackImage('user')
         };
     }
 }
@@ -390,6 +407,7 @@ if (typeof window !== 'undefined') {
         getImageErrorStats,
         clearImageErrorLog,
         diagnoseImageIssue,
+        getRandomFallbackImage,
         IMAGE_CONFIG
     };
 }
